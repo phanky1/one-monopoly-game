@@ -7,6 +7,7 @@ interface Transfer {
   tileId: number;
   revision: number;
   operation: 'load' | 'unload';
+  turnaround: boolean;
   kind: 'laden' | 'empty' | 'reefer';
 }
 
@@ -36,6 +37,7 @@ export function useCargoTransfer(subscribe: SubscribeBoard) {
           playerId: cargo.playerId, tileId: cargo.tileId, revision,
           kind: 'kind' in cargo ? cargo.reeferDueRound !== undefined ? 'reefer' : cargo.kind : 'laden',
           operation: handling.type === 'CARGO_LOADED' || handling.type === 'HARBOR_LOADED' ? 'load' : 'unload',
+          turnaround: handling.type === 'HARBOR_DISCHARGED' && !!handling.receipt.turnaround,
         });
       } else {
         setTransfer(current => {
@@ -67,16 +69,24 @@ interface Props {
 
 export function CargoTransfer({ transfer, is3D, motion, faceLeft, finish }: Props) {
   const duration = motion ? 3400 : 1500;
+  const [loadingExport, setLoadingExport] = useState(false);
   useLayoutEffect(() => {
     const timer = window.setTimeout(() => finish(transfer), duration);
-    return () => window.clearTimeout(timer);
-  }, [duration, finish, transfer]);
+    const handoff = transfer.turnaround && motion
+      ? window.setTimeout(() => setLoadingExport(true), duration / 2) : undefined;
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(handoff);
+    };
+  }, [duration, finish, motion, transfer]);
 
+  const operation = transfer.turnaround && (loadingExport || !motion) ? 'load' : transfer.operation;
   return (
     <span className="cargo-transfer" aria-hidden="true" data-player-id={transfer.playerId}
-      data-tile-id={transfer.tileId} data-operation={transfer.operation} data-cargo-kind={transfer.kind} data-view={is3D ? 'tilted' : 'flat'}
+      data-tile-id={transfer.tileId} data-operation={operation} data-turnaround={transfer.turnaround || undefined}
+      data-cargo-kind={transfer.kind} data-view={is3D ? 'tilted' : 'flat'}
       data-motion={motion ? 'move' : 'still'} data-face={faceLeft ? 'left' : 'right'}>
-      <span className="cargo-berth">
+      <span key={operation} className="cargo-berth">
         <span className="cargo-gantry"><i className="cargo-mast" /><i className="cargo-jib" /><i className="cargo-machinery" /></span>
         <span className="cargo-box cargo-ship-box" />
         <span className="cargo-truck">

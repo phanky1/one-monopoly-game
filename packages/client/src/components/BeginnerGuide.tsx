@@ -15,7 +15,7 @@ interface Step {
   practice?: { question: string; choices: Choice[] };
 }
 
-function harborGuide(supportsBooking: boolean, supportsPurchase: boolean): Step[] {
+function harborGuide(supportsBooking: boolean, supportsPurchase: boolean, supportsTurnaround: boolean): Step[] {
   return [
     {
       title: 'Xếp hàng trước khi lắc xúc xắc',
@@ -55,7 +55,9 @@ function harborGuide(supportsBooking: boolean, supportsPurchase: boolean): Step[
       title: supportsBooking ? 'Đổi cảng, xây bãi và kết thúc lượt' : 'Đổi cảng và kết thúc lượt',
       copy: [
         'Mở “Giao dịch” và chọn cảng muốn mua. Bạn có thể trả tiền hoặc chọn “Cảng của bạn muốn đem đổi”. Nhập 0 để đổi ngang, hoặc thêm tiền bù. Bấm tên tuyến để so sánh tiền thuê và phần cước. Chủ cảng có thể ra giá khác một lần.',
-        supportsBooking
+        supportsTurnaround
+          ? 'Xây cấp 1 để mở bãi xuất hàng. Khi đến với một container, bạn có thể chọn “Dỡ và xếp lô mới” ngay trong lần ghé. Xếp lô mới miễn phí ở cảng của mình. Ở cảng đối thủ, bạn trả chủ cảng $3M, hoặc $6M nếu họ có trọn nhóm màu.'
+          : supportsBooking
           ? 'Xây cấp 1 để mở bãi xuất hàng. Khi tàu đối thủ tới với khoang trống, họ có thể trả bạn $3M để xếp một container hoặc rời bến với khoang trống. Nếu bạn sở hữu trọn nhóm màu, phí xếp là $6M. Tiền thuê tính riêng khi tàu cập bến.'
           : 'Sở hữu cả Cát Lái và Cái Mép giúp bạn nhận 50% cước khi đối thủ dỡ hàng ở hai bến này.',
         'Nếu tàu có hàng ở cảng đang thế chấp của mình, bạn có thể dùng tiền cước để chuộc cảng và dỡ hàng, rồi trả phần còn lại bằng tiền mặt. Xử lý xong, chọn “Kết thúc lượt”. Người cuối cùng chưa phá sản sẽ thắng.',
@@ -63,6 +65,13 @@ function harborGuide(supportsBooking: boolean, supportsPurchase: boolean): Step[
       figures: supportsBooking
         ? [['Cái Mép cấp 1', '$20M tiền thuê'], ['Phí xếp một lô', '$3M'], ['Có trọn nhóm màu', '$6M phí xếp']]
         : [['Cước ví dụ', '$12M'], ['Chủ trọn tuyến', '$6M'], ['Hãng vận chuyển', '$6M']],
+      practice: supportsTurnaround ? {
+        question: 'Tại Cái Mép của Linh, bạn sẽ nhận $9M khi dỡ và mất $3M nếu xếp lô mới. Muốn rời cảng với một container thì số dư tăng bao nhiêu?',
+        choices: [
+          { label: '$6M', correct: true, feedback: 'Đúng. Bạn giữ $6M và chở lô mới từ Cái Mép. Bạn sẽ nhận cước của lô này khi dỡ ở một cảng khác.' },
+          { label: '$9M', correct: false, feedback: 'Nếu chỉ dỡ hàng, bạn giữ $9M và rời cảng với khoang trống. Xếp lô mới tốn thêm $3M.' },
+        ],
+      } : undefined,
     },
   ];
 }
@@ -125,14 +134,14 @@ const guides = {
   ],
 } satisfies Record<Exclude<GameMode, 'harbor'>, Step[]>;
 
-interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean; supportsPurchase?: boolean }
+interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean; supportsPurchase?: boolean; supportsTurnaround?: boolean }
 
-export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true, supportsPurchase = true }: Props) {
+export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true, supportsPurchase = true, supportsTurnaround = true }: Props) {
   const [selected, setSelected] = useState(mode);
   const [page, setPage] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const id = useId(), heading = useRef<HTMLHeadingElement>(null), moveFocus = useRef(false);
-  const steps: Step[] = selected === 'harbor' ? harborGuide(supportsBooking, supportsPurchase) : guides[selected];
+  const steps: Step[] = selected === 'harbor' ? harborGuide(supportsBooking, supportsPurchase, supportsTurnaround) : guides[selected];
   const step = steps[page];
   const response = answer !== null ? step.practice?.choices[answer] : null;
 

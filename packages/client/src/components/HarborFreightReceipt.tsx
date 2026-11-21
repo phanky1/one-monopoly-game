@@ -8,7 +8,19 @@ const number = new Intl.NumberFormat('vi-VN');
 const money = (amount: number) => `$${number.format(amount)}M`;
 const signedMoney = (amount: number) => `${amount < 0 ? '−' : amount > 0 ? '+' : ''}${money(Math.abs(amount))}`;
 
-export function HarborFreightReceipt({ state, receipt }: { state: GameState; receipt: FreightRecord | null }) {
+function ExchangeStamp({ destination, animate }: { destination: string; animate: boolean }) {
+  return <div className="harbor-exchange-stamp">
+    <span className="harbor-exchange-scene" aria-hidden="true" data-harbor-turnaround-motion={animate ? 'live' : 'still'}>
+      <i className="harbor-exchange-ship" /><i className="harbor-exchange-quay" /><i className="harbor-exchange-gantry" />
+      <i className="harbor-exchange-box harbor-box-inbound" /><i className="harbor-exchange-box harbor-box-outbound" />
+    </span>
+    <p><strong>Lô mới đã lên tàu</strong><span>Cảng xếp · {destination}</span></p>
+  </div>;
+}
+
+export function HarborFreightReceipt({ state, receipt, animateExchange = false }: {
+  state: GameState; receipt: FreightRecord | null; animateExchange?: boolean;
+}) {
   const title = useId();
   if (!receipt || state.mode !== 'harbor') return null;
   const originTile = BOARD_TILES[receipt.originTileId], destinationTile = BOARD_TILES[receipt.tileId];
@@ -20,13 +32,15 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
   const bankPayment = purchase ?? receipt.redemptionCost;
   const rent = receipt.rentRelief;
   const booking = receipt.exportBooking;
+  const turnaround = receipt.turnaround;
   const rentPaid = rent && rent.shortfallAfter === 0 ? rent.rentDue : 0;
-  const cashChange = receipt.carrierNet - (bankPayment ?? 0) - rentPaid;
-  const hasPayment = bankPayment !== undefined || !!rent;
+  const cashChange = receipt.carrierNet - (bankPayment ?? 0) - rentPaid - (turnaround?.fee ?? 0);
+  const hasPayment = bankPayment !== undefined || !!rent || !!turnaround;
   const cashLabel = purchase !== undefined ? `Số dư ${carrier} thay đổi do mua cảng và dỡ hàng` : hasPayment ? `Thay đổi số dư của ${carrier}` : `${carrier} thực nhận`;
   const heading = purchase !== undefined ? 'Biên lai mua cảng và dỡ hàng' : rent ? 'Biên lai dỡ hàng khi nợ tiền thuê'
-    : bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : 'Biên lai dỡ hàng';
+    : bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : turnaround ? 'Biên lai dỡ và xếp lô mới' : 'Biên lai dỡ hàng';
   return <section className="harbor-freight-receipt" data-harbor-receipt={receipt.revision}
+    data-harbor-turnaround-receipt={turnaround ? receipt.revision : undefined}
     data-harbor-rent-receipt={rent ? receipt.revision : undefined} tabIndex={rent || purchase !== undefined ? -1 : undefined}
     data-harbor-purchase-receipt={purchase !== undefined ? receipt.revision : undefined}
     data-harbor-redemption-receipt={receipt.redemptionCost !== undefined ? receipt.revision : undefined} aria-labelledby={title}>
@@ -55,10 +69,15 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
       {rent && <div><dt>Tiền thuê đã trả khi dỡ hàng</dt>
         <dd data-harbor-receipt-rent-paid={rentPaid}>{rentPaid > 0 ? '−' : ''}{money(rentPaid)}</dd>
       </div>}
+      {turnaround && <div className="harbor-receipt-fee"><dt>Phí xếp lô mới tại {destination}
+        {turnaround.fee > 0 && <small>Đã chuyển cho <b>{turnaround.operatorName}</b></small>}</dt>
+        <dd data-harbor-turnaround-paid={turnaround.fee}>
+          {turnaround.fee > 0 ? `−${money(turnaround.fee)}` : 'Miễn phí'}</dd></div>}
       <div className="harbor-receipt-net"><dt>{cashLabel}{booking && ' tại bến này'}</dt>
         <dd data-harbor-receipt-net={cashChange} data-harbor-receipt-cash-change={hasPayment ? cashChange : undefined}>
           {signedMoney(cashChange)}</dd></div>
     </dl>
+    {turnaround && <ExchangeStamp destination={destination} animate={animateExchange} />}
     {booking && <dl className="harbor-voyage-result" aria-label="Cước cả chuyến sau phí xếp dỡ">
       <div><dt>Phí xếp tại {origin}<small>Đã trả cho <b>{booking.operatorName}</b> khi xếp hàng</small></dt>
         <dd data-harbor-export-cost={booking.fee}>−{money(booking.fee)}</dd></div>

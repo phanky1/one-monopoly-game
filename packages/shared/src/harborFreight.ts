@@ -5,7 +5,7 @@ import type {
   EngineResult, GameEvent, GameState, HarborBookExportAction, HarborDischargeAction, HarborExportBooking,
   HarborExportTerms, HarborFreightOpportunity, HarborFreightQuote,
   HarborFreightReceipt, HarborFreightState, HarborLoadAction, HarborPurchase, HarborPurchaseAction, HarborRedeemAction, HarborRedemption, HarborRentRelief,
-  HarborRentReliefAction, Player,
+  HarborRentReliefAction, HarborTurnaround, HarborTurnaroundAction, HarborTurnaroundTerms, Player,
 } from './types.js';
 
 export function createHarborFreight(players: Player[]): HarborFreightState {
@@ -115,6 +115,24 @@ export function getHarborFreightOpportunity(state: GameState, playerId: string):
   return quote ? { kind: 'discharge', action: { type: 'HARBOR_DISCHARGE', tileId, revision }, quote } : null;
 }
 
+/** Deliver the inbound box and book a new export on the same call at a developed port. */
+export function getHarborTurnaround(state: GameState, playerId: string): HarborTurnaround | null {
+  const discharge = getHarborFreightOpportunity(state, playerId);
+  if (discharge?.kind !== 'discharge') return null;
+  const { tileId, revision } = discharge.action;
+  const exportFee = getHarborExportFee(state, tileId);
+  if (!exportFee) return null;
+  const operator = state.players.find(player => player.id === state.properties[tileId].ownerId);
+  if (!operator) return null;
+  const fee = operator.id === playerId ? 0 : exportFee;
+  const cashChange = discharge.quote.carrierNet - fee;
+  return {
+    action: { type: 'HARBOR_TURNAROUND', tileId, revision, operatorId: operator.id, fee },
+    operatorName: operator.name, quote: discharge.quote, cashChange,
+    shortfall: Math.max(0, -cashChange - state.players[state.activePlayerIndex].balance),
+  };
+}
+
 export function getHarborRentRelief(state: GameState, playerId: string): HarborRentRelief | null {
   const debt = state.pendingDebt;
   if (state.phase !== 'AWAITING_DEBT_RESOLUTION' || !debt || debt.creditorId === 'BANK' ||
@@ -176,19 +194,23 @@ export function getHarborRedemption(state: GameState, playerId: string): HarborR
 }
 
 export function dispatchHarborFreight(
-  state: GameState, action: HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction,
+  state: GameState, action: HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction | HarborTurnaroundAction,
   actorId?: string,
 ): EngineResult {
   const harbor = state.harborFreight;
   const unchanged = { state, events: [] };
   if (!harbor || !actorId) return unchanged;
-  let opportunity: HarborRedemption | HarborRentRelief | HarborFreightOpportunity | HarborExportBooking | HarborPurchase | null;
+  let opportunity: HarborRedemption | HarborRentRelief | HarborFreightOpportunity | HarborExportBooking | HarborPurchase | HarborTurnaround | null;
   let exportBooking: HarborExportTerms | undefined;
+  let turnaround: HarborTurnaroundTerms | undefined;
   switch (action.type) {
-    case 'HARBOR_BOOK_EXPORT': {
-      opportunity = getHarborExportBooking(state, actorId);
+    case 'HARBOR_BOOK_EXPORT':
+    case 'HARBOR_TURNAROUND': {
+      opportunity = action.type === 'HARBOR_TURNAROUND' ? getHarborTurnaround(state, actorId) : getHarborExportBooking(state, actorId);
       if (!opportunity || action.operatorId !== opportunity.action.operatorId || action.fee !== opportunity.action.fee) return unchanged;
-      exportBooking = { operatorId: action.operatorId, operatorName: opportunity.operatorName, fee: action.fee };
+      const operator = { operatorId: action.operatorId, operatorName: opportunity.operatorName };
+      if (action.type === 'HARBOR_TURNAROUND') turnaround = { ...operator, fee: action.fee };
+      if (action.fee !== 0) exportBooking = { ...operator, fee: action.fee };
       break;
     }
     case 'HARBOR_BUY_AND_DISCHARGE': opportunity = getHarborPurchase(state, actorId); break;
@@ -201,10 +223,11 @@ export function dispatchHarborFreight(
 
   const tileId = action.tileId;
   const quote = 'quote' in opportunity ? opportunity.quote : null;
+  const outwardBox = !quote || turnaround ? { originTileId: tileId, ...(exportBooking && { exportBooking }) } : null;
   const nextHarbor: HarborFreightState = {
     ...harbor, revision: harbor.revision + 1,
     visits: { ...harbor.visits, [actorId]: { tileId, handled: true } },
-    manifests: { ...harbor.manifests, [actorId]: quote ? null : { originTileId: tileId, ...(exportBooking && { exportBooking }) } },
+    manifests: { ...harbor.manifests, [actorId]: outwardBox },
   };
   if (!quote) {
     const events: GameEvent[] = [{ type: 'HARBOR_LOADED', playerId: actorId, tileId, ...(exportBooking && { exportBooking }) }];
@@ -221,6 +244,7 @@ export function dispatchHarborFreight(
   const originBooking = harbor.manifests[actorId]?.exportBooking;
   const receipt: HarborFreightReceipt = { ...quote, round: state.turnCount, revision: nextHarbor.revision,
     ...(originBooking && { exportBooking: originBooking }),
+    ...(turnaround && { turnaround }),
     ...(redemption && { redemptionCost: redemption.redemptionCost }) };
   if ('purchasePrice' in opportunity) receipt.purchasePrice = opportunity.purchasePrice;
   if ('rentDue' in opportunity) receipt.rentRelief = { rentDue: opportunity.rentDue, shortfallAfter: opportunity.shortfallAfter };
@@ -228,15 +252,19 @@ export function dispatchHarborFreight(
   const events: GameEvent[] = [];
   if (redemption) events.push({ type: 'TILE_UNMORTGAGED', playerId: actorId, tileId, cost: redemption.redemptionCost });
   events.push({ type: 'HARBOR_DISCHARGED', receipt });
-  const carrierCashChange = redemption?.cashChange ?? receipt.carrierNet;
-  const carrierReason = redemption ? 'Cước hàng khô sau khi chuộc cảng' : 'Cước vận chuyển hàng khô';
+  if (turnaround) events.push({ type: 'HARBOR_LOADED', playerId: actorId, tileId, ...(exportBooking && { exportBooking }) });
+  const pickupFee = turnaround?.fee ?? 0;
+  const carrierCashChange = redemption?.cashChange ?? receipt.carrierNet - pickupFee;
+  const carrierReason = redemption ? 'Cước hàng khô sau khi chuộc cảng' :
+    pickupFee ? 'Cước hàng khô sau phí xếp lô xuất khẩu' : 'Cước vận chuyển hàng khô';
+  const operatorReason = pickupFee ? 'Phí khai thác bến và phí xếp lô xuất khẩu' : 'Phí khai thác bến cảng';
   const players = state.players.map(player => {
     const isCarrier = player.id === actorId;
     if (!isCarrier && player.id !== receipt.operatorId) return player;
-    const delta = isCarrier ? carrierCashChange : receipt.handlingFee;
+    const delta = isCarrier ? carrierCashChange : receipt.handlingFee + pickupFee;
     const balance = player.balance + delta;
     events.push({ type: 'BALANCE_CHANGED', playerId: player.id, newBalance: balance, delta,
-      reason: isCarrier ? carrierReason : 'Phí khai thác bến cảng' });
+      reason: isCarrier ? carrierReason : operatorReason });
     return { ...player, balance };
   });
   const settled = redemption ? reopenPort(state, tileId) : state;

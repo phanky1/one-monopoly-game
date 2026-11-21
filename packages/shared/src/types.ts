@@ -76,6 +76,21 @@ export interface HarborExportTerms {
   readonly operatorName: string;
   readonly fee: 3 | 6;
 }
+export interface HarborTurnaroundTerms extends Omit<HarborExportTerms, 'fee'> {
+  readonly fee: 0 | 3 | 6;
+}
+export interface HarborTurnaroundAction extends Pick<HarborTurnaroundTerms, 'operatorId' | 'fee'> {
+  type: 'HARBOR_TURNAROUND';
+  tileId: number;
+  revision: number;
+}
+export interface HarborTurnaround {
+  action: HarborTurnaroundAction;
+  operatorName: string;
+  quote: HarborFreightQuote;
+  cashChange: number;
+  shortfall: number;
+}
 export interface HarborBookExportAction extends Pick<HarborExportTerms, 'operatorId' | 'fee'> {
   type: 'HARBOR_BOOK_EXPORT';
   tileId: number;
@@ -110,6 +125,8 @@ export interface HarborFreightReceipt extends HarborFreightQuote {
   round: number;
   revision: number;
   exportBooking?: HarborExportTerms;
+  /** Terms for the new box collected at this delivery's destination. */
+  turnaround?: HarborTurnaroundTerms;
   redemptionCost?: number;
   purchasePrice?: number;
   rentRelief?: Pick<HarborRentRelief, 'rentDue' | 'shortfallAfter'>;
@@ -377,6 +394,7 @@ export interface GameState {
   supportsPortSwaps?: true;
   supportsHarborExportBooking?: true;
   supportsHarborPurchase?: true;
+  supportsHarborTurnaround?: true;
   harborFreight?: HarborFreightState;
   logistics?: LogisticsState;
   cargoRevision?: number;
@@ -417,7 +435,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
-  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction
+  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction | HarborTurnaroundAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall

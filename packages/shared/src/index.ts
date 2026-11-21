@@ -4,7 +4,7 @@ export * from './boardData.js';
 export * from './gameEngine.js';
 export {
   getHarborExportBooking, getHarborExportFee, getHarborFreightOpportunity, getHarborFreightQuote,
-  getHarborPurchase, getHarborRedemption, getHarborRentRelief, getHarborTerminalShare,
+  getHarborPurchase, getHarborRedemption, getHarborRentRelief, getHarborTerminalShare, getHarborTurnaround,
 } from './harborFreight.js';
 export { canSettleTrade, getPortSwapOptions, getTradeCounterAction, getTradeRestriction, isTradeAction, isValidTradeOffer, projectTradeProperties } from './trade.js';
 export { getBotAskingPrice, getBotPortSwapTerms } from './botAskingPrice.js';

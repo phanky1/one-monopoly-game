@@ -479,6 +479,7 @@ export const App: React.FC = () => {
       {guideMode && <BeginnerGuide mode={guideMode} live={!!gameState?.gameStarted && !gameState.winnerId}
         supportsBooking={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborExportBooking === true}
         supportsPurchase={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborPurchase === true}
+        supportsTurnaround={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborTurnaround === true}
         onClose={() => setGuideMode(null)} />}
     </div>
   );

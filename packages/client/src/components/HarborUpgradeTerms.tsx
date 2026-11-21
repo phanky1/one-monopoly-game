@@ -20,5 +20,6 @@ export function HarborUpgradeTerms({ state, tileId }: { state: GameState; tileId
     {' '}{port.containerLevel === 0
       ? <>Từ cấp 1, mỗi khi đối thủ chọn xếp hàng tại đây, bạn thu <strong data-upgrade-export-fee={fee}>${fee}M</strong>.</>
       : <>Bạn vẫn thu <strong data-upgrade-export-fee={fee}>${fee}M</strong> mỗi khi đối thủ chọn xếp hàng tại đây.</>}
+    {port.containerLevel === 0 && state.supportsHarborTurnaround && ' Tàu có hàng cũng có thể dỡ và xếp lô mới trong cùng lần ghé.'}
   </p>;
 }

@@ -155,6 +155,13 @@
   transform: skewX(-39deg);
 }
 .cargo-transfer[data-view='tilted'][data-cargo-kind='empty'] .cargo-box::before { background: #d7e8e7; }
+.cargo-transfer[data-turnaround] { --cycle: 1700ms; }
+.cargo-transfer[data-turnaround][data-operation='load'] .cargo-box {
+  --crate-base: #167b79;
+  --crate-light: #66b7ab;
+  border-color: #204f52;
+}
+.cargo-transfer[data-turnaround][data-operation='load'] .cargo-box::before { background: #abdbcc; }
 [data-cargo-kind='reefer'] .cargo-box, .cargo-box[data-cargo-kind='reefer'] {
   --crate-base: #d5e9e9;
   --crate-light: #fffdf0;
