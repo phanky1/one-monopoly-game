@@ -15,7 +15,7 @@ interface Step {
   practice?: { question: string; choices: Choice[] };
 }
 
-function harborGuide(supportsBooking: boolean, supportsPurchase: boolean, supportsTurnaround: boolean): Step[] {
+function harborGuide(supportsBooking: boolean, supportsPurchase: boolean, supportsTurnaround: boolean, supportsCharterPickup: boolean): Step[] {
   return [
     {
       title: 'Xếp hàng trước khi lắc xúc xắc',
@@ -73,6 +73,17 @@ function harborGuide(supportsBooking: boolean, supportsPurchase: boolean, suppor
         ],
       } : undefined,
     },
+    ...(supportsCharterPickup ? [{
+      title: 'Dùng quyền chia chỗ',
+      copy: [
+        'Bạn có một tuyến dịch vụ và cập Cái Mép cấp 1 của Linh. Nếu Linh đồng ý chia chỗ, bạn trả $10M tiền thuê thay vì $20M. Sau khi trả xong, bạn có một quyền chia chỗ ở Cái Mép.',
+        'Nếu giữ quyền và một hãng thứ ba cập bến, bạn nhận một nửa tiền thuê của lần đó, làm tròn xuống. Bạn cũng có thể chọn “Dùng quyền chia chỗ để xếp hàng”. Ở cảng này, nếu Linh chưa đủ bộ màu, quyền giúp bạn tiết kiệm $3M phí xếp. Khi dùng quyền, bạn vẫn nhận cước của lô vừa dỡ.',
+      ],
+      practice: { question: 'Chỉ còn hai người chơi. Bạn muốn chở một lô mới từ Cái Mép. Quyền chia chỗ giúp bạn làm gì ngay bây giờ?', choices: [
+        { label: 'Xếp lô mới miễn phí', correct: true, feedback: 'Đúng. Bạn dùng quyền để miễn phí xếp và nhận một container từ Cái Mép. Cước của lô mới được trả khi dỡ ở bến khác.' },
+        { label: 'Chờ chia tiền thuê', correct: false, feedback: 'Phải có một hãng thứ ba ghé bến thì hai bên mới chia tiền thuê. Ván này chỉ còn bạn và Linh.' },
+      ] },
+    }] : []),
   ];
 }
 
@@ -134,14 +145,14 @@ const guides = {
   ],
 } satisfies Record<Exclude<GameMode, 'harbor'>, Step[]>;
 
-interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean; supportsPurchase?: boolean; supportsTurnaround?: boolean }
+interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean; supportsPurchase?: boolean; supportsTurnaround?: boolean; supportsCharterPickup?: boolean }
 
-export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true, supportsPurchase = true, supportsTurnaround = true }: Props) {
+export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true, supportsPurchase = true, supportsTurnaround = true, supportsCharterPickup = true }: Props) {
   const [selected, setSelected] = useState(mode);
   const [page, setPage] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const id = useId(), heading = useRef<HTMLHeadingElement>(null), moveFocus = useRef(false);
-  const steps: Step[] = selected === 'harbor' ? harborGuide(supportsBooking, supportsPurchase, supportsTurnaround) : guides[selected];
+  const steps: Step[] = selected === 'harbor' ? harborGuide(supportsBooking, supportsPurchase, supportsTurnaround, supportsCharterPickup) : guides[selected];
   const step = steps[page];
   const response = answer !== null ? step.practice?.choices[answer] : null;
 

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { Anchor, ArrowLeftRight, Container, PackageCheck, Ship } from 'lucide-react';
+import { Anchor, ArrowLeftRight, Container, Handshake, PackageCheck, Ship } from 'lucide-react';
 import {
-  BOARD_TILES, getHarborExportBooking, getHarborFreightOpportunity, getHarborPurchase, getHarborRedemption, getHarborRentRelief, getHarborTurnaround,
+  BOARD_TILES, OneMonopolyEngine, getHarborCharterPickup, getHarborExportBooking, getHarborFreightOpportunity, getHarborPurchase, getHarborRedemption, getHarborRentRelief, getHarborTurnaround,
   type GameAction, type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 import { HarborFreightReceipt } from './HarborFreightReceipt.js';
@@ -67,7 +67,8 @@ type HarborOffer = NonNullable<ReturnType<typeof getHarborFreightOpportunity>>;
 type Redemption = NonNullable<ReturnType<typeof getHarborRedemption>>;
 type ExportBooking = NonNullable<ReturnType<typeof getHarborExportBooking>>;
 type Turnaround = NonNullable<ReturnType<typeof getHarborTurnaround>>;
-type CargoCommand = HarborOffer['action'] | Redemption['action'] | ExportBooking['action'] | Turnaround['action'];
+type CharterPickup = NonNullable<ReturnType<typeof getHarborCharterPickup>>;
+type CargoCommand = HarborOffer['action'] | Redemption['action'] | ExportBooking['action'] | Turnaround['action'] | CharterPickup['action'];
 interface Submission { action: CargoCommand; keyboard: boolean }
 
 function ExportBookingOffer({ booking, mine, disabled, endTurn, submit }: {
@@ -140,6 +141,47 @@ function TurnaroundOffer({ offer, mine, disabled, submit }: {
   </section>;
 }
 
+function CharterPickupChoice({ charter, paid, state, mine, disabled, submit }: {
+  charter: CharterPickup; paid: ExportBooking | Turnaround; state: GameState; mine: boolean; disabled: boolean;
+  submit: (action: CargoCommand, keyboard: boolean) => void;
+}) {
+  const { action, cashChange, operatorName } = charter;
+  const captain = state.players[state.activePlayerIndex];
+  const thirdCaptain = state.players.some(player => !player.isBankrupt && player.id !== captain.id && player.id !== action.operatorId);
+  const share = Math.floor(OneMonopolyEngine.calculateRent(state, action.tileId, state.dice) / 2);
+  const paidChange = cashChange - action.waivedFee;
+  const terms = JSON.stringify([action.operatorId, action.kind, action.waivedFee, cashChange, thirdCaptain, share]);
+  const [reviewed, setReviewed] = useState(terms);
+  const changed = reviewed !== terms;
+  const formatChange = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${money(Math.abs(value))}`;
+  return <section className="harbor-export-quote harbor-charter-choice" data-harbor-charter-quote
+    aria-label="Chọn cách xếp lô hàng xuất">
+    <h4><Handshake size={16} aria-hidden="true" />{action.kind === 'turnaround' ? 'Dỡ và xếp lô mới' : 'Xếp lô mới'} tại {place(action.tileId)}</h4>
+    <table>
+      <thead><tr><th scope="col">Quyền chia chỗ</th><th scope="col">Phí xếp</th><th scope="col">Thay đổi số dư</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Giữ quyền</th><td>{money(action.waivedFee)}</td><td data-harbor-charter-paid-change={paidChange}>{formatChange(paidChange)}</td></tr>
+        <tr><th scope="row">Dùng quyền</th><td>Miễn phí</td><td data-harbor-charter-change={cashChange}>{formatChange(cashChange)}</td></tr>
+      </tbody>
+    </table>
+    <p>Dùng quyền để miễn phí xếp sẽ kết thúc thỏa thuận tại bến này.</p>
+    {thirdCaptain
+      ? <p>Giữ quyền để chia tiền thuê với <strong>{operatorName}</strong> khi hãng thứ ba trả thuê lần tới.
+        {' '}Theo mức thuê hiện tại, phần của <strong>{captain.name}</strong> là <strong data-harbor-charter-share={share}>{money(share)}</strong>.</p>
+      : <p data-harbor-charter-no-third>Chỉ còn hai hãng. Cần một hãng thứ ba ghé cảng và trả tiền thuê mới có khoản chia.</p>}
+    {paid.shortfall > 0 && <p className="harbor-adjustment">Tàu còn thiếu {money(paid.shortfall)} để trả phí xếp.</p>}
+    {mine && (changed ? <button type="button" className="harbor-action" disabled={disabled}
+      onClick={() => setReviewed(terms)}>Xem lại điều kiện chia chỗ</button> : <div className="harbor-charter-actions">
+      <button type="button" className="harbor-action" disabled={disabled || paid.shortfall > 0}
+        data-harbor-book-export={action.kind === 'load' ? action.waivedFee : undefined}
+        data-harbor-turnaround={action.kind === 'turnaround' || undefined}
+        onClick={event => submit(paid.action, event.detail === 0)}>Trả {money(action.waivedFee)} và giữ quyền</button>
+      <button type="button" className="harbor-action" disabled={disabled} data-harbor-charter-pickup={action.kind}
+        onClick={event => submit(action, event.detail === 0)}>Dùng quyền chia chỗ để xếp hàng</button>
+    </div>)}
+  </section>;
+}
+
 function HarborAction({ offer, disabled, submit }: {
   offer: HarborOffer; disabled: boolean; submit: (action: CargoCommand, keyboard: boolean) => void;
 }) {
@@ -169,6 +211,8 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
   const redemption = getHarborRedemption(state, captain.id);
   const booking = state.supportsHarborExportBooking === true ? getHarborExportBooking(state, captain.id) : null;
   const turnaround = state.supportsHarborTurnaround === true ? getHarborTurnaround(state, captain.id) : null;
+  const charter = state.supportsHarborCharterPickup === true ? getHarborCharterPickup(state, captain.id) : null;
+  const paid = booking ?? turnaround;
   const mine = captain.id === myPlayerId;
   const at = place(captain.position);
   const last = harbor.lastDelivery;
@@ -183,7 +227,9 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
   const published = visit?.handled && last?.playerId === captain.id && last.tileId === captain.position
     && last.round === state.turnCount && (!manifest || (last.turnaround && manifest.originTileId === last.tileId &&
       last.revision === harbor.revision));
-  const awaitingTurnaround = inFlight.current?.action.type === 'HARBOR_TURNAROUND' && !accepted;
+  const requested = inFlight.current?.action;
+  const awaitingTurnaround = !accepted && (requested?.type === 'HARBOR_TURNAROUND' ||
+    (requested?.type === 'HARBOR_USE_CHARTER' && requested.kind === 'turnaround'));
   const receipt = published && !awaitingTurnaround ? last : null;
 
   useLayoutEffect(() => {
@@ -199,6 +245,8 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
           (manifest.exportBooking?.operatorId === action.operatorId && manifest.exportBooking.fee === action.fee))) {
         target = summary.current;
       }
+    } else if (action.type === 'HARBOR_USE_CHARTER' && action.kind === 'load') {
+      if (manifest?.originTileId === action.tileId && manifest.charterPickup?.operatorId === action.operatorId) target = summary.current;
     } else if (receipt) target = proof.current;
     if (target && (document.activeElement === document.body || card.current?.contains(document.activeElement))) {
       target.focus({ preventScroll: true });
@@ -209,6 +257,7 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
     if (!mine || busy || inFlight.current || action.revision !== harbor.revision) return;
     if (action.type === 'HARBOR_BOOK_EXPORT' && (!booking || booking.shortfall > 0)) return;
     if (action.type === 'HARBOR_TURNAROUND' && (!turnaround || turnaround.shortfall > 0)) return;
+    if (action.type === 'HARBOR_USE_CHARTER' && !charter) return;
     const request = { action, keyboard };
     inFlight.current = request;
     setPending(true);
@@ -232,6 +281,9 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
       {manifest?.exportBooking && <small className="harbor-prepaid-fee" data-harbor-prepaid-fee={manifest.exportBooking.fee}>
         Đã trả {money(manifest.exportBooking.fee)} phí xếp hàng cho <strong>{manifest.exportBooking.operatorName}</strong>.
       </small>}
+      {manifest?.charterPickup && <small className="harbor-prepaid-fee" data-harbor-charter-saved={manifest.charterPickup.waivedFee}>
+        Đã dùng quyền chia chỗ với <strong>{manifest.charterPickup.operatorName}</strong>. Miễn {money(manifest.charterPickup.waivedFee)} phí xếp.
+      </small>}
     </p>
     {mine && manifest && (state.phase === 'WAIT_FOR_ROLL' || state.phase === 'END_OF_TURN') &&
       <p className="harbor-instruction">Bấm một cảng khác trên bàn cờ để so sánh tiền cước và tiền thuê.</p>}
@@ -245,14 +297,16 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
         {' '}Có thể dỡ tại đây hoặc giữ hàng cho chuyến sau.</p>
       <FreightPrice quote={offer.quote} />
     </> : offer?.kind === 'load' ? <p className="harbor-instruction">Xếp tại {at}, rồi dỡ khi ghé một cảng khác.</p>
-      : booking ? <ExportBookingOffer booking={booking} mine={mine} disabled={busy || pending}
+      : booking && !charter ? <ExportBookingOffer booking={booking} mine={mine} disabled={busy || pending}
         endTurn={state.phase === 'END_OF_TURN'} submit={submit} />
-      : !receipt && <p className="harbor-instruction"><BerthStatus state={state} loaded={!!manifest} /></p>}
+      : !receipt && !charter && <p className="harbor-instruction"><BerthStatus state={state} loaded={!!manifest} /></p>}
     {mine && offer && <HarborAction key={`${offer.kind}/${manifest?.originTileId ?? ''}`} offer={offer}
       disabled={busy || pending} submit={submit} />}
-    {turnaround && <TurnaroundOffer offer={turnaround} mine={mine} disabled={busy || pending} submit={submit} />}
+    {charter && paid ? <CharterPickupChoice charter={charter} paid={paid} state={state} mine={mine}
+      disabled={busy || pending} submit={submit} /> :
+      turnaround && <TurnaroundOffer offer={turnaround} mine={mine} disabled={busy || pending} submit={submit} />}
     {mine && (offer?.kind === 'load' || booking) &&
-      <HarborLoadingPreview state={state} viewerId={captain.id} onInspectPort={onInspectPort} />}
+      <HarborLoadingPreview state={state} viewerId={captain.id} onInspectPort={onInspectPort} charterFee={charter?.action.waivedFee} />}
     {mine && redemption && <button type="button" className="harbor-action" data-harbor-redeem
       disabled={busy || pending || redemption.shortfall > 0}
       onClick={event => submit(redemption.action, event.detail === 0)}>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { BOARD_TILES, GREEN_FLEET_COST, LOOP_GROUPS_CONFIG, getTradeRestriction, type GameAction, type GameState } from '@one-monopoly/shared';
-import { Building2, Check, Dices, DollarSign, Flag, Handshake, Leaf, Ship, Ticket } from 'lucide-react';
+import { Building2, Dices, DollarSign, Flag, Handshake, Leaf, Ship, Ticket } from 'lucide-react';
 import { DebtRescuePanel } from './DebtRescuePanel.js';
 import { StormDecision } from './StormDecision.js';
 import { PropertyAuctionPanel } from './PropertyAuctionPanel.js';
 import { PortPurchaseDecision } from './PortPurchaseDecision.js';
+import { SlotCharterDecision } from './SlotCharterDecision.js';
 import { HarborUpgradeTerms } from './HarborUpgradeTerms.js';
 import './chart-actions.css';
 
@@ -80,65 +81,8 @@ export const ActionControls: React.FC<Props> = ({
   }
 
   if (gameState.phase === 'AWAITING_SLOT_CHARTER_RESPONSE' && gameState.pendingSlotCharter) {
-    const charter = gameState.pendingSlotCharter;
-    const isOwner = myPlayerId === charter.ownerId;
-    const isRequester = myPlayerId === charter.requesterId;
-    const requester = gameState.players.find((p) => p.id === charter.requesterId);
-    const owner = gameState.players.find((p) => p.id === charter.ownerId);
-    const tile = BOARD_TILES[charter.tileId];
-
-    if (isOwner) {
-      return (
-        <section className="chart-action-panel">
-          <h3 className="chart-action-title">
-            <Handshake size={18} aria-hidden="true" />
-            <span>ĐỀ NGHỊ CHIA SẺ CHỖ: "AS ONE, WE CAN"</span>
-          </h3>
-          <p className="chart-action-copy">
-            <strong>{requester?.name}</strong> sở hữu Tuyến Dịch Vụ và đề nghị kích hoạt Slot Chartering tại <strong>{tile.name}</strong>:
-            <br />
-            • Cước sau khi giảm còn <strong>${charter.discountedRent}M</strong> (50% cước).
-            <br />
-            • Khi một người chơi khác ngoài hai bên ghé cảng lần tới, bạn và {requester?.name} sẽ chia đôi tiền cước.
-          </p>
-          <div className="chart-action-row">
-            <button
-              onClick={() => onAction({ type: 'RESPOND_SLOT_CHARTER', accept: true })}
-              className="chart-button chart-button-primary"
-            >
-              <Check size={18} aria-hidden="true" /> ĐỒNG Ý LIÊN MINH (50/50)
-            </button>
-            <button
-              onClick={() => onAction({ type: 'RESPOND_SLOT_CHARTER', accept: false })}
-              className="chart-button"
-            >
-              TỪ CHỐI (THU 100%)
-            </button>
-          </div>
-        </section>
-      );
-    }
-
-    if (isRequester) {
-      return (
-        <section role="status" className="chart-action-panel">
-          <h3 className="chart-action-title">
-            <Handshake size={18} aria-hidden="true" />
-            <span>ĐÃ GỬI ĐỀ NGHỊ "AS ONE, WE CAN"</span>
-          </h3>
-          <p className="chart-action-copy">
-            Đang chờ chủ cảng <strong>{owner?.name}</strong> phản hồi đề nghị chia sẻ chỗ. Nếu hết giờ, bạn trả đủ ${charter.originalRent}M.
-          </p>
-        </section>
-      );
-    }
-
-    return (
-      <div role="status" className="chart-action-panel chart-action-status">
-        <Handshake size={18} aria-hidden="true" />
-        <span>Đang thương lượng thỏa thuận Slot Chartering giữa {requester?.name} và {owner?.name}...</span>
-      </div>
-    );
+    return <SlotCharterDecision state={gameState} charter={gameState.pendingSlotCharter} viewerId={myPlayerId}
+      onAction={onAction} />;
   }
 
   const debt = gameState.phase === 'AWAITING_DEBT_RESOLUTION' && gameState.pendingDebt;

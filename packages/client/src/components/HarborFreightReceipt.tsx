@@ -32,6 +32,7 @@ export function HarborFreightReceipt({ state, receipt, animateExchange = false }
   const bankPayment = purchase ?? receipt.redemptionCost;
   const rent = receipt.rentRelief;
   const booking = receipt.exportBooking;
+  const originCharter = receipt.charterPickup;
   const turnaround = receipt.turnaround;
   const rentPaid = rent && rent.shortfallAfter === 0 ? rent.rentDue : 0;
   const cashChange = receipt.carrierNet - (bankPayment ?? 0) - rentPaid - (turnaround?.fee ?? 0);
@@ -40,6 +41,7 @@ export function HarborFreightReceipt({ state, receipt, animateExchange = false }
   const heading = purchase !== undefined ? 'Biên lai mua cảng và dỡ hàng' : rent ? 'Biên lai dỡ hàng khi nợ tiền thuê'
     : bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : turnaround ? 'Biên lai dỡ và xếp lô mới' : 'Biên lai dỡ hàng';
   return <section className="harbor-freight-receipt" data-harbor-receipt={receipt.revision}
+    data-harbor-charter-receipt={turnaround?.waivedFee ? 'turnaround' : originCharter ? 'origin' : undefined}
     data-harbor-turnaround-receipt={turnaround ? receipt.revision : undefined}
     data-harbor-rent-receipt={rent ? receipt.revision : undefined} tabIndex={rent || purchase !== undefined ? -1 : undefined}
     data-harbor-purchase-receipt={purchase !== undefined ? receipt.revision : undefined}
@@ -70,7 +72,8 @@ export function HarborFreightReceipt({ state, receipt, animateExchange = false }
         <dd data-harbor-receipt-rent-paid={rentPaid}>{rentPaid > 0 ? '−' : ''}{money(rentPaid)}</dd>
       </div>}
       {turnaround && <div className="harbor-receipt-fee"><dt>Phí xếp lô mới tại {destination}
-        {turnaround.fee > 0 && <small>Đã chuyển cho <b>{turnaround.operatorName}</b></small>}</dt>
+        {turnaround.fee > 0 && <small>Đã chuyển cho <b>{turnaround.operatorName}</b></small>}
+        {turnaround.waivedFee && <small>Đã dùng quyền chia chỗ để miễn <b>{money(turnaround.waivedFee)}</b> phí xếp.</small>}</dt>
         <dd data-harbor-turnaround-paid={turnaround.fee}>
           {turnaround.fee > 0 ? `−${money(turnaround.fee)}` : 'Miễn phí'}</dd></div>}
       <div className="harbor-receipt-net"><dt>{cashLabel}{booking && ' tại bến này'}</dt>
@@ -78,6 +81,9 @@ export function HarborFreightReceipt({ state, receipt, animateExchange = false }
           {signedMoney(cashChange)}</dd></div>
     </dl>
     {turnaround && <ExchangeStamp destination={destination} animate={animateExchange} />}
+    {originCharter && <p className="harbor-receipt-rent-note" data-harbor-origin-charter={originCharter.waivedFee}>
+      Phí xếp {money(originCharter.waivedFee)} tại {origin} đã được miễn bằng quyền chia chỗ với <b>{originCharter.operatorName}</b>.
+    </p>}
     {booking && <dl className="harbor-voyage-result" aria-label="Cước cả chuyến sau phí xếp dỡ">
       <div><dt>Phí xếp tại {origin}<small>Đã trả cho <b>{booking.operatorName}</b> khi xếp hàng</small></dt>
         <dd data-harbor-export-cost={booking.fee}>−{money(booking.fee)}</dd></div>

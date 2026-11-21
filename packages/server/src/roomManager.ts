@@ -9,6 +9,7 @@ import {
   GameEvent,
   GameState,
   getDebtRecovery,
+  getHarborCharterPickup,
   getHarborExportBooking,
   getHarborFreightOpportunity,
   getHarborPurchase,
@@ -38,6 +39,14 @@ const rivalTokens: Record<FreightRivalStyle, readonly [VesselToken, VesselToken]
 
 function getBotHarborAction(state: GameState, captainId: string): GameAction | null {
   const captain = state.players[state.activePlayerIndex];
+  const charter = getHarborCharterPickup(state, captainId);
+  if (charter) {
+    const { operatorId, tileId, waivedFee } = charter.action;
+    const hasThirdCaptain = state.players.some(player =>
+      !player.isBankrupt && player.id !== captainId && player.id !== operatorId);
+    const rentShare = Math.floor(OneMonopolyEngine.calculateRent(state, tileId, state.dice) / 2);
+    if (!hasThirdCaptain || waivedFee >= rentShare) return charter.action;
+  }
   const freight = getHarborFreightOpportunity(state, captainId);
   if (freight?.kind === 'discharge') {
     const turnaround = getHarborTurnaround(state, captainId);
@@ -73,11 +82,13 @@ export function gameStateForPlayer(state: GameState, viewerId: string | undefine
     view.supportsHarborExportBooking = true;
     view.supportsHarborPurchase = true;
     view.supportsHarborTurnaround = true;
+    view.supportsHarborCharterPickup = true;
   } else {
     delete view.supportsPortSwaps;
     delete view.supportsHarborExportBooking;
     delete view.supportsHarborPurchase;
     delete view.supportsHarborTurnaround;
+    delete view.supportsHarborCharterPickup;
   }
   if (logistics && market && tender) {
     const bidderIds = tender.bidderIds ?? Object.keys(tender.bids);
@@ -391,7 +402,7 @@ export class RoomManager {
     const activePlayer = room.gameState.players[room.gameState.activePlayerIndex];
     const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_DISCHARGE' ||
       action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT' ||
-      action.type === 'HARBOR_BUY_AND_DISCHARGE' || action.type === 'HARBOR_TURNAROUND';
+      action.type === 'HARBOR_BUY_AND_DISCHARGE' || action.type === 'HARBOR_TURNAROUND' || action.type === 'HARBOR_USE_CHARTER';
     if ((room.gameState.mode === 'logistics' || harborAction) && activePlayer.id !== playerId) {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
@@ -587,7 +598,7 @@ export class RoomManager {
     const docksideDelay = (defaultDelay: number) => {
       if (lastActionType === 'HARBOR_BOOK_EXPORT' || lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE' ||
           lastActionType === 'HARBOR_DISCHARGE_FOR_RENT' || lastActionType === 'HARBOR_BUY_AND_DISCHARGE' ||
-          lastActionType === 'HARBOR_TURNAROUND') {
+          lastActionType === 'HARBOR_TURNAROUND' || lastActionType === 'HARBOR_USE_CHARTER') {
         return CARGO_HANDLING_DELAY_MS;
       }
       if (lastActionType !== 'ROLL_DICE') return defaultDelay;

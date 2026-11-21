@@ -9,6 +9,7 @@ interface Props {
   state: GameState;
   viewerId: string;
   onInspectPort: (tileId: number) => void;
+  charterFee?: number;
 }
 
 function signedMoney(amount: number) {
@@ -16,7 +17,7 @@ function signedMoney(amount: number) {
   return `${sign}$${Math.abs(amount)}M`;
 }
 
-export function HarborLoadingPreview({ state, viewerId, onInspectPort }: Props) {
+export function HarborLoadingPreview({ state, viewerId, onInspectPort, charterFee }: Props) {
   const forecast = useMemo(() => getHarborLoadingForecast(state, viewerId), [state, viewerId]);
   if (!forecast) return null;
   const { calls, directWays, fee, holdWays } = forecast;
@@ -31,6 +32,7 @@ export function HarborLoadingPreview({ state, viewerId, onInspectPort }: Props) 
     <div className="harbor-loading-body">
       {calls.length > 0 ? <>
         <p>Cước ròng là phần bạn kiếm thêm nếu xếp hàng và dỡ tại bến, sau phí dỡ{fee > 0 && <> và ${fee}M phí xếp</>}.
+          {charterFee && <> Nếu dùng quyền chia chỗ, cước ròng của mỗi chuyến tăng thêm ${charterFee}M nhờ được miễn phí xếp.</>}
           {' '}Tàu đi trống vẫn trả tiền thuê.</p>
         <table aria-label="Bến có thể cập trực tiếp bằng hai xúc xắc">
           <thead><tr><th scope="col">Tổng</th><th scope="col">Bến dỡ</th>

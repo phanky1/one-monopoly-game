@@ -50,7 +50,7 @@ export interface BoardTile {
 
 export interface SlotCharterAgreement {
   partnerId: string; // The partner sharing the slot
-  active: boolean; // True until a 3rd party triggers the split
+  active: boolean; // Spent on a third party's rent or an optional harbor export pickup.
 }
 
 export interface PropertyState {
@@ -78,6 +78,22 @@ export interface HarborExportTerms {
 }
 export interface HarborTurnaroundTerms extends Omit<HarborExportTerms, 'fee'> {
   readonly fee: 0 | 3 | 6;
+  readonly waivedFee?: 3 | 6;
+}
+export interface HarborCharterPickupTerms extends Omit<HarborExportTerms, 'fee'> {
+  readonly waivedFee: HarborExportTerms['fee'];
+}
+export interface HarborCharterPickupAction extends Pick<HarborCharterPickupTerms, 'operatorId' | 'waivedFee'> {
+  type: 'HARBOR_USE_CHARTER';
+  kind: 'load' | 'turnaround';
+  tileId: number;
+  revision: number;
+}
+export interface HarborCharterPickup {
+  action: HarborCharterPickupAction;
+  operatorName: string;
+  quote: HarborFreightQuote | null;
+  cashChange: number;
 }
 export interface HarborTurnaroundAction extends Pick<HarborTurnaroundTerms, 'operatorId' | 'fee'> {
   type: 'HARBOR_TURNAROUND';
@@ -104,6 +120,7 @@ export interface HarborExportBooking {
 export interface HarborManifest {
   originTileId: number;
   exportBooking?: HarborExportTerms;
+  charterPickup?: HarborCharterPickupTerms;
 }
 export interface HarborDischargeAction { type: 'HARBOR_DISCHARGE'; tileId: number; revision: number }
 export interface HarborPurchaseAction { type: 'HARBOR_BUY_AND_DISCHARGE'; tileId: number; revision: number }
@@ -125,6 +142,8 @@ export interface HarborFreightReceipt extends HarborFreightQuote {
   round: number;
   revision: number;
   exportBooking?: HarborExportTerms;
+  /** The export fee waived at this delivered box's origin. */
+  charterPickup?: HarborCharterPickupTerms;
   /** Terms for the new box collected at this delivery's destination. */
   turnaround?: HarborTurnaroundTerms;
   redemptionCost?: number;
@@ -395,6 +414,7 @@ export interface GameState {
   supportsHarborExportBooking?: true;
   supportsHarborPurchase?: true;
   supportsHarborTurnaround?: true;
+  supportsHarborCharterPickup?: true;
   harborFreight?: HarborFreightState;
   logistics?: LogisticsState;
   cargoRevision?: number;
@@ -435,7 +455,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
-  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction | HarborTurnaroundAction
+  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction | HarborTurnaroundAction | HarborCharterPickupAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall
@@ -467,7 +487,7 @@ export type GameAction =
   | { type: 'END_TURN' };
 
 export type GameEvent =
-  | { type: 'HARBOR_LOADED'; playerId: string; tileId: number; exportBooking?: HarborExportTerms }
+  | { type: 'HARBOR_LOADED'; playerId: string; tileId: number; exportBooking?: HarborExportTerms; charterPickup?: HarborCharterPickupTerms }
   | { type: 'HARBOR_DISCHARGED'; receipt: HarborFreightReceipt }
   | ({ type: 'IMPORT_TRUCK_RESERVED'; playerId: string } & ImportTruckReservation)
   | { type: 'PORT_TRUCK_CALLED'; operation: TruckOperation; tileId: number; playerId: string; scheduledRound: number }

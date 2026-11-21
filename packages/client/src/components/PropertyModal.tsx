@@ -374,8 +374,14 @@ export const PropertyModal: React.FC<Props> = ({
           <div className="chart-manifest-note">
             <Handshake aria-hidden="true" />
             <div>
-              <strong>Chia sẻ cước 50/50</strong>
-              {charterPartner && <p>{owner?.name} và {charterPartner.name} chia đôi cước khi người chơi khác ghé cảng lần tới.</p>}
+              <strong>Quyền chia chỗ</strong>
+              {charterPartner && <>
+                <p>{gameState.players.some(p => !p.isBankrupt && p.id !== owner?.id && p.id !== charterPartner.id)
+                  ? <>{owner?.name} và {charterPartner.name} chia tiền thuê lần tới khi hãng thứ ba cập bến.</>
+                  : <>Chỉ còn hai hãng. Chưa có hãng thứ ba để chia tiền thuê.</>}</p>
+                {gameState.supportsHarborCharterPickup && getHarborExportFee(gameState, tileId) > 0 &&
+                  <p>{charterPartner.name} có thể dùng quyền để miễn phí xếp một lô xuất ở đây. Thỏa thuận kết thúc khi dùng quyền.</p>}
+              </>}
             </div>
           </div>
         )}

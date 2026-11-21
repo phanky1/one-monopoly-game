@@ -302,3 +302,10 @@
   .chart-manifest-heading { padding-bottom: 11px; }
   .chart-rent-schedule th, .chart-rent-schedule td { padding-block: 6px; }
 }
+
+.charter-rent, .charter-claim h4, .charter-claim p { margin: 0; }
+.charter-rent { border-block: 1px solid #b7c5b8; font-size: 13px; }
+.charter-rent > div { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; }
+.charter-rent dd { margin: 0; font-weight: 750; font-variant-numeric: tabular-nums; }
+.charter-claim { display: grid; gap: 4px; padding: 8px 10px; border-inline-start: 3px solid #387477; background: #eaf1e8; }
+.charter-claim h4, .charter-claim p { font-size: 12px; line-height: 1.45; }

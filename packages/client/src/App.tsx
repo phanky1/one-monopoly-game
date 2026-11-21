@@ -140,7 +140,9 @@ export const App: React.FC = () => {
       if (evt.type === 'HARBOR_LOADED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Thuyền trưởng';
         const port = portGuide[BOARD_TILES[evt.tileId].code].name;
-        logMsg = evt.exportBooking
+        logMsg = evt.charterPickup
+          ? `${who} dùng quyền chia chỗ để xếp một lô mới tại ${port}, được miễn $${evt.charterPickup.waivedFee}M phí xếp.`
+          : evt.exportBooking
           ? `${who} xếp một container tại ${port}, trả ${evt.exportBooking.operatorName} $${evt.exportBooking.fee}M phí xếp hàng.`
           : `${who} xếp một lô hàng xuất tại ${port}.`;
       } else if (evt.type === 'HARBOR_DISCHARGED') {
@@ -275,9 +277,10 @@ export const App: React.FC = () => {
       } else if (evt.type === 'GREEN_FLEET_UPGRADED') {
         logMsg = `🌱 Nâng cấp Tàu Nhiên Liệu Xanh (Green Fuel Ready)`;
       } else if (evt.type === 'SLOT_CHARTER_ACCEPTED') {
-        logMsg = `🤝 Liên minh "As ONE, We Can": Chia sẻ chỗ thành công (giảm 50% cước)`;
+        logMsg = `🤝 Hai hãng chia chỗ tại ${BOARD_TILES[evt.tileId].name}, tiền thuê lần này là $${evt.rentPaid}M.`;
       } else if (evt.type === 'SLOT_CHARTER_RENT_SPLIT') {
-        logMsg = `⚓ Chủ cảng nhận $${evt.ownerAmount ?? evt.splitAmount}M, đối tác nhận $${evt.splitAmount}M`;
+        const port = BOARD_TILES[evt.tileId].name;
+        logMsg = `⚓ Chia tiền thuê tại ${port}. Chủ cảng nhận $${evt.ownerAmount ?? evt.splitAmount}M, đối tác nhận $${evt.splitAmount}M.`;
       } else if (evt.type === 'MISSION_COMPLETED') {
         const captain = state.players.find(player => player.id === evt.playerId);
         logMsg = `🎯 ${captain?.name ?? 'Thuyền trưởng'} hoàn thành ${evt.mission.title} (+$${evt.reward}M)!`;
@@ -480,6 +483,7 @@ export const App: React.FC = () => {
         supportsBooking={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborExportBooking === true}
         supportsPurchase={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborPurchase === true}
         supportsTurnaround={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborTurnaround === true}
+        supportsCharterPickup={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborCharterPickup === true}
         onClose={() => setGuideMode(null)} />}
     </div>
   );

@@ -137,11 +137,11 @@ Gồm 2 ô: **ONE QUOTE (Ô 10)** và **ONE Eco Calculator (Ô 22)**. Giá mua *
 ## 5. CƠ CHẾ ĐẶC QUYỀN HÀNG HẢI ONE (EXCLUSIVE LOGISTICS MECHANICS)
 
 ### 5.1. Thỏa Thuận Chia Sẻ Chỗ "As ONE, We Can" (Slot Chartering)
-Mô phỏng chân thực nghiệp vụ liên minh hàng hải thực tế:
-- **Điều kiện kích hoạt:** Khi Thuyền trưởng **A** đi vào cảng của Thuyền trưởng **B** (cảng đã có ít nhất 1 lô container), nếu **A đang sở hữu ít nhất 1 Tuyến Dịch Vụ Huyết Mạch (VSS, MD2, FE2, PS3)**, hệ thống sẽ đề xuất kích hoạt cơ chế *Slot Chartering*.
-- **Quyền lợi đôi bên:**
-  1. Thuyền trưởng **A** chỉ phải thanh toán **50% tiền cước** của lượt đi này.
-  2. Ở lượt đi kế tiếp, khi có bất kỳ người chơi thứ ba nào khác ghé vào cảng này, **doanh thu tiền cước được chia đôi (50/50) tự động giữa A và B**.
+Khi một hãng có tuyến dịch vụ (VSS, MD2, FE2 hoặc PS3) cập cảng đối thủ đã xây từ cấp 1, chủ cảng có thể đồng ý hoặc từ chối chia chỗ. Nếu từ chối hay hết giờ, khách phải trả đủ tiền thuê. Nếu đồng ý, khách trả một nửa tiền thuê, làm tròn xuống. Quyền chia chỗ có hiệu lực sau khi hãng thanh toán tiền thuê đã giảm.
+
+Hãng có quyền được nhận một nửa tiền thuê, làm tròn xuống, từ lần đầu một hãng thứ ba cập bến. Chủ cảng nhận phần còn lại. Phí khai thác container thuộc về chủ cảng. Ví dụ ở Hong Kong cấp 1, tiền thuê niêm yết là **$175M**. Hãng có tuyến dịch vụ trả **$87M** khi đề nghị được chấp nhận. Nếu giữ quyền và hãng thứ ba trả $175M, chủ cảng nhận **$88M**, đối tác nhận **$87M**.
+
+Trong **Monopoly**, đối tác cũng có thể chọn **Dùng quyền chia chỗ để xếp hàng** ở chính bến đó. Tàu rỗng nhận một lô xuất. Tàu có hàng từ bến khác dỡ lô đang chở và nhận lô mới. Chủ cảng vẫn nhận phí khai thác của lô vừa dỡ. Quyền miễn **$3M** phí xếp lô mới, hoặc **$6M** khi chủ cảng có trọn nhóm màu. Dùng quyền một lần sẽ kết thúc thỏa thuận. Bạn cũng có thể trả phí xếp bình thường để giữ quyền chia tiền thuê. Khi chỉ còn hai hãng, quyền vẫn dùng được để xếp hàng.
 
 ### 5.2. Nâng Cấp "Tàu Nhiên Liệu Xanh" (Green Fleet Upgrade - Methanol / Ammonia)
 - **Điều kiện:** Tại bất kỳ bến cảng nào đã nâng cấp lên Siêu tàu ONE Innovation (Mức 5), chủ cảng có quyền chi thêm **$150M** để gắn **Huy Hiệu Xanh (Green Fuel Ready 🌱)**.
@@ -169,7 +169,7 @@ flowchart TD
     C --> D{"Ô đáp xuống là gì?"}
     D -->|Cảng chưa có chủ| E["Mua cảng hoặc mở đấu giá"]
     D -->|Cảng đối thủ| F{"Đủ điều kiện Slot Chartering?"}
-    F -->|Có| G["Đề xuất Slot Chartering (50% cước)"]
+    F -->|Có| G["Đề xuất Slot Chartering (50% tiền thuê)"]
     F -->|Không| H["Trả 100% cước cho Chủ cảng"]
     D -->|Thẻ Thị Trường / Vận Hành| I["Rút thẻ & Nhận hiệu ứng"]
     D -->|Lệnh Giữ Tàu| J["Vào Khu Neo Đậu Kiểm Hóa"]
