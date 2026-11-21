@@ -272,7 +272,7 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
     });
   }
 
-  return <section ref={card} className="harbor-freight" data-harbor-freight={captain.id} data-view={is3D ? 'tilted' : 'flat'}
+  return <section ref={card} id="harbor-freight-desk" tabIndex={-1} className="harbor-freight" data-harbor-freight={captain.id} data-view={is3D ? 'tilted' : 'flat'}
     aria-label={`Vận tải cảng của ${captain.name}`}>
     <header className="harbor-freight-heading"><h3><Anchor aria-hidden="true" />Vận tải cảng</h3>
       <span>{captain.name} · {at}</span></header>

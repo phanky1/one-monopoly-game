@@ -13,6 +13,7 @@ import { CargoTransfer, useCargoTransfer } from './CargoTransfer.js';
 import { useStormTugRescue } from './stormTugPlayback.js';
 import { BoardSky } from './BoardSky.js';
 import { getPortCallCargo, getPortCallLoad } from './ports/portCallCargo.js';
+import { getHarborAtlasRoute } from './ports/harborAtlasRoute.js';
 import { portGuide } from './ports/portGuide.js';
 import { WorldPortAtlas } from './WorldPortAtlas.js';
 import { ChartTerrainContours } from './ChartTerrainContours.js';
@@ -215,6 +216,13 @@ export const Board: React.FC<Props> = ({
   const [terminalArrival, setTerminalArrival] = React.useState<{ tileId: number; playerId: string } | null>(null);
   const activeCaptain = gameState.players[gameState.activePlayerIndex];
   const atlasTile = visibleAtlas ? BOARD_TILES.find(tile => tile.code === visibleAtlas.port.code) : undefined;
+  const harborRoute = visibleAtlas && atlasTile ? getHarborAtlasRoute(gameState, visibleAtlas, atlasTile.id) : null;
+  function openHarborFreight() {
+    const desk = document.getElementById('harbor-freight-desk');
+    if (!harborRoute || desk?.dataset.harborFreight !== harborRoute.playerId) return;
+    const receipt = harborRoute.kind === 'delivered' ? desk.querySelector<HTMLElement>('.harbor-freight-proof') : null;
+    (receipt ?? desk).focus();
+  }
   const arrivalCaptain = visibleAtlas?.playerId ?? activeCaptain?.id;
   const arrivalCargo = React.useMemo(() => isLogistics && atlasTile && arrivalCaptain
     ? getPortCallCargo(gameState, atlasTile.id, arrivalCaptain, portDischarge ?? undefined) : null,
@@ -393,6 +401,7 @@ export const Board: React.FC<Props> = ({
             >
               {visibleAtlas ? (
                 <WorldPortAtlas arrival={visibleAtlas} is3D={is3D} onClose={returnToPortTile} freight={atlasFreight}
+                  harborRoute={harborRoute} onOpenHarborFreight={harborRoute ? openHarborFreight : undefined}
                   onOpenDeed={gameState.mode === 'harbor' && atlasTile ? () => onSelectTile(atlasTile.id) : undefined}
                   focusTerminalOnArrival={focusFeederTileId !== undefined && focusFeederTileId === atlasTile?.id && visibleAtlas.playerId === myPlayerId}
                   dice={!isLogistics && visibleAtlas.playerId && gameState.hasRolled ? gameState.dice : undefined} />

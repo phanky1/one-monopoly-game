@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import type { GameEvent, GameState } from '@one-monopoly/shared';
+import { BOARD_TILES, type GameEvent, type GameState } from '@one-monopoly/shared';
 import type { SubscribeBoard } from '../hooks/useSocket.js';
 import { buildTravelFrames, restingPose, type Pose, type TravelFrame } from './boardTravel.js';
 import { readPortLanding, updatePortDischarge, updatePortLoad, type PortDischarge, type PortLoad } from './ports/portArrival.js';
@@ -15,6 +15,12 @@ export interface RentLine {
 export interface RentReceipt {
   tileId: number;
   lines: RentLine[];
+}
+
+export function recordArrivalRent(arrival: PortArrival | null, receipt: RentReceipt): PortArrival | null {
+  if (!arrival?.playerId || arrival.port.code !== BOARD_TILES[receipt.tileId]?.code) return arrival;
+  const debit = receipt.lines.find(line => line.type === 'deduct' && line.playerId === arrival.playerId);
+  return debit && arrival.paidRent !== debit.amount ? { ...arrival, paidRent: debit.amount } : arrival;
 }
 
 export function parseRentReceiptFromEvent(
@@ -181,7 +187,10 @@ export function useBoardPlayback(initialState: GameState, subscribe: SubscribeBo
           if (offeredTileId !== undefined) markClaim({ tileId: offeredTileId, playerId: sellerId, swapId: id });
         }
         const receipt = parseRentReceiptFromEvent(event, state.players);
-        if (receipt) setPendingRentReceipts((prev) => ({ ...prev, [receipt.tileId]: receipt }));
+        if (receipt) {
+          setPendingRentReceipts((prev) => ({ ...prev, [receipt.tileId]: receipt }));
+          if (state.mode === 'harbor') setAtlas(prev => recordArrivalRent(prev, receipt));
+        }
       }
     });
     return () => {

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { GameEvent } from '@one-monopoly/shared';
-import { parseRentReceiptFromEvent } from '../src/components/useBoardPlayback.js';
+import { portGuide } from '../src/components/ports/portGuide.js';
+import { parseRentReceiptFromEvent, recordArrivalRent } from '../src/components/useBoardPlayback.js';
 
 describe('parseRentReceiptFromEvent', () => {
   const players = [
@@ -88,5 +89,20 @@ describe('parseRentReceiptFromEvent', () => {
       isDouble: false,
     };
     assert.equal(parseRentReceiptFromEvent(event, players), null);
+  });
+});
+
+describe('rent displayed on the cargo atlas', () => {
+  it('keeps the visitor’s settled debit for this port, even when two captains share the rent', () => {
+    const arrival = { id: 4, playerId: 'c', playerName: 'Chi', port: portGuide.VNVUT };
+    const receipt = parseRentReceiptFromEvent({ type: 'SLOT_CHARTER_RENT_SPLIT', tileId: 3,
+      visitorId: 'c', partnerId: 'm', ownerId: 'l', ownerAmount: 11, splitAmount: 10 }, [])!;
+    const paid = recordArrivalRent(arrival, receipt);
+    assert.equal(paid?.paidRent, 21);
+    assert.equal(recordArrivalRent(paid, receipt), paid);
+    for (const other of [{ id: 5, port: portGuide.VNVUT }, { ...arrival, port: portGuide.SGSIN },
+      { ...arrival, playerId: 'l' }, null]) {
+      assert.equal(recordArrivalRent(other, receipt), other);
+    }
   });
 });

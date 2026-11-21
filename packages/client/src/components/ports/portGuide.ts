@@ -13,6 +13,7 @@ export interface PortArrival {
   id: number;
   playerId?: string;
   playerName?: string;
+  paidRent?: number;
   port: PortGuide;
   origin?: PortGuide;
 }

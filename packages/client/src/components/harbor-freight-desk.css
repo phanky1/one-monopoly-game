@@ -50,7 +50,7 @@
 .harbor-action:hover:enabled { background: #e7ecdd; }
 .harbor-action[data-harbor-discharge]:hover:enabled { background: #f3e5e6; }
 .harbor-action:disabled { opacity: .55; cursor: wait; }
-.harbor-action:focus-visible, .harbor-manifest:focus-visible, .harbor-freight-proof:focus-visible { outline: 2px solid #9d2e62; outline-offset: 2px; }
+.harbor-freight:focus-visible, .harbor-action:focus-visible, .harbor-manifest:focus-visible, .harbor-freight-proof:focus-visible { outline: 2px solid #9d2e62; outline-offset: 2px; }
 .harbor-adjustment { color: #85335a; font-size: .75rem; }
 @media (pointer: coarse) { .harbor-action { min-height: 44px; } }
 .harbor-redemption-price { min-width: 0; padding: 7px 9px; border: 1px solid #b4beb0; border-inline-start: 3px solid #9b7750; border-radius: 3px; background: #fff9e9; }

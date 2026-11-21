@@ -256,3 +256,30 @@
 .world-atlas-deed:focus-visible { outline: 2px solid #922959; outline-offset: 1px; }
 .world-atlas-roll { display: inline-flex; align-items: center; gap: 3px; color: #376267; font: 650 10px/1.2 var(--chart-mono); }
 .world-atlas-roll svg { width: 12px; height: 12px; }
+
+.world-atlas-cargo-toggle { border-color: #668c85; color: #145957; }
+.world-atlas-cargo-toggle + .world-atlas-deed { margin-inline-start: 0; }
+.world-atlas-cargo-ports { display: flex; align-items: center; gap: 6px; padding-bottom: 3px; border-bottom: 1px solid #c3cbbb; }
+.world-atlas-cargo-ports > span { min-width: 0; }
+.world-atlas-cargo-ports b { color: #145b59; font: 650 clamp(11px, 4cqw, 16px)/1.15 var(--chart-display); }
+.world-atlas-cargo-ports > span:last-child b { color: #892552; }
+.world-atlas-cargo-ports small { display: inline-block; margin-inline-start: 4px; color: #47615d; font-size: .78em; }
+.world-atlas-cargo-ports svg { width: 15px; height: 15px; flex: none; color: #58706a; }
+.world-atlas-cargo-terms {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1px 6px;
+  padding-top: 3px; font: 500 clamp(10px, 2.65cqw, 12px)/1.2 var(--chart-sans);
+}
+.world-atlas-cargo-terms span { grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere; }
+.world-atlas-cargo-terms strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.world-atlas-cargo-terms button { min-height: 22px; }
+/* The map window clips the coastline. Let long port names wrap on the upright card. */
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-sheet { overflow: visible; }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading { left: 70%; top: 30%; width: 62%; }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading h3 { font-size: clamp(14px, 4.2cqw, 21px); }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading button { width: 27px; min-height: 27px; height: 27px; padding: 3px; }
+.world-port-atlas-tilted[data-view="cargo"] [data-atlas-cargo-back] span { display: none; }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-caption { left: 29%; top: 71%; width: 64%; padding: 4px 7px 5px; }
+@container (max-width: 780px) or (max-height: 520px) {
+  .world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading { left: 52%; top: 16%; width: 83%; }
+  .world-port-atlas-tilted[data-view="cargo"] .world-atlas-caption { left: 48%; top: 80%; width: 83%; }
+}

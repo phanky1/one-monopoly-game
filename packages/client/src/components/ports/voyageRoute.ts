@@ -12,12 +12,12 @@ function unitVector(point: GeographicPoint) {
 
 // The same great-circle geometry used for quoted mileage. It illustrates the two
 // cargo ports, even when the player called at intermediate ports during the booking.
-export function voyageRoute(origin: GeographicPoint, destination: GeographicPoint) {
+export function voyageWaypoints(origin: GeographicPoint, destination: GeographicPoint) {
   const a = unitVector(origin), b = unitVector(destination);
   const arc = Math.acos(Math.max(-1, Math.min(1, a.reduce((sum, c, i) => sum + c * b[i], 0))));
   const sinArc = Math.sin(arc);
   let previous = atlasPoint(origin).x;
-  const points = Array.from({ length: 49 }, (_, i) => {
+  return Array.from({ length: 49 }, (_, i) => {
     const t = i / 48;
     const w = sinArc > 1e-8 ? Math.sin((1 - t) * arc) / sinArc : 1 - t;
     const v = sinArc > 1e-8 ? Math.sin(t * arc) / sinArc : t;
@@ -30,6 +30,10 @@ export function voyageRoute(origin: GeographicPoint, destination: GeographicPoin
     previous = point.x;
     return point;
   });
+}
+
+export function voyageRoute(origin: GeographicPoint, destination: GeographicPoint) {
+  const points = voyageWaypoints(origin, destination);
   const xs = points.map(p => p.x), ys = points.map(p => p.y);
   const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
   const scale = Math.min((frameWidth - 122) / Math.max(1.5, maxX - minX), (frameHeight - 70) / Math.max(1, maxY - minY));
