@@ -156,6 +156,8 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
     <p className="harbor-manifest" ref={summary} tabIndex={-1} data-harbor-manifest={manifest ? 'laden' : 'empty'}>
       <Ship aria-hidden="true" />{manifest ? <>1 container từ <strong>{place(manifest.originTileId)}</strong></> : 'Khoang tàu trống'}
     </p>
+    {mine && manifest && (state.phase === 'WAIT_FOR_ROLL' || state.phase === 'END_OF_TURN') &&
+      <p className="harbor-instruction">Bấm một cảng khác trên bàn cờ để so sánh tiền cước và tiền thuê.</p>}
     {receipt && <div ref={proof} tabIndex={-1} className="harbor-freight-proof" role="group"
       aria-label={receipt.redemptionCost !== undefined ? 'Biên lai chuộc cảng và dỡ hàng tại bến' : 'Biên lai dỡ hàng tại bến'}>
       <HarborFreightReceipt state={state} receipt={receipt} />

@@ -21,6 +21,7 @@ const guides: Record<GameMode, Step[]> = {
       title: 'Xếp hàng trước khi lắc xúc xắc',
       copy: [
         'Bạn bắt đầu ở Singapore. Trong mục “Vận tải cảng”, chọn “Xếp 1 container”. Xếp hàng miễn phí và tàu giữ lô hàng cho đến khi bạn dỡ ở một cảng khác.',
+        'Khi tàu có hàng, bấm vào một cảng khác trên bàn cờ. Bạn sẽ thấy số dư dự kiến tăng hay giảm bao nhiêu nếu ghé và dỡ ở đó, sau phí bến và tiền thuê. Trên hải đồ, chọn “Sổ cảng” để xem cùng dự tính.',
         'Chọn “Lắc xúc xắc!” để di chuyển. Ở cảng chưa có chủ, xem tiền thuê, phần cước và số cảng cùng màu bạn sẽ có trước khi mua hoặc trả giá. Sau đó bạn mới chọn dỡ hàng.',
       ],
       figures: [['Cảng xuất phát', 'Singapore'], ['Khoang tàu', '1 container'], ['Tiền ban đầu', '$1.500M']],

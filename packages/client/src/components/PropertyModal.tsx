@@ -32,6 +32,7 @@ import { getPortCallCargo, getPortCallLoad } from './ports/portCallCargo.js';
 import type { PortDischarge, PortLoad } from './ports/portArrival.js';
 import { ScheduledOperations } from './TruckTimetable.js';
 import { BoardDialog } from './BoardDialog.js';
+import { HarborCallPreview } from './HarborCallPreview.js';
 import { HarborMortgageTerms } from './HarborMortgageTerms.js';
 import { PortMiniature } from './ports/PortMiniature.js';
 import { portGuide, type PortGuide } from './ports/portGuide.js';
@@ -323,6 +324,7 @@ export const PropertyModal: React.FC<Props> = ({
               <p>{guide.fact}</p>
               <button type="button" onClick={() => onShowPort(guide)}>Xem trên bản đồ</button>
             </div>
+            {gameState.mode === 'harbor' && <HarborCallPreview state={gameState} tileId={tileId} viewerId={myPlayerId} />}
           </div>
         )}
 

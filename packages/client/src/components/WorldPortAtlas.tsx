@@ -42,6 +42,7 @@ interface Props {
   arrival: PortArrival;
   is3D: boolean;
   onClose: () => void;
+  onOpenDeed?: () => void;
   dice?: readonly number[];
   focusTerminalOnArrival?: boolean;
   freight?: {
@@ -54,7 +55,7 @@ export function WorldPortAtlas(props: Props) {
   return <AtlasArrival key={props.arrival.id} {...props} />;
 }
 
-function AtlasArrival({ arrival, is3D, onClose, dice, freight, focusTerminalOnArrival }: Props) {
+function AtlasArrival({ arrival, is3D, onClose, onOpenDeed, dice, freight, focusTerminalOnArrival }: Props) {
   const { port, origin } = arrival;
   const focus = atlasPoint(port);
   const reduceMotion = useReducedMotion();
@@ -241,6 +242,10 @@ function AtlasArrival({ arrival, is3D, onClose, dice, freight, focusTerminalOnAr
               aria-label={`Lần gieo vừa rồi: ${dice[0]} và ${dice[1]}${dice[0] === dice[1] ? ', gieo đôi' : ''}`}>
               <Dices aria-hidden="true" />{dice[0]} + {dice[1]}
             </span>}
+            {onOpenDeed && <button type="button" className="world-atlas-deed" data-atlas-deed
+              aria-haspopup="dialog" aria-label={`Xem sổ cảng ${port.name}`} onClick={onOpenDeed}>
+              Sổ cảng<ChevronRight aria-hidden="true" />
+            </button>}
           </div>
           <p>{overview ? `${port.name} · ${port.country}` : port.fact}</p>
           {freight && <div className="world-atlas-freight" data-atlas-freight>

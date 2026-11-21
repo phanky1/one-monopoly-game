@@ -555,18 +555,9 @@ export class OneMonopolyEngine {
           }
         }
 
-        if (
-          tile.type === 'PORT' &&
-          prop.containerLevel >= 1 &&
-          SERVICE_LINES.some((id) => state.properties[id]?.ownerId === player.id)
-        ) {
-          state.pendingSlotCharter = {
-            requesterId: player.id,
-            ownerId: owner.id,
-            tileId,
-            originalRent: rent,
-            discountedRent: Math.floor(rent / 2),
-          };
+        const charter = OneMonopolyEngine.getSlotCharterOffer(state, tileId, player.id, rent);
+        if (charter) {
+          state.pendingSlotCharter = charter;
           state.phase = 'AWAITING_SLOT_CHARTER_RESPONSE';
           return;
         }
@@ -646,6 +637,22 @@ export class OneMonopolyEngine {
       delta,
       reason,
     });
+  }
+
+  /** Negotiable terms for a visit under the current deed and service-line ownership. */
+  public static getSlotCharterOffer(
+    state: GameState, tileId: number, visitorId: string, rent: number
+  ): PendingSlotCharter | null {
+    const property = state.properties[tileId];
+    if (BOARD_TILES[tileId]?.type !== 'PORT' || !property?.ownerId || property.ownerId === visitorId ||
+        property.isMortgaged || property.containerLevel < 1 ||
+        !SERVICE_LINES.some(id => state.properties[id]?.ownerId === visitorId)) return null;
+
+    // A live third party's existing agreement takes precedence on this visit.
+    const agreement = property.slotCharter;
+    if (agreement?.active && agreement.partnerId !== visitorId &&
+        state.players.some(player => player.id === agreement.partnerId && !player.isBankrupt)) return null;
+    return { requesterId: visitorId, ownerId: property.ownerId, tileId, originalRent: rent, discountedRent: Math.floor(rent / 2) };
   }
 
   public static calculateRent(state: GameState, tileId: number, dice: [number, number]): number {

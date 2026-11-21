@@ -214,15 +214,15 @@ export const Board: React.FC<Props> = ({
   const visibleAtlas = !moving && !isRolling && !gameState.winnerId ? atlas : null;
   const [terminalArrival, setTerminalArrival] = React.useState<{ tileId: number; playerId: string } | null>(null);
   const activeCaptain = gameState.players[gameState.activePlayerIndex];
-  const atlasTile = isLogistics && visibleAtlas ? BOARD_TILES.find(tile => tile.code === visibleAtlas.port.code) : undefined;
+  const atlasTile = visibleAtlas ? BOARD_TILES.find(tile => tile.code === visibleAtlas.port.code) : undefined;
   const arrivalCaptain = visibleAtlas?.playerId ?? activeCaptain?.id;
-  const arrivalCargo = React.useMemo(() => atlasTile && arrivalCaptain
+  const arrivalCargo = React.useMemo(() => isLogistics && atlasTile && arrivalCaptain
     ? getPortCallCargo(gameState, atlasTile.id, arrivalCaptain, portDischarge ?? undefined) : null,
-  [gameState, atlasTile, arrivalCaptain, portDischarge]);
+  [gameState, isLogistics, atlasTile, arrivalCaptain, portDischarge]);
   const loadedHere = !!getPortCallLoad(arrivalCargo, portLoad);
-  const feederRoutes = React.useMemo(() => visibleAtlas?.playerId === activeCaptain?.id && activeCaptain &&
+  const feederRoutes = React.useMemo(() => isLogistics && visibleAtlas?.playerId === activeCaptain?.id && activeCaptain &&
     atlasTile?.id === activeCaptain.position ? getFeederRoutes(gameState, activeCaptain.id) : [],
-  [gameState, activeCaptain, visibleAtlas?.playerId, atlasTile]);
+  [gameState, isLogistics, activeCaptain, visibleAtlas?.playerId, atlasTile]);
   const canPickUp = React.useMemo(() => arrivalCargo?.active && !arrivalCargo.booking && arrivalCargo.playerId === myPlayerId
     && getCargoOpportunity(gameState, arrivalCargo.playerId)?.action.type === 'LOAD_CARGO', [gameState, arrivalCargo, myPlayerId]);
   const atlasFreight = atlasTile && arrivalCargo ? {
@@ -393,8 +393,9 @@ export const Board: React.FC<Props> = ({
             >
               {visibleAtlas ? (
                 <WorldPortAtlas arrival={visibleAtlas} is3D={is3D} onClose={returnToPortTile} freight={atlasFreight}
+                  onOpenDeed={gameState.mode === 'harbor' && atlasTile ? () => onSelectTile(atlasTile.id) : undefined}
                   focusTerminalOnArrival={focusFeederTileId !== undefined && focusFeederTileId === atlasTile?.id && visibleAtlas.playerId === myPlayerId}
-                  dice={!isLogistics && gameState.hasRolled ? gameState.dice : undefined} />
+                  dice={!isLogistics && visibleAtlas.playerId && gameState.hasRolled ? gameState.dice : undefined} />
               ) : (
                 <>
                   <PacificChart is3D={is3D} />
@@ -540,7 +541,11 @@ export const Board: React.FC<Props> = ({
         onShowPort={(port) => {
           setTerminalArrival(null);
           onSelectTile(null);
-          showPort(port);
+          if (gameState.mode === 'harbor' && visibleAtlas?.port.code === port.code) {
+            requestAnimationFrame(() => boardRoot.current?.querySelector<HTMLButtonElement>('[data-atlas-deed]')?.focus({ preventScroll: true }));
+          } else {
+            showPort(port);
+          }
         }}
         onOfferForTile={(id) => {
           onSelectTile(null);

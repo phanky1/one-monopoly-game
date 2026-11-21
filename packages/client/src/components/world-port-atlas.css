@@ -244,5 +244,15 @@
   .world-atlas-toggle { min-height: 24px; gap: 3px; padding-inline: 5px; }
 }
 .world-atlas-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.world-atlas-meta:has(.world-atlas-deed) { flex-wrap: wrap; }
+.world-atlas-deed {
+  display: inline-flex; align-items: center; gap: 2px; min-height: 25px; margin-inline-start: auto;
+  padding: 2px 6px; border: 1px solid #937285; border-radius: 3px;
+  background: #fff9ec; color: #78294e; pointer-events: auto; cursor: pointer;
+  font: 650 clamp(10px, 2.8cqw, 12px)/1.2 var(--chart-sans);
+}
+.world-atlas-deed svg { width: 12px; height: 12px; }
+.world-atlas-deed:hover { background: #f2e6e5; }
+.world-atlas-deed:focus-visible { outline: 2px solid #922959; outline-offset: 1px; }
 .world-atlas-roll { display: inline-flex; align-items: center; gap: 3px; color: #376267; font: 650 10px/1.2 var(--chart-mono); }
 .world-atlas-roll svg { width: 12px; height: 12px; }
