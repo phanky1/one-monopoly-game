@@ -3,6 +3,7 @@ import { once } from 'node:events';
 import { createServer } from 'node:http';
 import { test } from 'node:test';
 import { io as connect } from 'socket.io-client';
+import { getCargoBookings, getReserveImportTruckAction, getReturnCargoToYardAction, getReturnCargoYardStatus } from '@one-monopoly/shared';
 import { publicGameEvents, RoomManager } from '../dist/roomManager.js';
 import { gameStateForPlayer, setupSocketServer } from '../dist/socketServer.js';
 
@@ -23,6 +24,66 @@ function visibleBids(snapshot, entrants, mine) {
   assert.deepEqual([...tender.bidderIds].sort(), [...entrants].sort());
   assert.equal(tender.bidCount, entrants.length);
 }
+
+test('a public yard return releases its held truck while both captains keep their own sealed quote on reconnect', async t => {
+  const network = await socketNetwork(t);
+  if (!network) return;
+  const { open, request, next, roomManager } = network;
+  const host = await open(), owner = await open();
+  const { roomId, playerId: a } = await request(host, 'room:create', { playerName: 'Linh', token: 'ONE_APUS' });
+  const { playerId: b, sessionToken } = await request(owner, 'room:join', { roomId, playerName: 'Minh', token: 'PILOT_BOAT' });
+  assert.ok((await request(host, 'room:start', { roomId, playerId: a })).success);
+  const room = roomManager.getRoom(roomId);
+  t.after(() => room.timer?.stop());
+  const send = (socket, playerId, action) => request(socket, 'game:action', { roomId, playerId, action });
+  async function accept(socket, id, action) {
+    const reply = await send(socket, id, action);
+    assert.ok(reply.success, reply.error);
+    return reply;
+  }
+  await accept(host, a, bid(room.gameState, 13));
+  await accept(host, a, { type: 'END_TURN' });
+  const quote = await accept(owner, b, bid(room.gameState, 7));
+  const load = getCargoBookings(quote.state, b, 'laden').find(choice => choice.tileId === 1);
+  const booked = await accept(owner, b, load.action);
+  const held = await accept(owner, b, getReserveImportTruckAction(booked.state, b));
+  const release = getReturnCargoToYardAction(held.state, b);
+  const before = room.gameState;
+  assert.equal(held.state.logistics.ports[1].demand, 0);
+  for (const id of [a, b]) assert.equal((await send(host, id, release)).success, false);
+  assert.equal(room.gameState, before);
+
+  const [hostUpdate, ownerUpdate, ack] = await Promise.all([
+    next(host, 'game:update'), next(owner, 'game:update'), accept(owner, b, release),
+  ]);
+  visibleBids(hostUpdate.state, [a, b], { [a]: 13 });
+  for (const packet of [ownerUpdate, ack]) visibleBids(packet.state, [a, b], { [b]: 7 });
+  for (const packet of [hostUpdate, ownerUpdate, ack]) {
+    assert.deepEqual(packet.events, [{ type: 'CARGO_RETURNED_TO_YARD', playerId: b, tileId: 0,
+      bookingId: release.bookingId, kind: 'laden', destinationTileId: 1 }]);
+    assert.equal(packet.state.players[1].cargo, undefined);
+    assert.equal(packet.state.logistics.ports[0].supply, before.logistics.ports[0].supply + 1);
+    assert.equal(packet.state.logistics.ports[1].demand, 1);
+    assert.equal(packet.state.logistics.importTruckReservations[b], undefined);
+    assert.equal(packet.state.logistics.importTruckAvailable[b], false);
+  }
+  owner.disconnect();
+  const returning = await open();
+  const [init, joined] = await Promise.all([next(returning, 'game:init'),
+    request(returning, 'room:join', { roomId, playerName: 'Minh', token: 'PILOT_BOAT', sessionToken })]);
+  assert.ok(joined.isReconnect);
+  assert.deepEqual(init.state, joined.gameState);
+  visibleBids(init.state, [a, b], { [b]: 7 });
+  assert.equal(getReturnCargoYardStatus(init.state, b), null);
+  assert.equal(init.state.logistics.ports[1].demand, 1);
+  const fresh = await accept(returning, b, getCargoBookings(init.state, b, 'laden').find(choice => choice.tileId === 1).action);
+  assert.notEqual(fresh.state.players[1].cargo.bookingId, release.bookingId);
+  const replacement = room.gameState;
+  for (const revision of [release.revision, replacement.cargoRevision]) {
+    assert.equal((await send(returning, b, { ...release, revision })).success, false);
+  }
+  assert.equal(room.gameState, replacement);
+});
 
 test('socket dispatch hides prices even before serialization and rejected bids leave deadlines intact', t => {
   t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });

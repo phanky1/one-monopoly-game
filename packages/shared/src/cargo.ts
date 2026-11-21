@@ -9,7 +9,7 @@ import {
 import type {
   CargoAction, CargoKind, DestinationChange, EngineResult, FreightQuote, GameAction, GameEvent,
   DeliveryReceipt, EarlyTruckChoice, FeederSailAction, FreightTenderBid, FreightTenderWithdrawal, GameState, LogisticsState,
-  Player, PortStock, PortTruckSchedule, ReserveImportTruckAction, SailAction, StreetTurnAction, TruckOperation,
+  Player, PortStock, PortTruckSchedule, ReserveImportTruckAction, ReturnCargoToYardAction, SailAction, StreetTurnAction, TruckOperation,
 } from './types.js';
 
 export const LOGISTICS_DELIVERY_TARGET = 3;
@@ -191,6 +191,23 @@ export function getCargoRedirections(state: GameState, playerId: string): Bookin
           bookingId: booking.bookingId, destinationTileId: id, revision: state.cargoRevision ?? 0 } }]
       : [];
   });
+}
+
+export function getReturnCargoYardStatus(state: GameState, playerId: string): 'available' | 'full' | null {
+  const captain = activeCaptain(state, playerId);
+  const booking = captain?.cargo;
+  if (!captain || !booking || booking.originTileId !== captain.position ||
+      !Number.isSafeInteger(booking.bookingId) || booking.bookingId < 1) return null;
+  const yard = state.logistics!.ports[captain.position];
+  if (!yard || (booking.kind !== 'laden' && booking.kind !== 'empty')) return null;
+  const stock = booking.kind === 'laden' ? yard.supply : yard.empties;
+  return stock < LOGISTICS_PORT_CAPACITY ? 'available' : 'full';
+}
+
+export function getReturnCargoToYardAction(state: GameState, playerId: string): ReturnCargoToYardAction | null {
+  if (getReturnCargoYardStatus(state, playerId) !== 'available') return null;
+  const captain = state.players[state.activePlayerIndex];
+  return { type: 'RETURN_CARGO_TO_YARD', tileId: captain.position, bookingId: captain.cargo!.bookingId, revision: state.cargoRevision ?? 0 };
 }
 
 export interface CargoOpportunity { action: CargoAction; quote: FreightQuote | null }
@@ -415,6 +432,24 @@ export function dispatchLogistics(state: GameState, action: GameAction, playerId
       const stock = result.logistics!.ports[at];
       if (booking.kind === 'laden') stock.supply--; else stock.empties--;
       return { state: result, events: [{ type: 'CARGO_LOADED', playerId, tileId: at, ...booking }] };
+    }
+    case 'RETURN_CARGO_TO_YARD': {
+      const expected = getReturnCargoToYardAction(state, playerId);
+      if (!expected || Object.keys(action).length !== 4 || expected.tileId !== action.tileId || expected.bookingId !== action.bookingId) {
+        return unchanged;
+      }
+      const result = next();
+      const logistics = result.logistics!;
+      const captain = result.players[state.activePlayerIndex];
+      const booking = captain.cargo!;
+      const yard = logistics.ports[at];
+      if (booking.kind === 'laden') yard.supply++;
+      else yard.empties++;
+      releaseImportTruck(logistics, playerId);
+      delete captain.cargo;
+      return { state: result, events: [{ type: 'CARGO_RETURNED_TO_YARD', playerId, tileId: at, bookingId: booking.bookingId,
+        kind: booking.kind, destinationTileId: booking.destinationTileId,
+        ...(booking.reeferDueRound !== undefined && { reeferDueRound: booking.reeferDueRound }) }] };
     }
     case 'CHANGE_DESTINATION': {
       const booking = player.cargo;

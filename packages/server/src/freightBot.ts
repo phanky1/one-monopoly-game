@@ -1,7 +1,8 @@
 import {
   FREIGHT_TENDER_MAX_BID, FREIGHT_TENDER_MIN_BID, canReceiveCargo, getCargoBookings, getCargoOpportunity,
   getAcceptBackhaulAction, getCargoRedirections, getEarlyTruckCalls, getEmptyNeed, getFeederDistanceNm, getFeederRoutes, getLogisticsRoutes,
-  getImportTruckReservation, getReserveImportTruckAction, getStreetTurnAction, getTenderBidAction, isFinalLogisticsRound, isReeferPort,
+  getImportTruckReservation, getReserveImportTruckAction, getReturnCargoToYardAction, getStreetTurnAction, getTenderBidAction,
+  isFinalLogisticsRound, isReeferPort,
   OneMonopolyEngine, REEFER_ON_TIME_BONUS,
   type FreightRivalStyle, type FreightTender, type GameAction, type GameState, type Player, type PortStock,
 } from '@one-monopoly/shared';
@@ -108,17 +109,25 @@ export function getFreightBotAction(state: GameState, style: FreightRivalStyle =
   const owesDelivery = contract?.status === 'active' && contract.playerId === captain.id && contract.deliveryRound === state.turnCount;
   const backhaul = captain.backhaul;
   const feederRoutes = operations.hasSailed ? getFeederRoutes(state, captain.id) : [];
-  if (owesDelivery) {
+  if (owesDelivery && discharge?.action.type !== 'UNLOAD_CARGO') {
     const target = contract.destinationTileId;
-    if (!job && (!operations.hasSailed || feederRoutes.some(route => route.tileId === target))) {
+    const routes = operations.hasSailed ? feederRoutes : getLogisticsRoutes(state, captain.id);
+    const canReach = routes.some(route => route.tileId === target);
+    if (job && canReach && (job.kind !== contract.kind || (job.reeferDueRound !== undefined && !isReeferPort(target)))) {
+      const giveBack = getReturnCargoToYardAction(state, captain.id);
+      if (giveBack) {
+        const returned = OneMonopolyEngine.dispatch(state, giveBack, captain.id).state;
+        if (getCargoBookings(returned, captain.id, contract.kind).some(choice => choice.tileId === target)) return giveBack;
+      }
+    }
+    if (!job && canReach) {
       const load = bestBooking(state, captain, getCargoBookings(state, captain.id, contract.kind).filter(choice => choice.tileId === target));
       if (load) return load;
       if (contract.kind === 'laden') {
         const supply = callTruckForCargo(state, captain, target);
         if (supply) return supply;
       }
-    } else if (job?.kind === contract.kind && (!operations.hasSailed || captain.position === target ||
-        (discharge?.action.type !== 'UNLOAD_CARGO' && feederRoutes.some(route => route.tileId === target)))) {
+    } else if (job?.kind === contract.kind && (canReach || captain.position === target)) {
       if (job.destinationTileId !== target) {
         const redirect = getCargoRedirections(state, captain.id).find(choice => choice.tileId === target);
         if (redirect) return redirect.action;

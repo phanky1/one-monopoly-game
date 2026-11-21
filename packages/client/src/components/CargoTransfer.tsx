@@ -22,6 +22,11 @@ export function useCargoTransfer(subscribe: SubscribeBoard) {
         setTransfer(null);
         return;
       }
+      // The return has its own ship-to-yard scene. End any earlier loading animation.
+      if (events.some(event => event.type === 'CARGO_RETURNED_TO_YARD')) {
+        setTransfer(null);
+        return;
+      }
       const handling = events.find(event => event.type === 'CARGO_LOADED' || event.type === 'CARGO_UNLOADED');
       if (handling && lastRevision.current !== revision) {
         lastRevision.current = revision;

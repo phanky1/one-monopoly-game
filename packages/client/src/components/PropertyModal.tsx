@@ -21,6 +21,8 @@ import { TerminalCargoExchange } from './TerminalCargoExchange.js';
 import { PortDeliverySlip, PortLoadingSlip } from './PortDeliverySlip.js';
 import { TerminalOutboundBooking } from './TerminalOutboundBooking.js';
 import { ImportTruckDesk } from './ImportTruckDesk.js';
+import { ReturnCargoDesk } from './ReturnCargoDesk.js';
+import { YardReturnReceipt, type YardReturnRecord } from './YardReturnReceipt.js';
 import { TruckAppointmentNotice } from './TruckAppointmentNotice.js';
 import type { SubscribeBoard } from '../hooks/useSocket.js';
 import { getPortCallCargo, getPortCallLoad } from './ports/portCallCargo.js';
@@ -79,7 +81,8 @@ function TerminalQueue({ quantity, direction }: { quantity: number; direction: '
 
 type TerminalHandling = PortDischarge | PortLoad;
 
-function TerminalDetails({ guide, stock, tender, schedule, titleId, onClose, onShowPort, cargo, handling, captainName, is3D, truckNotice }: {
+function TerminalDetails({ guide, stock, tender, schedule, titleId, onClose, onShowPort, cargo, handling, yardReturn, captainName, is3D, truckNotice }: {
+  yardReturn?: YardReturnRecord;
   truckNotice: React.ReactNode;
   cargo: React.ReactNode;
   handling: TerminalHandling | null;
@@ -94,6 +97,7 @@ function TerminalDetails({ guide, stock, tender, schedule, titleId, onClose, onS
   onShowPort: (port: PortGuide) => void;
 }) {
   const handlingOnOpen = useRef(handling);
+  const returnOnOpen = useRef(yardReturn?.revision);
   const animate = handling?.type !== handlingOnOpen.current?.type || handling?.bookingId !== handlingOnOpen.current?.bookingId;
   const column = useRef<HTMLDivElement>(null);
   const keyboardConfirmation = useRef<TerminalHandling['type'] | null>(null);
@@ -108,7 +112,7 @@ function TerminalDetails({ guide, stock, tender, schedule, titleId, onClose, onS
   const equipmentStatus = shortage ? `Cần thêm ${shortage} vỏ` : surplus ? `Dư ${surplus} vỏ` : 'Đủ vỏ dự trữ';
   return (
     <BoardDialog labelledBy={titleId} onClose={onClose}>
-      <div className="chart-dialog-sheet chart-manifest terminal-detail" data-working-berth={cargo || handling ? true : undefined}>
+      <div className="chart-dialog-sheet chart-manifest terminal-detail" data-working-berth={cargo || handling || yardReturn ? true : undefined}>
         <button type="button" aria-label="Đóng thông tin cảng" onClick={onClose} className="chart-dialog-close">
           <X aria-hidden="true" />
         </button>
@@ -116,7 +120,7 @@ function TerminalDetails({ guide, stock, tender, schedule, titleId, onClose, onS
           <div className="chart-dialog-kicker"><span>{guide.code}</span><span>{guide.country}</span></div>
           <h3 id={titleId} className="chart-dialog-title">Cảng {guide.name}</h3>
         </header>
-        {(cargo || handling) && <div className="terminal-quay-column" ref={column}
+        {(cargo || handling || yardReturn) && <div className="terminal-quay-column" ref={column}
           onClickCapture={event => {
             if (event.detail !== 0 || !(event.target instanceof Element)) return;
             if (event.target.closest('[data-terminal-load]')) keyboardConfirmation.current = 'CARGO_LOADED';
@@ -126,6 +130,8 @@ function TerminalDetails({ guide, stock, tender, schedule, titleId, onClose, onS
             captainName={captainName} is3D={is3D} animate={animate} />}
           {handling?.type === 'CARGO_UNLOADED' && <PortDeliverySlip key={handling.bookingId} event={handling}
             captainName={captainName} is3D={is3D} animate={animate} />}
+          {yardReturn && <YardReturnReceipt key={yardReturn.revision} {...yardReturn} is3D={is3D}
+            animate={yardReturn.revision !== returnOnOpen.current} />}
           {cargo}
         </div>}
         <div className="terminal-port-information">
@@ -172,6 +178,7 @@ interface Props {
   onAction: (action: GameAction, onFailure?: () => void, onSuccess?: () => void) => void;
   portDischarge: PortDischarge | null;
   portLoad: PortLoad | null;
+  yardReturn?: YardReturnRecord;
   arrivalCaptainId?: string;
   is3D: boolean;
   onOfferForTile: (tileId: number) => void;
@@ -187,6 +194,7 @@ export const PropertyModal: React.FC<Props> = ({
   onAction: dispatch,
   portDischarge,
   portLoad,
+  yardReturn,
   arrivalCaptainId,
   is3D,
   onOfferForTile,
@@ -212,19 +220,24 @@ export const PropertyModal: React.FC<Props> = ({
     const showExchange = call?.booking && !load;
     const showOutbound = call?.active && myPlayerId === call.playerId && (!call.booking ||
       (call.booking.originTileId === tileId && gameState.players[gameState.activePlayerIndex].backhaul?.originTileId === tileId));
-    const cargo = showExchange || showOutbound || appointmentDesk ? <>
+    const ownerAtBerth = call?.active && call.playerId === myPlayerId;
+    const returnedHere = call?.active && !call.booking && yardReturn?.event.playerId === call.playerId &&
+      yardReturn.event.tileId === tileId ? yardReturn : undefined;
+    const cargo = showExchange || showOutbound || appointmentDesk || ownerAtBerth ? <>
       {call && showExchange && <TerminalCargoExchange state={gameState} tileId={tileId} playerId={call.playerId}
         myPlayerId={myPlayerId} onAction={dispatch} />}
       {call && showOutbound && <TerminalOutboundBooking state={gameState} tileId={tileId}
         playerId={call.playerId} myPlayerId={myPlayerId} onAction={dispatch} />}
       {appointmentDesk && <ImportTruckDesk state={gameState} playerId={captain.id} myPlayerId={myPlayerId}
         onAction={dispatch} surface="quay" />}
+      {ownerAtBerth && <ReturnCargoDesk state={gameState} tileId={tileId} playerId={call.playerId} myPlayerId={myPlayerId}
+        onAction={dispatch} surface="quay" />}
     </> : null;
     return guide ? <TerminalDetails key={tileId} guide={guide} stock={gameState.logistics?.ports[tileId]}
       truckNotice={<TruckAppointmentNotice state={gameState} tileId={tileId} is3D={is3D} subscribeBoard={subscribeBoard} />}
       tender={getPortTender(gameState, tileId)} schedule={getPortTruckSchedule(gameState, tileId)}
       titleId={titleId} onClose={onClose} onShowPort={onShowPort} is3D={is3D} captainName={call?.playerName ?? ''}
-      handling={load ?? (call?.receipt ? portDischarge : null)} cargo={cargo} /> : null;
+      handling={load ?? (call?.receipt ? portDischarge : null)} yardReturn={returnedHere} cargo={cargo} /> : null;
   }
   const onAction = (action: GameAction) => { dispatch(action); onClose(); };
   const rentSchedule = getRentSchedule(tile);

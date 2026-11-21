@@ -11,6 +11,7 @@ import { FreightDesk } from './components/CargoManifest.js';
 import { RivalDispatch } from './components/RivalDispatch.js';
 import { DiversionReceipt, type DiversionEvent } from './components/DiversionReceipt.js';
 import { TruckCallReceipt, type TruckCallEvent } from './components/TruckCallReceipt.js';
+import { YardReturnReceipt, type YardReturnRecord } from './components/YardReturnReceipt.js';
 import { VoyageLog } from './components/VoyageLog.js';
 import { portGuide } from './components/ports/portGuide.js';
 import { FeederChartDialog } from './components/FeederChartDialog.js';
@@ -22,6 +23,7 @@ import { AlertCircle, BookOpen, Box, CloudLightning, CloudRain, Compass, Gavel, 
 
 const noticeIcons = { auction: Gavel, trade: Handshake, debt: LifeBuoy, freight: Truck };
 type BoardNotice = { type: keyof typeof noticeIcons; text: string }
+  | ({ type: 'yardReturn' } & YardReturnRecord)
   | { type: 'truckCall'; call: TruckCallEvent; captain: string; stock: PortStock; revision: number }
   | { type: 'diversion'; change: DiversionEvent; captain: string; revision: number };
 const weatherReadouts = {
@@ -136,6 +138,13 @@ export const App: React.FC = () => {
         else if (evt.type === 'FREIGHT_CONTRACT_FULFILLED') logMsg = `${who} đã giao đúng hạn tại ${port} và nhận thêm $${evt.amount}M tiền thưởng hợp đồng.`;
         else logMsg = `Hợp đồng giao tại ${port} của ${who} đã hết hạn.`;
         setBoardNotice({ type: 'freight', text: logMsg });
+      } else if (evt.type === 'CARGO_RETURNED_TO_YARD') {
+        const captain = state.players.find(player => player.id === evt.playerId)?.name ?? 'Thuyền trưởng';
+        const port = portGuide[BOARD_TILES[evt.tileId].code].name;
+        const box = evt.kind === 'empty' ? 'vỏ rỗng' : evt.reeferDueRound !== undefined ? 'lô hàng lạnh' : 'lô hàng xuất';
+        const stock = state.logistics?.ports[evt.tileId];
+        logMsg = `${captain} trả ${box} về bãi ${port}. Khoang tàu trống để nhận vận đơn mới.`;
+        if (stock) setBoardNotice({ type: 'yardReturn', event: evt, captain, stock, revision: state.cargoRevision ?? 0 });
       } else if (evt.type === 'PORT_TRUCK_CALLED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Thuyền trưởng';
         const port = portGuide[BOARD_TILES[evt.tileId].code].name;
@@ -347,6 +356,7 @@ export const App: React.FC = () => {
                 onAction={sendAction}
                 onOfferForTile={openTrades}
                 onOpenFeederChart={openFeederChart}
+                yardReturn={boardNotice?.type === 'yardReturn' ? boardNotice : undefined}
                 focusFeederTileId={feederFocus?.room === gameState.roomId && feederFocus.round === gameState.turnCount &&
                   feederFocus.captainId === activePlayer?.id ? feederFocus.tileId : undefined}
                 isRolling={isRolling}
@@ -358,7 +368,9 @@ export const App: React.FC = () => {
               />
             </div>
             <div className="chart-position" role="status">
-              {boardNotice?.type === 'truckCall' ? (
+              {boardNotice?.type === 'yardReturn' ? (
+                <YardReturnReceipt key={boardNotice.revision} {...boardNotice} is3D={is3D} />
+              ) : boardNotice?.type === 'truckCall' ? (
                 <TruckCallReceipt key={boardNotice.revision} call={boardNotice.call} captain={boardNotice.captain} stock={boardNotice.stock} is3D={is3D} />
               ) : boardNotice?.type === 'diversion' ? (
                 <DiversionReceipt key={boardNotice.revision} change={boardNotice.change} captain={boardNotice.captain} />

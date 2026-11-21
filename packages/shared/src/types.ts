@@ -328,12 +328,16 @@ export type CargoAction =
   | { type: 'LOAD_CARGO'; tileId: number; kind: CargoKind; reefer?: true; destinationTileId: number; revision: number }
   | { type: 'UNLOAD_CARGO'; tileId: number; originTileId: number; bookingId: number; revision: number; streetTurn?: true };
 export type StreetTurnAction = Extract<CargoAction, { type: 'UNLOAD_CARGO' }> & { streetTurn: true };
+export interface ReturnCargoToYardAction {
+  type: 'RETURN_CARGO_TO_YARD'; tileId: number; bookingId: number; revision: number;
+}
 export type DestinationChange = { type: 'CHANGE_DESTINATION'; bookingId: number; destinationTileId: number; revision: number };
 export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: number };
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
   | ReserveImportTruckAction
+  | ReturnCargoToYardAction
   | PortTruckCall
   | BackhaulAccept
   | CargoAction | DestinationChange | SailAction | FeederSailAction | FreightTenderBid | FreightTenderWithdrawal
@@ -371,6 +375,8 @@ export type GameEvent =
   | ({ type: 'FREIGHT_CONTRACT_FULFILLED'; bookingId: number } & FreightAward)
   | { type: 'LOGISTICS_TURN_ENDED'; playerId: string; sailed: boolean }
   | ({ type: 'CARGO_LOADED'; playerId: string; tileId: number } & CargoBooking)
+  | { type: 'CARGO_RETURNED_TO_YARD'; playerId: string; tileId: number; bookingId: number;
+      kind: CargoKind; destinationTileId: number; reeferDueRound?: number }
   | ({ type: 'CARGO_UNLOADED'; playerId: string } & DeliveryReceipt)
   | ({ type: 'CARGO_DESTINATION_CHANGED'; playerId: string; tileId: number; previousDestinationTileId: number } & CargoBooking)
   | { type: 'TRADE_OFFERED'; offer: TradeOffer }

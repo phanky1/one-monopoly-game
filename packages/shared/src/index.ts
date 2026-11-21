@@ -10,7 +10,8 @@ export type { DebtRecovery, DebtRecoveryOption } from './debtRecovery.js';
 export {
   PORT_COORDINATES, LOGISTICS_DELIVERY_TARGET, LOGISTICS_ROUND_LIMIT, LOGISTICS_PORT_CAPACITY,
   canReceiveCargo, getCargoOpportunity, getCargoBookings, getCargoRedirections, getEarlyTruckCalls, getPortTruckSchedule,
-  getPortStockAfterDischarge, getStreetTurnAction, getImportTruckThroughRound, getReserveImportTruckAction,
+  getPortStockAfterDischarge, getStreetTurnAction, getReturnCargoToYardAction, getReturnCargoYardStatus,
+  getImportTruckThroughRound, getReserveImportTruckAction,
   getEmptyNeed, getFreightQuote, getTenderBidAction, getWithdrawTenderBidAction,
   FEEDER_RANGE_NM, getFeederDistanceNm, getFeederRoutes, getLogisticsRoutes, getLogisticsStandings, isFinalLogisticsRound,
 } from './cargo.js';

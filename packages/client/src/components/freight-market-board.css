@@ -140,6 +140,19 @@
 }
 .market-watch-services input { width: 15px; height: 15px; margin: 0; accent-color: #235b55; }
 .market-watch-services input:focus-visible { outline: 2px solid #a72770; outline-offset: 2px; }
+.market-booking-services {
+  display: flex; flex-wrap: wrap; gap: 3px 6px; align-items: center; min-inline-size: 0;
+  margin: 9px 21px 0; padding: 0; border: 0;
+}
+.market-booking-services legend { float: left; margin: 6px 6px 0 0; padding: 0; color: #3b5652; font-weight: 650; }
+.market-booking-services label {
+  display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 3px 8px;
+  border: 1px solid #a1b4a6; border-radius: 3px; background: #fffdf3; color: #315550;
+  font-size: 12px; font-weight: 650; cursor: pointer;
+}
+.market-booking-services label:has(:checked) { background: #e2ede1; border-color: #486e61; }
+.market-booking-services label:has(:focus-visible) { outline: 2px solid #a72770; outline-offset: 2px; }
+.market-booking-services input { width: 14px; height: 14px; margin: 0; accent-color: #235b55; }
 .market-watch-cod { display: block; margin: 4px 0 1px; font-size: 12px; }
 .market-plan-button[data-watch-saved] { background: #dbe9db; border-color: #597f6a; }
 .market-watch-handoff { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 9px; font-size: 12px; }
@@ -148,7 +161,7 @@
   color: #24534a; background: #fffdf3; font: 650 12px var(--chart-sans, system-ui); cursor: pointer;
 }
 @media (max-width: 650px) {
-  .market-watch, .market-watch-handoff { margin: 5px 12px 0; }
+  .market-watch, .market-watch-handoff, .market-booking-services { margin: 5px 12px 0; }
 }
 @media (max-height: 490px) {
   .chart-dialog:has(.market-watch, .market-watch-handoff) { overflow-y: auto; }
@@ -156,5 +169,5 @@
   .freight-market-board:has(.market-watch, .market-watch-handoff) .market-board-list { max-height: 65dvh; }
 }
 @media (pointer: coarse) {
-  .market-watch-services label, .market-watch-handoff button { min-height: 44px; }
+  .market-watch-services label, .market-booking-services label, .market-watch-handoff button { min-height: 44px; }
 }

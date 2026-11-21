@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import {
   LOGISTICS_DELIVERY_TARGET, getCargoBookings, getCargoDestinationEstimate, getCargoOpportunity, getCargoRedirections, getVoyagePayment,
   getEmptyNeed, getFeederDistanceNm, getFreightQuote, getImportTruckReservation, getLogisticsRoutes, getTenderBonus,
@@ -16,6 +16,7 @@ import { TenderDesk } from './TenderDesk.js';
 import { BackhaulDesk } from './BackhaulDesk.js';
 import { EarlyTruckDesk } from './EarlyTruckDesk.js';
 import { ImportTruckDesk } from './ImportTruckDesk.js';
+import { ReturnCargoDesk } from './ReturnCargoDesk.js';
 import { FeederSailing } from './FeederSailing.js';
 import { ReeferDeadline, ReeferReceipt } from './ReeferCargo.js';
 import { FinalPortCallEnd } from './FinalPortCallEnd.js';
@@ -197,6 +198,7 @@ function CaptainDesk({ gameState, myPlayerId, is3D, remainingSeconds, onAction, 
     <EarlyTruckDesk state={gameState} player={player} canAct={canAct} busy={busy} submit={submit} />
     {cargo ? <CargoTicket state={gameState} player={player} /> : <p className="freight-empty"><Container aria-hidden="true" />Khoang tàu trống</p>}
     {cargo && <ImportTruckDesk state={gameState} playerId={player.id} myPlayerId={myPlayerId} onAction={onAction} />}
+    <ReturnCargoDesk state={gameState} playerId={player.id} myPlayerId={myPlayerId} onAction={onAction} surface="desk" />
     {canAct && (cargo ? <>
       {unload && <button ref={unloadRef} type="button" className="chart-button freight-handling" data-cargo-action="UNLOAD_CARGO" disabled={busy}
         onClick={() => submit(unload.action)}><Truck aria-hidden="true" />Dỡ {cargo.kind === 'empty' ? 'container rỗng' : 'hàng lên xe'}{payable != null && <strong>+${payable}M</strong>}</button>}
@@ -249,10 +251,12 @@ export function FreightDesk({ marketOpen, onOpenMarket, onCloseMarket, onInspect
     focusSaved.current = false;
     if (!document.hidden) document.querySelector<HTMLElement>('[data-watch-card][tabindex="-1"]')?.focus();
   }, [marketOpen, watch.drawing]);
-  if (!gameState.logistics || !player) return null;
   // Drafts belong to a particular turn, berth and manifest, including a newly emptied hold.
-  const scope = [gameState.roomId, gameState.turnCount, player.id, player.position, player.lastDelivery?.bookingId,
-    player.cargo?.bookingId, player.cargo?.destinationTileId].join('/');
+  const scope = [gameState.roomId, gameState.turnCount, player?.id, player?.position, player?.lastDelivery?.bookingId,
+    player?.cargo?.bookingId, player?.cargo?.destinationTileId].join('/');
+  // Loading and returning at the same berth can otherwise revive a previous choice for an empty hold.
+  useEffect(() => { setSaved(previous => previous?.scope === scope ? previous : undefined); }, [scope]);
+  if (!gameState.logistics || !player) return null;
   const draft = saved?.scope === scope ? saved.draft : { service: getDefaultBookingService(gameState, player.id) };
   const editDraft = (next: DestinationDraft) => setSaved({ scope, draft: next });
   const marketService = marketFromCard && watch.plan && watch.plan.service !== 'redirect' ? watch.plan.service : draft.service;

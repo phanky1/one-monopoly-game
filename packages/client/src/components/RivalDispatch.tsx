@@ -8,7 +8,7 @@ import { portGuide } from './ports/portGuide.js';
 import './rival-dispatch.css';
 
 type Service = 'laden' | 'empty' | 'reefer';
-type Operation = 'berthed' | 'aboard' | 'loaded' | 'sail' | 'feeder' | 'redirected' | 'delivered';
+type Operation = 'berthed' | 'aboard' | 'loaded' | 'sail' | 'feeder' | 'redirected' | 'delivered' | 'returned';
 interface Report {
   operation: Operation;
   action: string;
@@ -19,7 +19,7 @@ interface Report {
 }
 const serviceNames = { laden: 'hàng xuất', empty: 'vỏ rỗng', reefer: 'hàng lạnh' };
 const miles = new Intl.NumberFormat('vi-VN');
-const serviceOf = (booking: CargoBooking): Service => booking.reeferDueRound !== undefined ? 'reefer' : booking.kind;
+const serviceOf = (booking: Pick<CargoBooking, 'kind' | 'reeferDueRound'>): Service => booking.reeferDueRound !== undefined ? 'reefer' : booking.kind;
 const port = (id: number) => portGuide[BOARD_TILES[id].code].name;
 
 function bookingReport(booking: CargoBooking, berth?: number): Report {
@@ -46,6 +46,8 @@ function reportFor(event: GameEvent, rival: Player): Report | null {
   switch (event.type) {
     case 'CARGO_LOADED': return bookingReport(event);
     case 'CARGO_UNLOADED': return deliveryReport(event, false);
+    case 'CARGO_RETURNED_TO_YARD': return { operation: 'returned', to: event.tileId,
+      action: `Đã trả ${serviceNames[serviceOf(event)]} về bãi` };
     case 'CARGO_DESTINATION_CHANGED': return { operation: 'redirected', service: serviceOf(event),
       action: 'Đã đổi cảng đích của vận đơn', from: event.previousDestinationTileId, to: event.destinationTileId };
     case 'SHIP_STEPPED': {
@@ -59,7 +61,7 @@ function reportFor(event: GameEvent, rival: Player): Report | null {
 }
 
 function RivalVoyage({ report }: { report: Report }) {
-  const moored = report.operation === 'berthed' || report.operation === 'aboard';
+  const moored = report.operation === 'berthed' || report.operation === 'aboard' || report.operation === 'returned';
   const atOrigin = report.operation === 'loaded' || report.operation === 'redirected';
   return <svg className="rival-rule" viewBox="0 0 104 34" aria-hidden="true" focusable="false">
     <path d="M2 26.5h100M8 27v3m8-3v2m8-2v2m8-2v3m8-3v2m8-2v2m8-2v3m8-3v2m8-2v2m8-2v3m8-3v2m8-2v2"

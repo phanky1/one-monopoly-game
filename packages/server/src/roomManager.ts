@@ -394,7 +394,7 @@ export class RoomManager {
     const prevActiveIndex = room.gameState.activePlayerIndex;
 
     const { state: nextState, events } = OneMonopolyEngine.dispatch(room.gameState, action, playerId);
-    const freightCommand = action.type === 'LOAD_CARGO' || action.type === 'UNLOAD_CARGO' ||
+    const freightCommand = action.type === 'LOAD_CARGO' || action.type === 'UNLOAD_CARGO' || action.type === 'RETURN_CARGO_TO_YARD' ||
       action.type === 'CHANGE_DESTINATION' || action.type === 'SAIL_TO_PORT' || action.type === 'SAIL_FEEDER' ||
       action.type === 'ACCEPT_BACKHAUL' || action.type === 'BID_FREIGHT_TENDER' || action.type === 'CALL_PORT_TRUCK' ||
       action.type === 'WITHDRAW_FREIGHT_TENDER_BID' || action.type === 'RESERVE_IMPORT_TRUCK';

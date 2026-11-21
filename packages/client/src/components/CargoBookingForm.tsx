@@ -111,7 +111,7 @@ export function CargoBooking({ state, player, busy, submit, draft, editDraft, on
   const kind = reefer ? 'laden' : service;
   const bookings = getCargoBookings(state, player.id, kind, reefer);
   const selected = bookings.find(b => b.tileId === targetId);
-  const lostSelection = terminal && targetId !== undefined && !selected;
+  const lostSelection = targetId !== undefined && !selected;
   const choice = lostSelection ? undefined : selected ?? bookings.find(b => getTenderBonus(state, player.id, b.tileId, kind)) ?? bookings[0];
   const stocks = state.logistics!.ports;
   const local = stocks[player.position];

@@ -5,6 +5,7 @@ import { TILE_CENTER_PERCENT } from './boardCoordinates.js';
 import { getPortTender } from './ports/portTender.js';
 import { DiceView } from './DiceView.js';
 import { PropertyModal } from './PropertyModal.js';
+import type { YardReturnRecord } from './YardReturnReceipt.js';
 import { CardModal } from './CardModal.js';
 import { Pawn3D } from './Pawn3D.js';
 import { StormTugRescue } from './StormTugRescue.js';
@@ -34,6 +35,7 @@ interface Props {
   onOfferForTile: (tileId: number) => void;
   onOpenFeederChart: (captainId: string, originTileId: number, initialTileId?: number) => void;
   focusFeederTileId?: number;
+  yardReturn?: YardReturnRecord;
   selectedTileId: number | null;
   onSelectTile: (tileId: number | null) => void;
   missionTargetIds?: readonly number[];
@@ -183,6 +185,7 @@ export const Board: React.FC<Props> = ({
   onOfferForTile,
   onOpenFeederChart,
   focusFeederTileId,
+  yardReturn,
   selectedTileId,
   onSelectTile,
   missionTargetIds,
@@ -531,6 +534,7 @@ export const Board: React.FC<Props> = ({
         arrivalCaptainId={terminalArrival?.tileId === selectedTileId ? terminalArrival.playerId : undefined}
         portDischarge={portDischarge}
         portLoad={portLoad}
+        yardReturn={yardReturn}
         onClose={() => { setTerminalArrival(null); onSelectTile(null); }}
         onShowPort={(port) => {
           setTerminalArrival(null);

@@ -34,7 +34,7 @@ export function updatePortLoad(previous: PortLoad | null, events: readonly GameE
   let current = previous;
   for (const event of events) {
     if (event.type === 'CARGO_LOADED') current = event;
-    else if (event.type === 'SHIP_STEPPED' || event.type === 'CARGO_UNLOADED' || event.type === 'LOGISTICS_TURN_ENDED') current = null;
+    else if (event.type === 'SHIP_STEPPED' || event.type === 'CARGO_UNLOADED' || event.type === 'CARGO_RETURNED_TO_YARD' || event.type === 'LOGISTICS_TURN_ENDED') current = null;
     else if (event.type === 'CARGO_DESTINATION_CHANGED' &&
         event.playerId === current?.playerId && event.bookingId === current.bookingId) current = null;
   }
