@@ -12,6 +12,12 @@
 .harbor-call-preview h4 { margin: 0; font-size: .96rem; font-weight: 750; }
 .harbor-call-route { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 9px; margin: 2px 0 7px; }
 .harbor-call-route span, .harbor-call-note, .harbor-call-now small { color: #415e61; font-size: .76rem; }
+.harbor-call-choices { margin: 0 0 8px; padding: 6px 9px; border: 1px solid #b7c8ba; background: #e4ecdf; }
+.harbor-call-choices p { margin: 0 0 3px; font-size: .76rem; font-weight: 700; }
+.harbor-call-choices dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.harbor-call-choices dl > div + div { padding-inline-start: 8px; border-inline-start: 1px solid #a8b8ab; }
+.harbor-call-choices dt { font-size: .75rem; }
+.harbor-call-choices dd { margin: 0; font: 700 .95rem/1.4 var(--action-number); }
 .harbor-call-figures { display: grid; gap: 2px; margin: 0; }
 .harbor-call-figures > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
 .harbor-call-figures dd, .harbor-call-now b {

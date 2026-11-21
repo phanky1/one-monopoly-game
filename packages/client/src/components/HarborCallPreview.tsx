@@ -21,28 +21,46 @@ export function HarborCallPreview({ state, tileId, viewerId }: Props) {
   if (!estimate) return null;
 
   const open = estimate.kind === 'open' ? estimate : null;
+  const loading = estimate.loadTerms;
   const now = open?.currentDischarge;
   return <section className="harbor-call-preview" data-harbor-call-preview={estimate.kind}
-    data-call-tile={tileId} data-call-origin={estimate.originTileId} aria-labelledby={title}>
-    <h4 id={title}>Dự tính cho lô hàng của bạn</h4>
+    data-call-tile={tileId} data-call-origin={estimate.originTileId} data-call-prospective={loading ? true : undefined}
+    aria-labelledby={title}>
+    <h4 id={title}>{loading ? `Nếu xếp hàng tại ${portName(loading.originTileId)}` : 'Dự tính cho lô hàng của bạn'}</h4>
     {open ? <>
       <p className="harbor-call-route">
         <strong>{portName(estimate.originTileId)} → {portName(tileId)}</strong>
         <span>{number.format(open.quote.distanceNm)} hải lý</span>
       </p>
+      {loading && <div className="harbor-call-choices">
+        <p>Thay đổi số dư cả chuyến</p>
+        <dl aria-label="Thay đổi số dư theo cách chở hàng">
+          <div><dt>Đi tàu rỗng</dt><dd data-call-empty-total={-open.rent}>{signed(-open.rent)}</dd></div>
+          <div><dt>Xếp và dỡ hàng</dt>
+            <dd data-call-laden-total={open.portIncome - loading.fee}>{signed(open.portIncome - loading.fee)}</dd></div>
+        </dl>
+      </div>}
       <dl className="harbor-call-figures">
         <div><dt>Cước gộp</dt><dd data-call-gross={open.quote.gross}>{money(open.quote.gross)}</dd></div>
         <div><dt>Phí bến{open.quote.operatorName && <> · {open.quote.operatorName} ({open.quote.feePercent}%)</>}</dt>
           <dd data-call-fee={open.quote.handlingFee}>{signed(-open.quote.handlingFee)}</dd></div>
-        <div><dt>Cước tàu thực nhận</dt><dd data-call-net={open.quote.carrierNet}>{money(open.quote.carrierNet)}</dd></div>
+        <div><dt>{loading ? 'Cước nhận khi dỡ' : 'Cước tàu thực nhận'}</dt>
+          <dd data-call-net={open.quote.carrierNet}>{money(open.quote.carrierNet)}</dd></div>
         <div><dt>Tiền thuê khi bạn ghé bến</dt><dd data-call-rent={open.rent}>{signed(-open.rent)}</dd></div>
-        <div className="harbor-call-total"><dt>Sau cước và tiền thuê</dt>
+        <div className={loading ? undefined : 'harbor-call-total'}><dt>{loading ? 'Thay đổi số dư tại bến dỡ' : 'Sau cước và tiền thuê'}</dt>
           <dd data-call-income={open.portIncome}>{signed(open.portIncome)}</dd></div>
+        {loading && <>
+          <div><dt>Phí xếp tại {portName(loading.originTileId)}</dt>
+            <dd data-call-load-fee={loading.fee}>{signed(-loading.fee)}</dd></div>
+          <div className="harbor-call-total"><dt>Chênh lệch so với đi tàu rỗng</dt>
+            <dd data-call-extra-income={open.quote.carrierNet - loading.fee}>{signed(open.quote.carrierNet - loading.fee)}</dd></div>
+        </>}
       </dl>
+      {loading && <p className="harbor-call-note">Hai phương án giả sử đã trả đủ tiền thuê theo mức hiện tại. Giá mua cảng, thưởng qua Singapore và thu chi dọc đường tính riêng.</p>}
       {open.ownership === 'unowned' && <p className="harbor-call-note">
-        Dự tính khi bến còn vô chủ hoặc bạn mua được bến. Nếu đối thủ thắng đấu giá, họ sẽ nhận một phần cước. Giá mua cảng tính riêng.
+        Dự tính khi bến còn vô chủ hoặc bạn mua được bến. Nếu đối thủ thắng đấu giá, họ sẽ nhận một phần cước.{!loading && ' Giá mua cảng tính riêng.'}
       </p>}
-      {open.ownership === 'go' && <p className="harbor-call-note">Tiền thưởng qua Singapore được tính riêng.</p>}
+      {!loading && open.ownership === 'go' && <p className="harbor-call-note">Tiền thưởng qua Singapore được tính riêng.</p>}
       {open.charterRent !== null && <p className="harbor-call-note" data-call-charter={open.charterRent}>
         Nếu chủ cảng đồng ý chia chỗ, tiền thuê còn {money(open.charterRent)} và số tiền ròng tại bến là {signed(open.quote.carrierNet - open.charterRent)}.
       </p>}

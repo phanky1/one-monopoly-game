@@ -445,7 +445,7 @@ export const App: React.FC = () => {
               />}
               {gameState.mode === 'harbor' && !gameState.winnerId && <HarborFreightDesk
                 state={gameState} myPlayerId={myPlayerId} onAction={sendAction} is3D={is3D}
-                busy={isRolling || isPawnMoving || !!activeCard} />}
+                onInspectPort={setSelectedTileId} busy={isRolling || isPawnMoving || !!activeCard} />}
               {captain && mission && (!captain.isBankrupt || captain.secretMission?.isCompleted) && (
                 <SecretMissionCardView gameState={gameState} player={captain} progress={mission}
                   showTargets={showMissionTargets} onToggleTargets={() => setShowMissionTargets(value => !value)}

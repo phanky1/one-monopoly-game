@@ -20,8 +20,8 @@ function harborGuide(supportsBooking: boolean): Step[] {
     {
       title: 'Xếp hàng trước khi lắc xúc xắc',
       copy: [
-        'Ở Singapore, mở “Vận tải cảng” và chọn “Xếp 1 container”. Bạn xếp miễn phí ở đây và ở cảng đang hoạt động của mình. Tàu giữ hàng cho đến khi bạn chọn dỡ tại một cảng khác.',
-        'Khi tàu có hàng, bấm vào một cảng khác trên bàn cờ. Bạn sẽ thấy số dư dự kiến tăng hay giảm bao nhiêu nếu ghé và dỡ ở đó, sau phí bến và tiền thuê. Trên hải đồ, chọn “Sổ cảng” để xem cùng dự tính.',
+        'Ở Singapore, mở “Bến ở lần gieo tới” trong mục “Vận tải cảng” để xem cơ hội cập từng bến. Chọn tên bến để xem số dư thay đổi thế nào nếu chở hàng hoặc đi tàu rỗng. Muốn nhận lô miễn phí, chọn “Xếp 1 container”.',
+        'Bạn xếp miễn phí cả ở cảng đang hoạt động của mình. Khi tàu đã có hàng, bấm một cảng khác trên bàn cờ hoặc mở “Sổ cảng” trên hải đồ để xem số dư dự kiến khi dỡ, sau phí bến và tiền thuê.',
         'Chọn “Lắc xúc xắc!” để di chuyển. Ở cảng chưa có chủ, xem tiền thuê, phần cước và số cảng cùng màu bạn sẽ có trước khi mua hoặc trả giá. Sau đó bạn mới chọn dỡ hàng.',
       ],
       figures: [['Cảng xuất phát', 'Singapore'], ['Khoang tàu', '1 container'], ['Tiền ban đầu', '$1.500M']],

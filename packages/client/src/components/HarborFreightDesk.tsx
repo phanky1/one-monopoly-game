@@ -5,6 +5,7 @@ import {
   type GameAction, type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 import { HarborFreightReceipt } from './HarborFreightReceipt.js';
+import { HarborLoadingPreview } from './HarborLoadingPreview.js';
 import { portGuide } from './ports/portGuide.js';
 import './harbor-freight-desk.css';
 
@@ -12,6 +13,7 @@ interface Props {
   state: GameState;
   myPlayerId: string | null;
   onAction: (action: GameAction, onFailure?: () => void, onSuccess?: () => void) => void;
+  onInspectPort: (tileId: number) => void;
   is3D: boolean;
   busy?: boolean;
 }
@@ -129,7 +131,7 @@ function HarborAction({ offer, disabled, submit }: {
   </>;
 }
 
-function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
+function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = false }: Props) {
   const harbor = state.harborFreight!;
   const captain = state.players[state.activePlayerIndex];
   const manifest = harbor.manifests[captain.id];
@@ -213,6 +215,8 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
       : !receipt && <p className="harbor-instruction"><BerthStatus state={state} loaded={!!manifest} /></p>}
     {mine && offer && <HarborAction key={`${offer.kind}/${manifest?.originTileId ?? ''}`} offer={offer}
       disabled={busy || pending} submit={submit} />}
+    {mine && (offer?.kind === 'load' || booking) &&
+      <HarborLoadingPreview state={state} viewerId={captain.id} onInspectPort={onInspectPort} />}
     {mine && redemption && <button type="button" className="harbor-action" data-harbor-redeem
       disabled={busy || pending || redemption.shortfall > 0}
       onClick={event => submit(redemption.action, event.detail === 0)}>
