@@ -3,7 +3,8 @@ import { getFreightQuote } from './cargo.js';
 import { getRedemptionCost } from './debtRecovery.js';
 import type {
   EngineResult, GameEvent, GameState, HarborDischargeAction, HarborFreightOpportunity, HarborFreightQuote,
-  HarborFreightReceipt, HarborFreightState, HarborLoadAction, HarborRedeemAction, HarborRedemption, Player,
+  HarborFreightReceipt, HarborFreightState, HarborLoadAction, HarborRedeemAction, HarborRedemption, HarborRentRelief,
+  HarborRentReliefAction, Player,
 } from './types.js';
 
 export function createHarborFreight(players: Player[]): HarborFreightState {
@@ -59,16 +60,23 @@ export function getHarborFreightQuote(
   };
 }
 
-export function getHarborFreightOpportunity(state: GameState, playerId: string): HarborFreightOpportunity | null {
+function getUnhandledBerth(state: GameState, playerId: string) {
   const harbor = state.harborFreight;
   const captain = state.players[state.activePlayerIndex];
   if (state.mode !== 'harbor' || !harbor || !state.gameStarted || state.winnerId !== null ||
       !captain || captain.id !== playerId || captain.inHold || captain.isBankrupt ||
-      state.pendingDebt || state.pendingSlotCharter || state.auction ||
-      (state.phase !== 'WAIT_FOR_ROLL' && state.phase !== 'END_OF_TURN')) return null;
+      state.pendingSlotCharter || state.auction) return null;
   const tileId = captain.position;
   const visit = harbor.visits[playerId];
   if (!visit || visit.handled || visit.tileId !== tileId || !isOpenBerth(state, tileId)) return null;
+  return { captain, harbor, tileId };
+}
+
+export function getHarborFreightOpportunity(state: GameState, playerId: string): HarborFreightOpportunity | null {
+  if (state.pendingDebt || (state.phase !== 'WAIT_FOR_ROLL' && state.phase !== 'END_OF_TURN')) return null;
+  const berth = getUnhandledBerth(state, playerId);
+  if (!berth) return null;
+  const { harbor, tileId } = berth;
   const revision = harbor.revision;
   const box = harbor.manifests[playerId];
   if (!box) {
@@ -77,6 +85,25 @@ export function getHarborFreightOpportunity(state: GameState, playerId: string):
   }
   const quote = getHarborFreightQuote(state, playerId, box.originTileId, tileId);
   return quote ? { kind: 'discharge', action: { type: 'HARBOR_DISCHARGE', tileId, revision }, quote } : null;
+}
+
+export function getHarborRentRelief(state: GameState, playerId: string): HarborRentRelief | null {
+  const debt = state.pendingDebt;
+  if (state.phase !== 'AWAITING_DEBT_RESOLUTION' || !debt || debt.creditorId === 'BANK' ||
+      !Number.isSafeInteger(debt.amount)) return null;
+  const berth = getUnhandledBerth(state, playerId);
+  if (!berth) return null;
+  const { captain, tileId, harbor } = berth;
+  const box = harbor.manifests[playerId];
+  if (!box || debt.tileId !== tileId || BOARD_TILES[tileId].type !== 'PORT' ||
+      captain.balance < 0 || captain.balance >= debt.amount) return null;
+  const quote = getHarborFreightQuote(state, playerId, box.originTileId, tileId);
+  // Rent debts identify the deed and its creditor, including an already negotiated charter.
+  if (!quote?.operatorId || quote.operatorId !== debt.creditorId) return null;
+  return {
+    action: { type: 'HARBOR_DISCHARGE_FOR_RENT', tileId, revision: harbor.revision },
+    quote, rentDue: debt.amount, shortfallAfter: Math.max(0, debt.amount - captain.balance - quote.carrierNet),
+  };
 }
 
 function reopenPort(state: GameState, tileId: number): GameState {
@@ -103,32 +130,37 @@ export function getHarborRedemption(state: GameState, playerId: string): HarborR
 }
 
 export function dispatchHarborFreight(
-  state: GameState, action: HarborLoadAction | HarborDischargeAction | HarborRedeemAction, actorId?: string,
+  state: GameState, action: HarborLoadAction | HarborDischargeAction | HarborRedeemAction | HarborRentReliefAction, actorId?: string,
 ): EngineResult {
   const harbor = state.harborFreight;
   const unchanged = { state, events: [] };
   if (!harbor || !actorId) return unchanged;
-  const opportunity = action.type === 'HARBOR_REDEEM_AND_DISCHARGE'
-    ? getHarborRedemption(state, actorId) : getHarborFreightOpportunity(state, actorId);
+  let opportunity: HarborRedemption | HarborRentRelief | HarborFreightOpportunity | null;
+  switch (action.type) {
+    case 'HARBOR_REDEEM_AND_DISCHARGE': opportunity = getHarborRedemption(state, actorId); break;
+    case 'HARBOR_DISCHARGE_FOR_RENT': opportunity = getHarborRentRelief(state, actorId); break;
+    default: opportunity = getHarborFreightOpportunity(state, actorId);
+  }
   if (!opportunity || action.type !== opportunity.action.type || action.tileId !== opportunity.action.tileId ||
       action.revision !== opportunity.action.revision || ('shortfall' in opportunity && opportunity.shortfall > 0)) return unchanged;
 
   const tileId = action.tileId;
-  const loading = !('quote' in opportunity);
+  const quote = 'quote' in opportunity ? opportunity.quote : null;
   const nextHarbor: HarborFreightState = {
     ...harbor, revision: harbor.revision + 1,
     visits: { ...harbor.visits, [actorId]: { tileId, handled: true } },
-    manifests: { ...harbor.manifests, [actorId]: loading ? { originTileId: tileId } : null },
+    manifests: { ...harbor.manifests, [actorId]: quote ? null : { originTileId: tileId } },
   };
-  if (loading) {
+  if (!quote) {
     return {
       state: { ...state, harborFreight: nextHarbor },
       events: [{ type: 'HARBOR_LOADED', playerId: actorId, tileId }],
     };
   }
   const redemption = 'redemptionCost' in opportunity ? opportunity : null;
-  const receipt: HarborFreightReceipt = { ...opportunity.quote, round: state.turnCount, revision: nextHarbor.revision,
+  const receipt: HarborFreightReceipt = { ...quote, round: state.turnCount, revision: nextHarbor.revision,
     ...(redemption && { redemptionCost: redemption.redemptionCost }) };
+  if ('rentDue' in opportunity) receipt.rentRelief = { rentDue: opportunity.rentDue, shortfallAfter: opportunity.shortfallAfter };
   nextHarbor.lastDelivery = receipt;
   const events: GameEvent[] = [];
   if (redemption) events.push({ type: 'TILE_UNMORTGAGED', playerId: actorId, tileId, cost: redemption.redemptionCost });

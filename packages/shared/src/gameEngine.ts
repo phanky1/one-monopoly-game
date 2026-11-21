@@ -133,9 +133,16 @@ export class OneMonopolyEngine {
 
   public static dispatch(state: GameState, action: GameAction, actorId?: string): EngineResult {
     if (!action || state.winnerId !== null) return { state, events: [] };
-    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' || action.type === 'HARBOR_REDEEM_AND_DISCHARGE') {
+    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' ||
+        action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
       const result = dispatchHarborFreight(state, action, actorId);
-      if (action.type === 'HARBOR_REDEEM_AND_DISCHARGE' && result.state !== state) {
+      if (result.state === state) return result;
+      if (action.type === 'HARBOR_DISCHARGE_FOR_RENT' && result.state.harborFreight?.lastDelivery?.rentRelief?.shortfallAfter === 0) {
+        const settled = OneMonopolyEngine.dispatchTurnAction(result.state, { type: 'SETTLE_DEBT' });
+        result.state = settled.state;
+        result.events.push(...settled.events);
+      }
+      if (action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
         expireTradeOffers(result.state, result.events);
       }
       return result;

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Anchor, Container, PackageCheck, Ship } from 'lucide-react';
 import {
-  BOARD_TILES, getHarborFreightOpportunity, getHarborRedemption, type GameAction, type GameState, type HarborFreightQuote,
+  BOARD_TILES, getHarborFreightOpportunity, getHarborRedemption, getHarborRentRelief, type GameAction, type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 import { HarborFreightReceipt } from './HarborFreightReceipt.js';
 import { portGuide } from './ports/portGuide.js';
@@ -44,7 +44,9 @@ function BerthStatus({ state, loaded }: { state: GameState; loaded: boolean }) {
     switch (state.phase) {
       case 'AWAITING_BUY_DECISION': return <>Hoàn tất quyết định mua cảng trước khi làm hàng.</>;
       case 'AWAITING_AUCTION': return <>Chờ kết quả đấu giá cảng trước khi làm hàng.</>;
-      case 'AWAITING_DEBT_RESOLUTION': return <>Hoàn tất thanh toán khoản nợ trước khi làm hàng.</>;
+      case 'AWAITING_DEBT_RESOLUTION': return getHarborRentRelief(state, captain.id)
+        ? <>Có thể dỡ lô hàng này để trả tiền thuê trong mục “Xử lý công nợ”.</>
+        : <>Hoàn tất thanh toán khoản nợ trước khi làm hàng.</>;
       case 'AWAITING_SLOT_CHARTER_RESPONSE': return <>Chờ xử lý thỏa thuận chia chỗ và tiền thuê cảng.</>;
     }
     if (property?.isMortgaged) return <>Cảng đang thế chấp và tạm dừng xếp dỡ.</>;

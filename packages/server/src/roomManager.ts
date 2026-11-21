@@ -11,6 +11,7 @@ import {
   getDebtRecovery,
   getHarborFreightOpportunity,
   getHarborRedemption,
+  getHarborRentRelief,
   isFreightRivalStyle,
   LOOP_GROUPS_CONFIG,
   OneMonopolyEngine,
@@ -365,7 +366,7 @@ export class RoomManager {
 
     const activePlayer = room.gameState.players[room.gameState.activePlayerIndex];
     const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' ||
-      action.type === 'HARBOR_REDEEM_AND_DISCHARGE';
+      action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT';
     if ((room.gameState.mode === 'logistics' || harborAction) && activePlayer.id !== playerId) {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
@@ -559,7 +560,9 @@ export class RoomManager {
     }
 
     const docksideDelay = (defaultDelay: number) => {
-      if (lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE') return CARGO_HANDLING_DELAY_MS;
+      if (lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE' || lastActionType === 'HARBOR_DISCHARGE_FOR_RENT') {
+        return CARGO_HANDLING_DELAY_MS;
+      }
       if (lastActionType !== 'ROLL_DICE') return defaultDelay;
       const steps = (state.dice[0] || 1) + (state.dice[1] || 1);
       return Math.max(1600, 950 + steps * 240 + 600);
@@ -623,13 +626,19 @@ export class RoomManager {
       case 'AWAITING_DEBT_RESOLUTION': {
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
-          const recovery = room.gameState && getDebtRecovery(room.gameState);
+          const current = room.gameState!;
+          const recovery = getDebtRecovery(current);
           if (!recovery) return;
+          const relief = getHarborRentRelief(current, activePlayer.id);
+          if (relief && relief.shortfallAfter <= recovery.maxProceeds) {
+            this.dispatchAction(room.id, activePlayer.id, relief.action);
+            return;
+          }
           const action: GameAction = recovery.shortfall === 0
             ? { type: 'SETTLE_DEBT' }
             : recovery.recommended?.action ?? { type: 'DECLARE_BANKRUPTCY' };
           this.dispatchAction(room.id, activePlayer.id, action);
-        }, 1000);
+        }, state.mode === 'harbor' ? docksideDelay(1000) : 1000);
         break;
       }
 

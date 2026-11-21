@@ -16,11 +16,17 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
   const carrier = state.players.find(player => player.id === receipt.playerId)?.name ?? 'Hãng vận chuyển';
   const group = receipt.feePercent === 50 && destinationTile.group ? LOOP_GROUPS_CONFIG[destinationTile.group] : null;
   const bankPayment = receipt.redemptionCost;
-  const cashChange = receipt.carrierNet - (bankPayment ?? 0);
+  const rent = receipt.rentRelief;
+  const rentPaid = rent && rent.shortfallAfter === 0 ? rent.rentDue : 0;
+  const cashChange = receipt.carrierNet - (bankPayment ?? 0) - rentPaid;
+  const hasPayment = bankPayment !== undefined || !!rent;
+  const heading = rent ? 'Biên lai dỡ hàng khi nợ tiền thuê'
+    : bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : 'Biên lai dỡ hàng';
   return <section className="harbor-freight-receipt" data-harbor-receipt={receipt.revision}
+    data-harbor-rent-receipt={rent ? receipt.revision : undefined} tabIndex={rent ? -1 : undefined}
     data-harbor-redemption-receipt={bankPayment !== undefined ? receipt.revision : undefined} aria-labelledby={title}>
     <header>
-      <h4 id={title}><ReceiptText size={15} aria-hidden="true" />{bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : 'Biên lai dỡ hàng'}</h4>
+      <h4 id={title}><ReceiptText size={15} aria-hidden="true" />{heading}</h4>
       <small>Vòng {receipt.round}</small>
     </header>
     <p className="harbor-receipt-route" data-harbor-receipt-route>
@@ -41,10 +47,15 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
         </dt>
         <dd data-harbor-receipt-fee={receipt.handlingFee}>{receipt.handlingFee > 0 && '−'}{money(receipt.handlingFee)}</dd>
       </div>}
-      <div className="harbor-receipt-net"><dt>{bankPayment !== undefined ? `Thay đổi số dư của ${carrier}` : `${carrier} thực nhận`}</dt>
-        <dd data-harbor-receipt-net={cashChange} data-harbor-receipt-cash-change={bankPayment !== undefined ? cashChange : undefined}>
+      {rent && <div><dt>Tiền thuê đã trả khi dỡ hàng</dt>
+        <dd data-harbor-receipt-rent-paid={rentPaid}>{rentPaid > 0 ? '−' : ''}{money(rentPaid)}</dd>
+      </div>}
+      <div className="harbor-receipt-net"><dt>{hasPayment ? `Thay đổi số dư của ${carrier}` : `${carrier} thực nhận`}</dt>
+        <dd data-harbor-receipt-net={cashChange} data-harbor-receipt-cash-change={hasPayment ? cashChange : undefined}>
           {cashChange < 0 ? '−' : cashChange > 0 ? '+' : ''}{money(Math.abs(cashChange))}</dd></div>
     </dl>
-    {receipt.handlingFee > 0 && <p className="harbor-receipt-rent-note">Tiền thuê khi tàu cập bến được tính riêng.</p>}
+    {rent && rent.shortfallAfter > 0 && <p className="harbor-receipt-rent-note" data-harbor-receipt-shortfall={rent.shortfallAfter}>
+      Ngay sau khi dỡ hàng, tàu còn thiếu {money(rent.shortfallAfter)} để trả đủ {money(rent.rentDue)} tiền thuê.</p>}
+    {!rent && receipt.handlingFee > 0 && <p className="harbor-receipt-rent-note">Tiền thuê khi tàu cập bến được tính riêng.</p>}
   </section>;
 }

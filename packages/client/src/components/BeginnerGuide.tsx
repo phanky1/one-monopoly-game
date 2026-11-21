@@ -28,8 +28,9 @@ const guides: Record<GameMode, Step[]> = {
     {
       title: 'Phân biệt tiền thuê và cước hàng',
       copy: [
-        'Cái Mép có giá mua $60M. Giả sử Minh đã sở hữu cảng này, chưa nâng cấp và chưa đủ bộ màu. Khi cập bến, bạn trả Minh $4M tiền thuê.',
+        'Cái Mép có giá mua $60M. Giả sử Minh sở hữu cảng, chưa nâng cấp và chưa đủ bộ màu. Nếu có đủ tiền khi cập bến, bạn trả Minh $4M tiền thuê.',
         'Nếu chọn “Dỡ hàng”, chuyến từ Singapore có cước $12M. Minh giữ 25% cước, tức $3M phí khai thác.',
+        'Nếu thiếu tiền thuê ở cảng của đối thủ, mở “Xử lý công nợ”. Bạn có thể dùng phần cước của tàu để trả thuê, hoặc thế chấp tài sản và giữ hàng cho chuyến sau.',
       ],
       practice: { question: 'Chỉ tính lần dỡ hàng này, tàu của bạn nhận bao nhiêu?', choices: [
         { label: '$5M', correct: false, feedback: 'Tiền thuê $4M đã được xử lý khi cập bến. Khi dỡ, lấy $12M trừ $3M phí khai thác.' },

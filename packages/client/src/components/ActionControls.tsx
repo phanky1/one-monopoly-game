@@ -27,6 +27,23 @@ export const ActionControls: React.FC<Props> = ({
   const activePlayer = gameState.players[gameState.activePlayerIndex];
   const isMyTurn = activePlayer.id === myPlayerId;
   const currentTile = BOARD_TILES[activePlayer.position];
+  const [rentFocus, setRentFocus] = React.useState<{
+    revision: number; source: HTMLButtonElement; playerId: string; tileId: number; roomId: string;
+  } | null>(null);
+  React.useLayoutEffect(() => {
+    if (!rentFocus) return;
+    const harbor = gameState.harborFreight;
+    if (rentFocus.roomId === gameState.roomId && harbor?.revision === rentFocus.revision) return;
+    const receipt = harbor?.lastDelivery;
+    if (receipt?.rentRelief?.shortfallAfter === 0 && receipt.revision === rentFocus.revision + 1
+      && receipt.tileId === rentFocus.tileId && receipt.playerId === rentFocus.playerId
+      && rentFocus.roomId === gameState.roomId && isMyTurn && !gameState.pendingDebt
+      && !document.hidden && !document.querySelector('dialog[open]')
+      && (document.activeElement === document.body || document.activeElement === rentFocus.source)) {
+      document.querySelector<HTMLElement>(`[data-harbor-rent-receipt="${receipt.revision}"]`)?.focus();
+    }
+    setRentFocus(null);
+  }, [gameState, rentFocus, isMyTurn]);
 
   // Another captain's bid clock can already be running while the landing ship is moving.
   if (gameState.phase === 'AWAITING_AUCTION' && gameState.auction) {
@@ -122,7 +139,10 @@ export const ActionControls: React.FC<Props> = ({
   const debt = gameState.phase === 'AWAITING_DEBT_RESOLUTION' && gameState.pendingDebt;
   const debtPanel = debt && (
     <DebtRescuePanel key={JSON.stringify([activePlayer.id, debt.creditorId, debt.tileId, debt.amount, debt.reason])}
-      gameState={gameState} debt={debt} canAct={isMyTurn} onAction={onAction} />
+      gameState={gameState} debt={debt} canAct={isMyTurn} onAction={onAction}
+      onCoveredRentAccepted={(revision, source) => setRentFocus({
+        revision, source, roomId: gameState.roomId, tileId: currentTile.id, playerId: activePlayer.id,
+      })} />
   );
   if (isMyTurn && debtPanel) return debtPanel;
 

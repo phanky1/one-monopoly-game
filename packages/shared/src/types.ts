@@ -73,6 +73,7 @@ export type GameMode = 'classic' | 'logistics' | 'harbor';
 export interface HarborLoadAction { type: 'HARBOR_LOAD'; tileId: number; revision: number }
 export interface HarborDischargeAction { type: 'HARBOR_DISCHARGE'; tileId: number; revision: number }
 export interface HarborRedeemAction { type: 'HARBOR_REDEEM_AND_DISCHARGE'; tileId: number; revision: number }
+export interface HarborRentReliefAction { type: 'HARBOR_DISCHARGE_FOR_RENT'; tileId: number; revision: number }
 export interface HarborFreightQuote {
   playerId: string;
   originTileId: number;
@@ -85,7 +86,18 @@ export interface HarborFreightQuote {
   operatorId: string | null;
   operatorName: string | null;
 }
-export interface HarborFreightReceipt extends HarborFreightQuote { round: number; revision: number; redemptionCost?: number }
+export interface HarborFreightReceipt extends HarborFreightQuote {
+  round: number;
+  revision: number;
+  redemptionCost?: number;
+  rentRelief?: Pick<HarborRentRelief, 'rentDue' | 'shortfallAfter'>;
+}
+export interface HarborRentRelief {
+  action: HarborRentReliefAction;
+  quote: HarborFreightQuote;
+  rentDue: number;
+  shortfallAfter: number;
+}
 export interface HarborRedemption {
   action: HarborRedeemAction;
   quote: HarborFreightQuote;
@@ -370,7 +382,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
-  | HarborLoadAction | HarborDischargeAction | HarborRedeemAction
+  | HarborLoadAction | HarborDischargeAction | HarborRedeemAction | HarborRentReliefAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall
