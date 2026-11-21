@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { BOARD_TILES, GameCard, getMissionProgress, getVoyagePayment, STORM_DRIFT_STEPS, STORM_TUG_FEE, type PortStock } from '@one-monopoly/shared';
+import { BOARD_TILES, GameCard, getMissionProgress, getVoyagePayment, STORM_DRIFT_STEPS, STORM_TUG_FEE, type GameMode, type PortStock } from '@one-monopoly/shared';
 import { useSocket } from './hooks/useSocket.js';
 import { Lobby } from './components/Lobby.js';
+import { BeginnerGuide } from './components/BeginnerGuide.js';
 import { Board } from './components/Board.js';
 import { getBoardLighting } from './components/boardLighting.js';
 import { PlayerSidebar } from './components/PlayerSidebar.js';
 import { TradeDesk } from './components/TradeDesk.js';
 import { ActionControls } from './components/ActionControls.js';
 import { FreightDesk } from './components/CargoManifest.js';
+import { HarborFreightDesk } from './components/HarborFreightDesk.js';
 import { RivalDispatch } from './components/RivalDispatch.js';
 import { DiversionReceipt, type DiversionEvent } from './components/DiversionReceipt.js';
 import { TruckCallReceipt, type TruckCallEvent } from './components/TruckCallReceipt.js';
@@ -19,7 +21,7 @@ import { SecretMissionCardView } from './components/SecretMissionCardView.js';
 import { ReactionFloatingBar } from './components/ReactionFloatingBar.js';
 import type { RentReceipt } from './components/useBoardPlayback.js';
 import { GameOverModal } from './components/GameOverModal.js';
-import { AlertCircle, BookOpen, Box, CloudLightning, CloudRain, Compass, Gavel, Handshake, LifeBuoy, LogOut, Map, MapPin, Moon, Radio, Route, Store, Sun, Truck, X } from 'lucide-react';
+import { AlertCircle, BookOpen, BookOpenCheck, Box, CloudLightning, CloudRain, Compass, Gavel, Handshake, LifeBuoy, LogOut, Map, MapPin, Moon, Radio, Route, Store, Sun, Truck, X } from 'lucide-react';
 
 const noticeIcons = { auction: Gavel, trade: Handshake, debt: LifeBuoy, freight: Truck };
 type BoardNotice = { type: keyof typeof noticeIcons; text: string }
@@ -56,6 +58,8 @@ export const App: React.FC = () => {
   } = useSocket();
 
   const [activeCard, setActiveCard] = useState<GameCard | null>(null);
+  const [guideMode, setGuideMode] = useState<GameMode | null>(null);
+  useEffect(() => { setGuideMode(null); }, [room?.id, gameState?.gameStarted]);
   const [isPawnMoving, setIsPawnMoving] = useState(false);
   const [rent, setRent] = useState<{
     visible: Record<number, RentReceipt>;
@@ -121,7 +125,15 @@ export const App: React.FC = () => {
 
       // Add to event logs
       let logMsg = '';
-      if (evt.type === 'BACKHAUL_ACCEPTED' || evt.type === 'BACKHAUL_EXPIRED' || evt.type === 'BACKHAUL_FULFILLED') {
+      if (evt.type === 'HARBOR_LOADED') {
+        const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Thuyền trưởng';
+        logMsg = `${who} xếp một lô hàng xuất tại ${portGuide[BOARD_TILES[evt.tileId].code].name}.`;
+      } else if (evt.type === 'HARBOR_DISCHARGED') {
+        const { playerId, tileId, carrierNet, operatorName, handlingFee } = evt.receipt;
+        const who = state.players.find(player => player.id === playerId)?.name ?? 'Thuyền trưởng';
+        logMsg = `${who} dỡ hàng tại ${portGuide[BOARD_TILES[tileId].code].name}, nhận $${carrierNet}M.`;
+        if (handlingFee) logMsg += ` ${operatorName} nhận $${handlingFee}M phí dỡ hàng.`;
+      } else if (evt.type === 'BACKHAUL_ACCEPTED' || evt.type === 'BACKHAUL_EXPIRED' || evt.type === 'BACKHAUL_FULFILLED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Đội tàu';
         const port = portGuide[BOARD_TILES[evt.job.destinationTileId].code].name;
         if (evt.type === 'BACKHAUL_ACCEPTED') logMsg = `${who} nhận chuyến về ${port}, hạn vòng ${evt.job.deadlineRound}.`;
@@ -209,7 +221,11 @@ export const App: React.FC = () => {
       } else if (evt.type === 'TILE_PURCHASED' && sale?.tileId !== evt.tileId) {
         logMsg = `🏗️ Đã mua ô #${evt.tileId} với giá $${evt.price}M`;
       } else if (evt.type === 'DEMURRAGE_PAID') {
-        logMsg = `💸 Nộp $${evt.amount}M phí lưu bãi`;
+        if (state.mode === 'harbor') {
+          const owner = state.players.find(player => player.id === evt.creditorId)?.name ?? 'chủ cảng';
+          const visitor = state.players.find(player => player.id === evt.debtorId)?.name ?? 'Thuyền trưởng';
+          logMsg = `${visitor} trả ${owner} $${evt.amount}M tiền thuê tại ${BOARD_TILES[evt.tileId].name}.`;
+        } else logMsg = `💸 Nộp $${evt.amount}M phí lưu bãi`;
       } else if (evt.type === 'DEBT_SETTLED') {
         const debtor = state.players.find(player => player.id === evt.debtorId);
         logMsg = `${debtor?.name ?? 'Thuyền trưởng'} đã thanh toán khoản nợ $${evt.amount}M.`;
@@ -277,6 +293,8 @@ export const App: React.FC = () => {
             <Radio size={16} aria-hidden="true" />
             <span>{isConnected ? 'Đã kết nối' : 'Đang kết nối...'}</span>
           </span>
+          {gameState && <button type="button" data-table-guide className="chart-nav-guide" aria-haspopup="dialog" aria-label="Cách chơi"
+            onClick={() => setGuideMode(gameState.mode ?? 'classic')}><BookOpenCheck size={15} aria-hidden="true" /><span>Cách chơi</span></button>}
           {gameState && (
             <details className="chart-log">
               <summary aria-label="Nhật ký vận hành"><BookOpen size={17} /> <span>Nhật ký</span></summary>
@@ -310,6 +328,7 @@ export const App: React.FC = () => {
             onJoinRoom={joinRoom}
             onToggleReady={toggleReady}
             onStartGame={startGame}
+            onOpenGuide={setGuideMode}
             onLeaveRoom={leaveRoom}
           />
         </main>
@@ -397,6 +416,9 @@ export const App: React.FC = () => {
                 isRolling={isRolling}
                 isPawnMoving={isPawnMoving}
               />}
+              {gameState.mode === 'harbor' && !gameState.winnerId && <HarborFreightDesk
+                state={gameState} myPlayerId={myPlayerId} onAction={sendAction} is3D={is3D}
+                busy={isRolling || isPawnMoving || !!activeCard} />}
               {captain && mission && (!captain.isBankrupt || captain.secretMission?.isCompleted) && (
                 <SecretMissionCardView gameState={gameState} player={captain} progress={mission}
                   showTargets={showMissionTargets} onToggleTargets={() => setShowMissionTargets(value => !value)}
@@ -420,6 +442,8 @@ export const App: React.FC = () => {
           <GameOverModal gameState={gameState} myPlayerId={myPlayerId} onRestart={leaveRoom} />
         </main>
       )}
+      {guideMode && <BeginnerGuide mode={guideMode} live={!!gameState?.gameStarted && !gameState.winnerId}
+        onClose={() => setGuideMode(null)} />}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { BoardTile, GameCard, LoopGroup, SecretMissionCard } from './types.js';
+import { BoardTile, GameCard, GameState, LoopGroup, SecretMissionCard } from './types.js';
 
 export const AUCTION_INCREMENT = 10;
 export const AUCTION_BID_SECONDS = 20;
@@ -66,6 +66,10 @@ export const LOOP_GROUPS_CONFIG: Record<
     buildCost: 200,
   },
 };
+
+export function ownsPortGroup(state: GameState, group: LoopGroup, ownerId: string): boolean {
+  return LOOP_GROUPS_CONFIG[group].tileIds.every(id => state.properties[id]?.ownerId === ownerId);
+}
 
 // 4 Tuyến Dịch Vụ Huyết Mạch của ONE
 export const SERVICE_LINES = [4, 13, 20, 28]; // VSS, MD2, FE2, PS3

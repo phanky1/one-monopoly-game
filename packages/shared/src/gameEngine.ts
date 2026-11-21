@@ -28,6 +28,7 @@ import {
   HOLD_TILE_INDEX,
   INFRA_TILES,
   LOOP_GROUPS_CONFIG,
+  ownsPortGroup,
   MAX_HOLD_TURNS,
   SECRET_MISSIONS,
   SERVICE_LINES,
@@ -36,6 +37,7 @@ import {
   STORM_TUG_FEE,
 } from './boardData.js';
 import { createLogisticsState, dispatchLogistics } from './cargo.js';
+import { createHarborFreight, dispatchHarborFreight, recordHarborVisit } from './harborFreight.js';
 import { dispatchTrade, expireTradeOffers } from './trade.js';
 import { getMissionProgress } from './missionProgress.js';
 import { getMortgageValue, getPropertyCashOption } from './debtRecovery.js';
@@ -96,6 +98,7 @@ export class OneMonopolyEngine {
       roomId,
       mode,
       ...(freight ? { logistics: createLogisticsState(players), cargoRevision: 0 } : {}),
+      ...(mode === 'harbor' ? { harborFreight: createHarborFreight(players) } : {}),
       players,
       activePlayerIndex: 0,
       properties,
@@ -121,6 +124,9 @@ export class OneMonopolyEngine {
 
   public static dispatch(state: GameState, action: GameAction, actorId?: string): EngineResult {
     if (!action || state.winnerId !== null) return { state, events: [] };
+    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE') {
+      return dispatchHarborFreight(state, action, actorId);
+    }
     if (state.mode === 'logistics') {
       return dispatchLogistics(state, action, actorId ?? state.players[state.activePlayerIndex]?.id);
     }
@@ -139,6 +145,12 @@ export class OneMonopolyEngine {
       result.state.canUpgradeCurrentPort = result.state.properties[captain.position]?.ownerId === captain.id;
     }
     expireTradeOffers(result.state, result.events);
+    if (result.state.harborFreight && (result.events.length > 0 || result.state.phase !== state.phase ||
+        result.state.activePlayerIndex !== state.activePlayerIndex || result.state.turnCount !== state.turnCount ||
+        result.state.auction?.revision !== state.auction?.revision)) {
+      // A rival can buy the berth or complete its color set between a displayed quote and confirmation.
+      result.state.harborFreight = { ...result.state.harborFreight, revision: result.state.harborFreight.revision + 1 };
+    }
     return result;
   }
 
@@ -397,6 +409,8 @@ export class OneMonopolyEngine {
 
     if (resolveLanding) {
       OneMonopolyEngine.resolveTileLanding(state, events, player, to);
+    } else {
+      recordHarborVisit(state, player.id, null);
     }
   }
 
@@ -408,6 +422,7 @@ export class OneMonopolyEngine {
   ): void {
     state.canUpgradeCurrentPort = false;
     const tile = BOARD_TILES[tileId];
+    recordHarborVisit(state, player.id, tileId);
 
     switch (tile.type) {
       case 'GO':
@@ -619,12 +634,7 @@ export class OneMonopolyEngine {
       if (prop.containerLevel > 0) {
         return tile.rentTiers[prop.containerLevel] || 0;
       }
-      // Check monopoly (all ports in loop owned by same player and none mortgaged)
-      const groupConfig = LOOP_GROUPS_CONFIG[tile.group!];
-      const ownsAll = groupConfig.tileIds.every(
-        (id) => state.properties[id]?.ownerId === ownerId
-      );
-      if (ownsAll) {
+      if (ownsPortGroup(state, tile.group!, ownerId)) {
         return tile.rentTiers[0] * 2;
       }
       return tile.rentTiers[0];
@@ -902,6 +912,7 @@ export class OneMonopolyEngine {
     reason: string
   ): void {
     player.position = HOLD_TILE_INDEX;
+    recordHarborVisit(state, player.id, null);
     player.inHold = true;
     player.holdTurns = 0;
     state.consecutiveDoubles = 0;
@@ -1393,6 +1404,10 @@ export class OneMonopolyEngine {
     player: Player
   ): void {
     player.isBankrupt = true;
+    if (state.harborFreight) {
+      state.harborFreight.manifests[player.id] = null;
+      recordHarborVisit(state, player.id, null);
+    }
     const creditorId = state.pendingDebt?.creditorId || 'BANK';
     player.bankruptTo = creditorId;
 

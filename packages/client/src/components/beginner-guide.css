@@ -1,0 +1,58 @@
+.chart-dialog:has(.beginner-guide) { width: min(37rem, calc(100% - 1.25rem)); }
+.beginner-guide { min-width: 0; color: #203e47; background: #fcf8eb; font: 500 14px/1.5 var(--chart-sans); }
+.beginner-guide-heading {
+  display: flex; align-items: center; gap: 11px; padding: 14px clamp(13px, 3vw, 24px);
+  color: #fff6dd; background: #1f424e; border-bottom: 3px solid #b66585;
+}
+.beginner-guide-heading > svg { flex: none; color: #f4d8b4; }
+.beginner-guide-heading h2 { flex: 1; margin: 0; font: 650 clamp(21px, 3.1vw, 29px)/1.15 var(--chart-display); }
+.beginner-guide button { cursor: pointer; font-family: inherit; }
+.beginner-guide-heading button {
+  display: grid; flex: none; place-items: center; width: 36px; height: 36px;
+  border: 1px solid #789194; border-radius: 4px; background: transparent; color: #fff6dd;
+}
+.beginner-guide-body { display: grid; gap: 13px; padding: 15px clamp(13px, 3vw, 24px) 17px; }
+.beginner-guide-clock { display: flex; align-items: center; gap: 6px; margin: 0; color: #6f4756; font-size: 12px; }
+.beginner-guide-clock svg { flex: none; }
+.beginner-guide-modes { display: grid; grid-template-columns: 1fr 1.2fr 1.3fr; }
+.beginner-guide-modes button {
+  min-width: 0; min-height: 36px; padding: 4px 5px;
+  border: 1px solid #9aada2; color: #35565a; background: #f3f2e5; font-size: 12px; font-weight: 700; line-height: 1.2;
+}
+.beginner-guide-modes button:first-child { border-radius: 4px 0 0 4px; }
+.beginner-guide-modes button:last-child { border-radius: 0 4px 4px 0; }
+.beginner-guide-modes button + button { margin-inline-start: -1px; }
+.beginner-guide-modes button[aria-pressed=true] { position: relative; background: #254955; border-color: #254955; color: #fff8e7; }
+.beginner-guide-step { min-width: 0; }
+.beginner-guide-step > p { margin: 8px 0 0; }
+.beginner-guide-step .beginner-guide-progress { margin: 0; color: #785365; font: 650 11px/1.4 var(--chart-mono); }
+.beginner-guide-step h3 { margin: 3px 0 6px; font: 650 clamp(20px, 3.4vw, 28px)/1.13 var(--chart-display); }
+.beginner-guide-step h3:focus { outline: none; }
+.beginner-guide-figures { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 14px 0 0; padding: 9px 0 0; border-block-start: 1px solid #b1bfb3; }
+.beginner-guide-figures div { min-width: 0; flex: 1 1 82px; }
+.beginner-guide-figures dt { color: #4f6563; font-size: 11px; }
+.beginner-guide-figures dd { margin: 1px 0 0; color: #264b52; font: 700 14px/1.25 var(--chart-mono); }
+.beginner-guide-practice { min-width: 0; margin: 12px 0 0; padding: 6px 12px 10px; border: 1px solid #adbdb0; border-radius: 4px; background: #eff2e6; }
+.beginner-guide-practice legend { padding: 0 4px; color: #325e58; font: 700 11px/1.3 var(--chart-mono); }
+.beginner-guide-practice p { margin: 0; font-size: 13px; }
+.beginner-guide-practice > div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.beginner-guide-practice button, .beginner-guide-navigation button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 33px; padding: 4px 12px;
+  color: #28454d; border: 1px solid #81978c; border-radius: 4px; background: #fffbee; font-size: 13px; font-weight: 700;
+}
+.beginner-guide-practice button[aria-pressed=true] { border-color: #365d59; background: #d4e4d8; }
+.beginner-guide-practice [data-guide-feedback] { margin-top: 8px; color: #344d50; }
+.beginner-guide-practice [data-guide-feedback=correct] { color: #285344; }
+.beginner-guide-navigation { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px clamp(13px, 3vw, 24px); border-top: 1px solid #afbdae; }
+.beginner-guide-navigation [data-guide-next] { border-color: #1c404d; background: #244754; color: #fff9e7; }
+.beginner-guide button:disabled { cursor: default; opacity: .48; }
+.beginner-guide button:focus-visible { z-index: 1; outline: 3px solid #bb4776; outline-offset: 2px; }
+@media (max-width: 480px) {
+  .beginner-guide-heading { padding-block: 10px; }
+  .beginner-guide-body { padding-block: 11px 13px; gap: 9px; }
+  .beginner-guide-figures { gap: 7px; }
+}
+@media (pointer: coarse) {
+  .beginner-guide :is(.beginner-guide-modes, .beginner-guide-practice, .beginner-guide-navigation) button { min-height: 44px; }
+  .beginner-guide-heading button { min-width: 44px; min-height: 44px; }
+}

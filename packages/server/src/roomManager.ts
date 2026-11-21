@@ -4,10 +4,12 @@ import {
   BOARD_TILES,
   FREIGHT_RIVALS,
   type FreightRivalStyle,
+  type GameMode,
   GameAction,
   GameEvent,
   GameState,
   getDebtRecovery,
+  getHarborFreightOpportunity,
   isFreightRivalStyle,
   LOOP_GROUPS_CONFIG,
   OneMonopolyEngine,
@@ -245,12 +247,15 @@ export class RoomManager {
   }
 
   public startGame(
-    roomId: string, callerId: string, mode: 'classic' | 'logistics' = 'logistics', rivalStyle?: FreightRivalStyle
+    roomId: string, callerId: string, mode: GameMode = 'logistics', rivalStyle?: FreightRivalStyle
   ): { success: boolean; error?: string } {
     const room = this.getRoom(roomId);
     if (!room) return { success: false, error: 'Phòng không tồn tại!' };
     if (room.hostId !== callerId) return { success: false, error: 'Chỉ phòng trưởng (Host) mới có quyền bắt đầu!' };
     if (room.isGameStarted) return { success: false, error: 'Trò chơi đã bắt đầu!' };
+    if (mode !== 'harbor' && mode !== 'logistics' && mode !== 'classic') {
+      return { success: false, error: 'Chế độ chơi không hợp lệ.' };
+    }
 
     const solo = room.players.length === 1;
     if (rivalStyle !== undefined) {
@@ -346,7 +351,8 @@ export class RoomManager {
     )) return { success: false, error: 'Yêu cầu giữ xe nhận hàng không hợp lệ.' };
 
     const activePlayer = room.gameState.players[room.gameState.activePlayerIndex];
-    if (room.gameState.mode === 'logistics' && activePlayer.id !== playerId) {
+    const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE';
+    if ((room.gameState.mode === 'logistics' || harborAction) && activePlayer.id !== playerId) {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
     const isAuctionAction = action.type === 'AUCTION_BID' || action.type === 'AUCTION_PASS';
@@ -398,7 +404,7 @@ export class RoomManager {
       action.type === 'CHANGE_DESTINATION' || action.type === 'SAIL_TO_PORT' || action.type === 'SAIL_FEEDER' ||
       action.type === 'ACCEPT_BACKHAUL' || action.type === 'BID_FREIGHT_TENDER' || action.type === 'CALL_PORT_TRUCK' ||
       action.type === 'WITHDRAW_FREIGHT_TENDER_BID' || action.type === 'RESERVE_IMPORT_TRUCK';
-    if (nextState === room.gameState && (room.gameState.mode === 'logistics' || freightCommand)) {
+    if (nextState === room.gameState && (room.gameState.mode === 'logistics' || freightCommand || harborAction)) {
       return { success: false, error: 'Lệnh điều độ không còn hợp lệ. Hãy kiểm tra lại vận đơn và tình trạng bến.' };
     }
     if ((action.type === 'SELL_CONTAINER' && !events.some(e => e.type === 'CONTAINER_SOLD')) ||
@@ -546,7 +552,13 @@ export class RoomManager {
         const delay = lastActionType === 'ROLL_DICE' ? computeTravelDelay() : 1000;
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
-          const captain = room.gameState!.players[state.activePlayerIndex];
+          const current = room.gameState!;
+          const captain = current.players[current.activePlayerIndex];
+          const freight = getHarborFreightOpportunity(current, activePlayer.id);
+          if (freight) {
+            this.dispatchAction(room.id, activePlayer.id, freight.action);
+            return;
+          }
           if (captain.inHold && captain.balance >= 150) {
             this.dispatchAction(room.id, activePlayer.id, { type: 'PAY_HOLD_FINE' });
           } else {
@@ -609,6 +621,11 @@ export class RoomManager {
           room.botTimer = null;
           const current = room.gameState!;
           const captain = current.players[current.activePlayerIndex];
+          const freight = getHarborFreightOpportunity(current, activePlayer.id);
+          if (freight) {
+            this.dispatchAction(room.id, activePlayer.id, freight.action);
+            return;
+          }
           const tile = BOARD_TILES[captain.position];
           const prop = current.properties[captain.position];
           if (

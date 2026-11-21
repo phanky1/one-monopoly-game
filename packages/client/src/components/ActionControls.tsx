@@ -161,6 +161,9 @@ export const ActionControls: React.FC<Props> = ({
         </div>
 
         <p className="chart-action-copy">Nếu bạn không mua, tài sản sẽ được đưa ra đấu giá.</p>
+        {gameState.mode === 'harbor' && currentTile.type === 'PORT' && <p className="chart-action-copy" data-harbor-purchase>
+          Chủ cảng được xếp hàng xuất tại đây và nhận 25% cước khi đối thủ dỡ hàng. Sở hữu trọn nhóm màu để nhận 50%.
+        </p>}
         <div className="chart-action-row">
           <button
             type="button"

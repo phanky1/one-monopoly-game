@@ -8,6 +8,7 @@ import {
   GREEN_FLEET_ESG_BONUS,
   getTradeRestriction,
   getEmptyNeed,
+  getHarborTerminalShare,
   getImportTruckReservation,
   getPortTruckSchedule,
   getReserveImportTruckAction,
@@ -331,9 +332,15 @@ export const PropertyModal: React.FC<Props> = ({
             {tile.price !== undefined && (
               <div><dt>Giá mua</dt><dd>${tile.price}M</dd></div>
             )}
+            {gameState.mode === 'harbor' && tile.type === 'PORT' && <div data-harbor-deed>
+              <dt>Phần cước khi đối thủ dỡ hàng</dt>
+              <dd>{prop.isMortgaged ? 'Tạm ngừng khai thác' : owner
+                ? `${getHarborTerminalShare(gameState, tileId)}% cho ${owner.name}`
+                : '25% cho chủ cảng · 50% nếu sở hữu trọn nhóm màu'}</dd>
+            </div>}
             {owner && (tile.type !== 'INFRA' || gameState.hasRolled) && (
               <div>
-                <dt>{tile.type === 'INFRA' ? 'Cước theo lần gieo' : 'Cước niêm yết'}</dt>
+                <dt>{tile.type === 'INFRA' ? 'Cước theo lần gieo' : gameState.mode === 'harbor' ? 'Tiền thuê khi ghé bến' : 'Cước niêm yết'}</dt>
                 <dd>${OneMonopolyEngine.calculateRent(gameState, tileId, gameState.dice)}M</dd>
               </div>
             )}

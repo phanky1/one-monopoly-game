@@ -69,7 +69,31 @@ export interface SecretMissionCard {
   isCompleted: boolean;
 }
 
-export type GameMode = 'classic' | 'logistics';
+export type GameMode = 'classic' | 'logistics' | 'harbor';
+export interface HarborLoadAction { type: 'HARBOR_LOAD'; tileId: number; revision: number }
+export interface HarborDischargeAction { type: 'HARBOR_DISCHARGE'; tileId: number; revision: number }
+export interface HarborFreightQuote {
+  playerId: string;
+  originTileId: number;
+  tileId: number;
+  distanceNm: number;
+  gross: number;
+  carrierNet: number;
+  handlingFee: number;
+  feePercent: 0 | 25 | 50;
+  operatorId: string | null;
+  operatorName: string | null;
+}
+export interface HarborFreightReceipt extends HarborFreightQuote { round: number; revision: number }
+export type HarborFreightOpportunity =
+  | { kind: 'load'; action: HarborLoadAction }
+  | { kind: 'discharge'; action: HarborDischargeAction; quote: HarborFreightQuote };
+export interface HarborFreightState {
+  revision: number;
+  manifests: Record<string, { originTileId: number } | null>;
+  visits: Record<string, { tileId: number; handled: boolean } | null>;
+  lastDelivery: HarborFreightReceipt | null;
+}
 export type CargoKind = 'laden' | 'empty';
 export interface CargoBooking {
   destinationAmendment?: DestinationAmendment;
@@ -297,6 +321,7 @@ export interface TradeOffer {
 
 export interface GameState {
   mode?: GameMode; // Snapshots without a mode use the original board rules.
+  harborFreight?: HarborFreightState;
   logistics?: LogisticsState;
   cargoRevision?: number;
   roomId: string;
@@ -336,6 +361,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
+  | HarborLoadAction | HarborDischargeAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall
@@ -365,6 +391,8 @@ export type GameAction =
   | { type: 'END_TURN' };
 
 export type GameEvent =
+  | { type: 'HARBOR_LOADED'; playerId: string; tileId: number }
+  | { type: 'HARBOR_DISCHARGED'; receipt: HarborFreightReceipt }
   | ({ type: 'IMPORT_TRUCK_RESERVED'; playerId: string } & ImportTruckReservation)
   | { type: 'PORT_TRUCK_CALLED'; operation: TruckOperation; tileId: number; playerId: string; scheduledRound: number }
   | { type: 'BACKHAUL_ACCEPTED' | 'BACKHAUL_EXPIRED' | 'BACKHAUL_FULFILLED'; playerId: string; job: BackhaulJob }

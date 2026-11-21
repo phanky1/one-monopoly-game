@@ -2,13 +2,36 @@
 > **Bản quyền thiết kế:** Chủ đề Hãng tàu Container Toàn cầu Ocean Network Express (ONE)  
 > **Quy mô bàn cờ:** 32 Ô (Lưới 9x9 - Góc nhìn 3D Isometric chuẩn Business Tour)  
 > **Số người chơi:** 2 – 4 Thuyền trưởng  
-> **Vốn khởi điểm:** **$1,500M** (Triệu Đô la Mỹ Logistics)
+> Mỗi thuyền trưởng bắt đầu ở Singapore với **$1.500M** trong Monopoly và Monopoly cổ điển, hoặc **$0M** trong Empty Reposition. Đơn vị M là triệu USD.
 
 ---
 
-## 1. MỤC TIÊU VÀ ĐIỀU KIỆN CHIẾN THẮNG
+## Chuyến đầu cho người mới
 
-Trong **ONE Monopoly**, người chơi hóa thân thành các Giám đốc Điều hành Hãng tàu Container thuộc liên minh toàn cầu. Mục tiêu là:
+Chọn **Tạo phòng mới**, nhập tên, chọn quân cờ rồi nhấn **Khởi tạo phòng chơi**. Gửi mã phòng cho bạn bè để họ chọn **Vào bằng mã**, hoặc bắt đầu ngay để đấu với máy. Chủ phòng chọn chế độ trước khi bắt đầu. Bạn có thể mở lại hướng dẫn ở phòng chờ và ngay trên bàn cờ.
+
+### Monopoly
+
+Ở Singapore, bạn có thể xếp một container hàng khô trước khi gieo xúc xắc. Khi đến cảng, hãy giải quyết việc mua cảng, đấu giá hoặc trả tiền thuê trước. Sau đó, bạn có thể dỡ ở cảng khác nơi xếp, hoặc giữ hàng trên tàu. Mỗi lần ghé chỉ được xếp hoặc dỡ một lần. Để nhận chuyến mới, hãy ghé Singapore hoặc một cảng của mình đang hoạt động. **Thắng khi bạn là thuyền trưởng cuối cùng còn khả năng thanh toán.**
+
+Ví dụ, Linh xếp hàng ở Singapore rồi gieo được 3, cập Cái Mép. Minh sở hữu riêng cảng này, chưa xây và chưa thế chấp, nên Linh trả Minh **$4M tiền thuê**. Nếu Linh dỡ hàng, ngân hàng trả thêm **$12M cước**, gồm **$9M cho Linh** và **$3M phí bốc dỡ cho Minh** (25%). Nếu Minh sở hữu cả Cái Mép và Cát Lái, tiền thuê ở Cái Mép chưa xây là **$8M** và cước chia **$6M mỗi người** (50%). Cảng đang thế chấp tạm dừng xếp dỡ.
+
+### Empty Reposition
+
+Đến lượt mình, chọn loại hàng và cảng đích, xếp lên tàu, chọn cảng để chạy đến rồi dỡ. Với hàng xuất, hãy tìm bến còn xe nhận. Với **Container rỗng**, hãy lấy vỏ ở bến đang dư và chọn bến còn thiếu. Bạn được đi một chặng thông thường mỗi lượt.
+
+Thử ngay lượt đầu ở Singapore. Bến có **4 vỏ**, cần giữ **1**. Cái Mép đang có **1 vỏ**, cần **2**. Chọn **Container rỗng** đi Cái Mép, chạy tàu đến đó rồi dỡ. Bến đủ **2/2 vỏ**, bạn nhận **$6M** và ghi một lần giao thành công.
+
+Khi một người giao đủ **3 chuyến**, cả bàn chơi hết vòng đó. Ván cũng kết thúc sau **8 vòng**. Người giao nhiều chuyến nhất thắng. Nếu hòa, xét tổng tiền cước kiếm được, rồi đến thứ tự ghế ban đầu.
+
+**Monopoly cổ điển** giữ luật xúc xắc, mua cảng và thu tiền thuê của bản gốc. Các mục dưới đây trình bày luật tài sản của hai chế độ Monopoly.
+
+---
+
+## 1. MỤC TIÊU VÀ ĐIỀU KIỆN CHIẾN THẮNG TRONG MONOPOLY
+
+Trong hai chế độ Monopoly, mỗi người chơi điều hành một hãng tàu.
+
 1. Thu gom và sở hữu các bến cảng trọng yếu trên 8 hải trình xuyên lục địa.
 2. Thiết lập 4 Tuyến Dịch Vụ Huyết Mạch (VSS, MD2, FE2, PS3) và làm chủ 2 Nền Tảng Số Đột Phá.
 3. Nâng cấp bến bãi bằng các **Lô Container Magenta** và Siêu tàu **ONE Innovation (24.000 TEU)**.
@@ -48,7 +71,7 @@ Bàn cờ gồm **4 ô góc hình vuông** và **28 ô cạnh hình chữ nhật
 
 ## 3. DANH MỤC CẢNG BIỂN, TUYẾN DỊCH VỤ & NỀN TẢNG SỐ
 
-### 3.1. 16 Bến Cảng Biển (8 Nhóm Tuyến Thương Mại)
+### 3.1. 17 Bến Cảng Biển (8 Nhóm Tuyến Thương Mại)
 Khi sở hữu trọn bộ màu của tuyến, tiền cước đất trống (chưa có container) được **nhân đôi (x2)**!
 
 | Tuyến (Màu) | Ô | Cảng biển | Mã | Giá Mua | Cước Cơ Bản | 1 Lô | 2 Lô | 3 Lô | 4 Lô | Siêu Tàu 24K | Phí Nâng Cấp |
@@ -84,7 +107,7 @@ Gồm 2 ô: **ONE QUOTE (Ô 10)** và **ONE Eco Calculator (Ô 22)**. Giá mua *
 
 > [!IMPORTANT]
 > **Quy Tắc Nâng Cấp Khi Tàu Ghé Lại Cảng (Revisit Dockside Upgrade Rule):**  
-> Bạn không cần phải gom đủ bộ màu mới được xây dựng container. Lần đầu tiên cập cảng bạn chỉ được phép **MUA CẢNG**. Những lần ghé sau (đáp lại vào cảng thuộc sở hữu của mình), bạn được phép **nâng cấp tối đa 1 lần** trong lần ghé đó (đặt thêm 1 Lô Container, lên Siêu tàu ONE Innovation hoặc gắn Huy hiệu Tàu Nhiên Liệu Xanh), không được nâng cấp nhiều lần trong một lần ghé.
+> Bạn không cần phải gom đủ bộ màu mới được xây dựng container. Sau khi mua cảng, hãy đợi đến lần ghé sau để xây. Mỗi lần đáp lại vào cảng thuộc sở hữu của mình, bạn được phép **nâng cấp tối đa 1 lần** (đặt thêm 1 Lô Container, lên Siêu tàu ONE Innovation hoặc gắn Huy hiệu Tàu Nhiên Liệu Xanh).
 
 - **Mức 1 – 4 (Lô Container Magenta):** Đặt từ 1 đến 4 lô container lên cảng để nâng mức thu phí cước bốc dỡ theo bảng biểu.
 - **Mức 5 (Cực đại - Siêu tàu ONE Innovation 24.000 TEU):** Khi cảng đã có 4 lô container, trả thêm chi phí nâng cấp để đổi lấy biểu tượng Siêu Tàu Megaship. Cước phí đạt mức khủng khiếp nhất game!

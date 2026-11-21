@@ -1,9 +1,9 @@
 import React, { useEffect, useId, useState } from 'react';
 import {
   FREIGHT_RIVALS, FREIGHT_RIVAL_STYLES, LOGISTICS_DELIVERY_TARGET, LOGISTICS_ROUND_LIMIT, VESSEL_TOKENS,
-  type FreightRivalStyle, type VesselToken,
+  type FreightRivalStyle, type GameMode, type VesselToken,
 } from '@one-monopoly/shared';
-import { ArrowRight, Check, Compass, Copy, KeyRound, Plus, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Compass, Copy, KeyRound, Plus, Users } from 'lucide-react';
 import { RoomState } from '../hooks/useSocket.js';
 import { TOKEN_CONFIG } from './TokenBadge.js';
 import { useIdleMotion } from '../hooks/useIdleMotion.js';
@@ -17,18 +17,52 @@ interface Props {
   onCreateRoom: (name: string, token: VesselToken) => void;
   onJoinRoom: (roomId: string, name: string, token: VesselToken) => void;
   onToggleReady: (isReady: boolean) => void;
-  onStartGame: (style?: FreightRivalStyle) => void;
+  onStartGame: (style?: FreightRivalStyle, mode?: GameMode) => void;
+  onOpenGuide: (mode: GameMode) => void;
   isStarting?: boolean;
   onLeaveRoom: () => void;
 }
 
-function HostStart({ room, onStartGame, isStarting }: Pick<Props, 'onStartGame' | 'isStarting'> & { room: RoomState }) {
+const gameModes: ReadonlyArray<{ mode: GameMode; name: string; description: string }> = [
+  { mode: 'harbor', name: 'Monopoly', description: 'Gieo xúc xắc, mua cảng và thu tiền thuê. Xếp hàng rồi dỡ ở cảng khác để nhận cước. Chủ cảng có thể thu phí xếp dỡ.' },
+  { mode: 'logistics', name: 'Empty Reposition', description: `Chở vỏ container từ cảng thừa đến cảng thiếu hoặc giao hàng xuất. Giao ${LOGISTICS_DELIVERY_TARGET} chuyến để mở vòng cuối, tối đa ${LOGISTICS_ROUND_LIMIT} vòng. Nếu bằng số chuyến, đội có cước cao hơn thắng.` },
+  { mode: 'classic', name: 'Monopoly cổ điển', description: 'Mua và nâng cấp cảng để tăng tiền thuê. Thắng khi các đối thủ phá sản.' },
+];
+
+function LobbyGuide({ mode, onOpenGuide }: { mode: GameMode; onOpenGuide: Props['onOpenGuide'] }) {
+  return <button className="lobby-guide-button" type="button" data-lobby-guide={mode} onClick={() => onOpenGuide(mode)}>
+    <BookOpen size={16} aria-hidden="true" />Hướng dẫn cho người mới
+  </button>;
+}
+
+function HostStart({ room, onStartGame, onOpenGuide, isStarting }: Pick<Props, 'onStartGame' | 'onOpenGuide' | 'isStarting'> & { room: RoomState }) {
   const [selected, setSelected] = useState<FreightRivalStyle>('standard');
+  const [mode, setMode] = useState<GameMode>('harbor');
   const groupId = useId();
   const solo = room.players.length === 1;
+  const chooseRival = solo && mode === 'logistics';
 
   return <>
-    {solo && !room.isGameStarted && <fieldset className="lobby-rival-picker" data-rival-picker disabled={isStarting}>
+    <fieldset className="lobby-rules-picker" disabled={isStarting || room.isGameStarted}>
+      <legend>Chế độ chơi</legend>
+      {gameModes.map(option => {
+        const radio = <label className="lobby-rules-option" key={option.mode}>
+          <input type="radio" name={`${groupId}-mode`} value={option.mode} checked={mode === option.mode}
+            data-lobby-mode={option.mode} aria-labelledby={`${groupId}-${option.mode}-name`}
+            aria-describedby={`${groupId}-${option.mode}-description`} onChange={() => setMode(option.mode)} />
+          <span>
+            <strong id={`${groupId}-${option.mode}-name`}>{option.name}</strong>
+            <span id={`${groupId}-${option.mode}-description`}>{option.description}</span>
+          </span>
+        </label>;
+        return option.mode === 'classic' ? <details key={option.mode} className="lobby-classic-rules">
+          <summary>Luật cổ điển{mode === 'classic' && <strong> · Đang chọn Monopoly cổ điển</strong>}</summary>
+          {radio}
+        </details> : radio;
+      })}
+    </fieldset>
+    <LobbyGuide mode={mode} onOpenGuide={onOpenGuide} />
+    {chooseRival && !room.isGameStarted && <fieldset className="lobby-rival-picker" data-rival-picker disabled={isStarting}>
       <legend>Chọn đối thủ máy</legend>
       <div className="lobby-rival-options">
         {FREIGHT_RIVAL_STYLES.map(style => {
@@ -47,14 +81,14 @@ function HostStart({ room, onStartGame, isStarting }: Pick<Props, 'onStartGame' 
       </div>
     </fieldset>}
     <button className="chart-lobby-primary" type="button" data-lobby-start disabled={!room.players.length || room.isGameStarted || isStarting}
-      onClick={() => solo ? onStartGame(selected) : onStartGame()}>
+      onClick={() => onStartGame(chooseRival ? selected : undefined, mode)}>
       {isStarting ? 'Đang mở ván…' : solo ? 'Bắt đầu ván đấu (cùng bot)' : 'Bắt đầu ván đấu'}<ArrowRight />
     </button>
   </>;
 }
 
 export const Lobby: React.FC<Props> = ({
-  room, myPlayerId, onCreateRoom, onJoinRoom, onToggleReady, onStartGame, isStarting = false, onLeaveRoom,
+  room, myPlayerId, onCreateRoom, onJoinRoom, onToggleReady, onStartGame, onOpenGuide, isStarting = false, onLeaveRoom,
 }) => {
   const idleMotion = useIdleMotion();
   const [tab, setTab] = useState<'create' | 'join'>('create');
@@ -109,11 +143,10 @@ export const Lobby: React.FC<Props> = ({
 
         <section className="chart-lobby-panel" aria-labelledby="lobby-panel-title">
           <h2 id="lobby-panel-title">{room ? 'Phòng chờ' : 'Phòng chơi'}</h2>
-          <p className="chart-lobby-freight-intro">
-            Chở hàng xuất hoặc điều chuyển vỏ rỗng. Mỗi vòng, các đội có thể chào giá kín để giành thêm tiền cước cho chuyến sau.
-            Các đội chơi hết vòng có người giao đủ {LOGISTICS_DELIVERY_TARGET} chuyến, tối đa {LOGISTICS_ROUND_LIMIT} vòng.
-            Xếp hạng theo số chuyến, rồi đến tiền cước.
-          </p>
+          {!room && <p className="chart-lobby-freight-intro">
+            Chơi Monopoly để mua cảng, thu tiền thuê và chở hàng. Trong Empty Reposition, bạn điều tàu đưa vỏ rỗng đến cảng thiếu hoặc giao hàng xuất.
+          </p>}
+          {(!room || !isHost) && <LobbyGuide mode="harbor" onOpenGuide={onOpenGuide} />}
           {room ? (
             <>
               <div className="chart-room-invite">
@@ -134,7 +167,7 @@ export const Lobby: React.FC<Props> = ({
                 ))}
               </ul>
               {isHost ? (
-                <HostStart key={`${room.id}/${room.players.length === 1 ? 'solo' : 'crew'}`} room={room} onStartGame={onStartGame}
+                <HostStart key={room.id} room={room} onStartGame={onStartGame} onOpenGuide={onOpenGuide}
                   isStarting={isStarting} />
               ) : (
                 <button className="chart-lobby-primary" type="button" onClick={() => onToggleReady(!myPlayer?.isReady)}>

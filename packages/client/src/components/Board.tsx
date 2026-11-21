@@ -433,6 +433,7 @@ export const Board: React.FC<Props> = ({
               const frame = track?.frames[0];
               const pose = frame ?? track?.settled;
               const tile = pose?.tile ?? player.position;
+              const manifest = gameState.harborFreight?.manifests[player.id] ?? player.cargo;
               const occupants = frame?.gliding ? [] : livePlayers.filter((other) => {
                 const otherTrack = tracks[other.id];
                 const next = otherTrack?.frames[0];
@@ -453,9 +454,9 @@ export const Board: React.FC<Props> = ({
                   stackSize={occupants.length || 1}
                   advance={advance}
                 >
-                  {player.cargo && transfer?.playerId !== player.id && (
-                    <span className="cargo-box cargo-manifest-box" data-cargo-kind={player.cargo.reeferDueRound !== undefined ? 'reefer' : player.cargo.kind}
-                      data-cargo-origin={player.cargo.originTileId} aria-hidden="true" />
+                  {manifest && transfer?.playerId !== player.id && (
+                    <span className="cargo-box cargo-manifest-box" data-cargo-kind={player.cargo?.reeferDueRound !== undefined ? 'reefer' : player.cargo?.kind ?? 'laden'}
+                      data-cargo-origin={manifest.originTileId} aria-hidden="true" />
                   )}
                   {transfer?.playerId === player.id && transfer.tileId === tile && !frame && (
                     <CargoTransfer key={transfer.revision} transfer={transfer} is3D={is3D} motion={idleMotion}

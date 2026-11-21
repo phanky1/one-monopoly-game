@@ -1,0 +1,158 @@
+import { useLayoutEffect, useRef, useState } from 'react';
+import { Anchor, Container, PackageCheck, Ship } from 'lucide-react';
+import {
+  BOARD_TILES, getHarborFreightOpportunity, type GameAction, type GameState, type HarborFreightQuote,
+} from '@one-monopoly/shared';
+import { HarborFreightReceipt } from './HarborFreightReceipt.js';
+import { portGuide } from './ports/portGuide.js';
+import './harbor-freight-desk.css';
+
+interface Props {
+  state: GameState;
+  myPlayerId: string | null;
+  onAction: (action: GameAction, onFailure?: () => void, onSuccess?: () => void) => void;
+  is3D: boolean;
+  busy?: boolean;
+}
+
+const number = new Intl.NumberFormat('vi-VN');
+const money = (amount: number) => `$${number.format(amount)}M`;
+function place(tileId: number) {
+  const tile = BOARD_TILES[tileId];
+  return portGuide[tile.code]?.name ?? tile.name;
+}
+
+function FreightPrice({ quote }: { quote: HarborFreightQuote }) {
+  return <div className="harbor-price">
+    <dl aria-label="Phân chia cước vận tải">
+      <div><dt>Cước gộp</dt><dd data-harbor-gross={quote.gross}>{money(quote.gross)}</dd></div>
+      <div><dt>Phí khai thác bến</dt><dd data-harbor-fee={quote.handlingFee}>{money(quote.handlingFee)}</dd></div>
+      <div><dt>Tàu thực nhận</dt><dd data-harbor-net={quote.carrierNet}>{money(quote.carrierNet)}</dd></div>
+    </dl>
+    {quote.feePercent > 0 && <p data-harbor-operator={quote.operatorId}>
+      <strong>{quote.operatorName}</strong> nhận {quote.feePercent}% cước gộp{quote.feePercent === 50 ? ' vì sở hữu trọn bộ tuyến' : ' khi tàu dỡ tại cảng'}. Tiền thuê khi cập bến được tính riêng.
+    </p>}
+  </div>;
+}
+
+function BerthStatus({ state, loaded }: { state: GameState; loaded: boolean }) {
+  const captain = state.players[state.activePlayerIndex];
+  const tile = BOARD_TILES[captain.position];
+  const harbor = state.harborFreight!;
+  const property = state.properties[tile.id];
+  if (tile.type === 'PORT' || tile.type === 'GO') {
+    switch (state.phase) {
+      case 'AWAITING_BUY_DECISION': return <>Hoàn tất quyết định mua cảng trước khi làm hàng.</>;
+      case 'AWAITING_AUCTION': return <>Chờ kết quả đấu giá cảng trước khi làm hàng.</>;
+      case 'AWAITING_DEBT_RESOLUTION': return <>Hoàn tất thanh toán khoản nợ trước khi làm hàng.</>;
+      case 'AWAITING_SLOT_CHARTER_RESPONSE': return <>Chờ xử lý thỏa thuận chia chỗ và tiền thuê cảng.</>;
+    }
+    if (property?.isMortgaged) return <>Cảng đang thế chấp và tạm dừng xếp dỡ.</>;
+    if (loaded && harbor.manifests[captain.id]?.originTileId === tile.id) return <>Dỡ container tại một cảng khác đang hoạt động.</>;
+    if (harbor.visits[captain.id]?.handled) return <>Lượt ghé bến này đã làm hàng.</>;
+  }
+  return loaded ? <>Giữ container trên tàu đến khi ghé một cảng khác đang hoạt động.</>
+    : <>Có thể xếp một container ở Singapore hoặc cảng đang hoạt động do {captain.name} sở hữu.</>;
+}
+
+type HarborOffer = NonNullable<ReturnType<typeof getHarborFreightOpportunity>>;
+type CargoCommand = HarborOffer['action'];
+interface Submission { action: CargoCommand; keyboard: boolean }
+
+function HarborAction({ offer, disabled, submit }: {
+  offer: HarborOffer; disabled: boolean; submit: (action: CargoCommand, keyboard: boolean) => void;
+}) {
+  const quote = offer.kind === 'discharge' ? offer.quote : null;
+  const terms = quote ? [quote.originTileId, quote.tileId, quote.operatorId, quote.feePercent,
+    quote.gross, quote.handlingFee, quote.carrierNet].join('/') : 'load';
+  const [reviewed, setReviewed] = useState(terms);
+  const changed = reviewed !== terms;
+  return <>
+    {changed && <p className="harbor-adjustment" role="status">Phần cước của tàu hoặc chủ cảng vừa thay đổi.</p>}
+    <button type="button" className="harbor-action" disabled={disabled}
+      data-harbor-review={changed || undefined} data-harbor-load={offer.kind === 'load' || undefined}
+      data-harbor-discharge={offer.kind === 'discharge' && !changed || undefined}
+      onClick={event => changed ? setReviewed(terms) : submit(offer.action, event.detail === 0)}>
+      {offer.kind === 'load' ? <Container aria-hidden="true" /> : <PackageCheck aria-hidden="true" />}
+      {changed ? 'Xem lại phần cước mới' : offer.kind === 'load' ? 'Xếp 1 container' : `Dỡ hàng · nhận ${money(offer.quote.carrierNet)}`}
+    </button>
+  </>;
+}
+
+function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
+  const harbor = state.harborFreight!;
+  const captain = state.players[state.activePlayerIndex];
+  const manifest = harbor.manifests[captain.id];
+  const visit = harbor.visits[captain.id];
+  const offer = getHarborFreightOpportunity(state, captain.id);
+  const mine = captain.id === myPlayerId;
+  const at = place(captain.position);
+  const last = harbor.lastDelivery;
+  const receipt = !manifest && visit?.handled && last?.playerId === captain.id && last.tileId === captain.position
+    && last.round === state.turnCount ? last : null;
+  const inFlight = useRef<Submission | null>(null);
+  const card = useRef<HTMLElement>(null);
+  const summary = useRef<HTMLParagraphElement>(null);
+  const proof = useRef<HTMLDivElement>(null);
+  const [pending, setPending] = useState(false);
+  const [accepted, setAccepted] = useState<Submission | null>(null);
+  const [failedRevision, setFailedRevision] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (!accepted || inFlight.current !== accepted || harbor.revision === accepted.action.revision) return;
+    inFlight.current = null;
+    setPending(false);
+    setAccepted(null);
+    if (!accepted.keyboard || document.hidden || document.querySelector('dialog[open]')) return;
+    const target = accepted.action.type === 'HARBOR_LOAD'
+      ? manifest?.originTileId === accepted.action.tileId && summary.current
+      : receipt && proof.current;
+    if (target && (document.activeElement === document.body || card.current?.contains(document.activeElement))) {
+      target.focus({ preventScroll: true });
+    }
+  }, [accepted, harbor.revision, manifest, receipt]);
+
+  function submit(action: CargoCommand, keyboard: boolean) {
+    if (!mine || busy || inFlight.current || action.revision !== harbor.revision) return;
+    const request = { action, keyboard };
+    inFlight.current = request;
+    setPending(true);
+    setFailedRevision(null);
+    onAction(action, () => {
+      if (inFlight.current !== request) return;
+      inFlight.current = null;
+      setPending(false);
+      setFailedRevision(action.revision);
+    }, () => {
+      if (inFlight.current === request) setAccepted(request);
+    });
+  }
+
+  return <section ref={card} className="harbor-freight" data-harbor-freight={captain.id} data-view={is3D ? 'tilted' : 'flat'}
+    aria-label={`Vận tải cảng của ${captain.name}`}>
+    <header className="harbor-freight-heading"><h3><Anchor aria-hidden="true" />Vận tải cảng</h3>
+      <span>{captain.name} · {at}</span></header>
+    <p className="harbor-manifest" ref={summary} tabIndex={-1} data-harbor-manifest={manifest ? 'laden' : 'empty'}>
+      <Ship aria-hidden="true" />{manifest ? <>1 container từ <strong>{place(manifest.originTileId)}</strong></> : 'Khoang tàu trống'}
+    </p>
+    {receipt && <div ref={proof} tabIndex={-1} className="harbor-freight-proof" role="group" aria-label="Biên lai dỡ hàng tại bến">
+      <HarborFreightReceipt state={state} receipt={receipt} />
+    </div>}
+    {offer?.kind === 'discharge' ? <>
+      <p className="harbor-instruction">{number.format(offer.quote.distanceNm)} hải lý đến <strong>{at}</strong>.
+        {' '}Có thể dỡ tại đây hoặc giữ hàng cho chuyến sau.</p>
+      <FreightPrice quote={offer.quote} />
+    </> : offer?.kind === 'load' ? <p className="harbor-instruction">Xếp tại {at}, rồi dỡ khi ghé một cảng khác.</p>
+      : !receipt && <p className="harbor-instruction"><BerthStatus state={state} loaded={!!manifest} /></p>}
+    {mine && offer && <HarborAction key={`${offer.kind}/${manifest?.originTileId ?? ''}`} offer={offer}
+      disabled={busy || pending} submit={submit} />}
+    {failedRevision === harbor.revision && <p className="harbor-adjustment" role="alert">Lệnh làm hàng chưa được xác nhận. Kiểm tra lại vận đơn rồi thử lại.</p>}
+  </section>;
+}
+
+export function HarborFreightDesk(props: Props) {
+  const { state, myPlayerId } = props;
+  const captain = state.players[state.activePlayerIndex];
+  if (state.mode !== 'harbor' || !state.harborFreight || !state.gameStarted || state.winnerId || !captain) return null;
+  return <BerthCard key={[state.roomId, state.turnCount, captain.id, captain.position, myPlayerId].join('/')} {...props} />;
+}

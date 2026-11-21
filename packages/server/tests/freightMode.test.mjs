@@ -68,3 +68,15 @@ test('a classic game rejects freight commands from a logistics client', t => {
   assert.equal(send('original', playerId, { type: 'SAIL_TO_PORT', tileId: 3, revision: 0 }).success, false);
   assert.equal(room.gameState, snapshot);
 });
+
+test('only a valid explicit harbor start creates the combined game without a dedicated freight rival', t => {
+  const { manager, room, playerId } = createRoom(t);
+  assert.equal(manager.startGame(room.id, playerId, 'port').success, false);
+  assert.equal(manager.startGame(room.id, playerId, 'harbor', 'coastal').success, false);
+  assert.equal(room.isGameStarted, false);
+  assert.equal(room.players.length, 1);
+  assert.equal(manager.startGame(room.id, playerId, 'harbor').success, true);
+  assert.equal(room.gameState.mode, 'harbor');
+  assert.equal(room.gameState.phase, 'WAIT_FOR_ROLL');
+  assert.equal(room.gameState.players[1].freightRivalStyle, undefined);
+});

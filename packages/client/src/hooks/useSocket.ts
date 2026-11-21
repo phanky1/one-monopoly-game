@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { GameAction, GameEvent, GameState, VesselToken, type FreightRivalStyle } from '@one-monopoly/shared';
+import { GameAction, GameEvent, GameState, VesselToken, type FreightRivalStyle, type GameMode } from '@one-monopoly/shared';
 
 import { DICE_ROLL_MS } from '../components/boardTravel.js';
 
@@ -229,7 +229,7 @@ export function useSocket() {
     [room, myPlayerId]
   );
 
-  const startGame = useCallback((rivalStyle?: FreightRivalStyle) => {
+  const startGame = useCallback((rivalStyle?: FreightRivalStyle, mode?: GameMode) => {
     if (!room || !myPlayerId || pendingStart.current !== null) return;
     if (!socketRef.current?.connected) {
       setErrorMsg('Chưa kết nối với phòng chơi.');
@@ -241,6 +241,7 @@ export function useSocket() {
     socketRef.current.timeout(5000).emit('room:start', {
       roomId: room.id,
       playerId: myPlayerId,
+      ...(mode !== undefined && { mode }),
       ...(rivalStyle !== undefined && { rivalStyle }),
     }, (timeout: Error | null, result?: { success: boolean; error?: string }) => {
       if (pendingStart.current !== request) return;

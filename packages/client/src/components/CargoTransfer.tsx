@@ -16,7 +16,7 @@ export function useCargoTransfer(subscribe: SubscribeBoard) {
   useLayoutEffect(() => {
     const hide = () => { if (document.hidden) setTransfer(null); };
     const stop = subscribe((state, events) => {
-      const revision = state.cargoRevision ?? 0;
+      const revision = state.harborFreight?.revision ?? state.cargoRevision ?? 0;
       if (!events || document.hidden) {
         lastRevision.current = revision;
         setTransfer(null);
@@ -27,13 +27,15 @@ export function useCargoTransfer(subscribe: SubscribeBoard) {
         setTransfer(null);
         return;
       }
-      const handling = events.find(event => event.type === 'CARGO_LOADED' || event.type === 'CARGO_UNLOADED');
+      const handling = events.find(event => event.type === 'CARGO_LOADED' || event.type === 'CARGO_UNLOADED' ||
+        event.type === 'HARBOR_LOADED' || event.type === 'HARBOR_DISCHARGED');
       if (handling && lastRevision.current !== revision) {
         lastRevision.current = revision;
+        const cargo = handling.type === 'HARBOR_DISCHARGED' ? handling.receipt : handling;
         setTransfer({
-          playerId: handling.playerId, tileId: handling.tileId, revision,
-          kind: handling.reeferDueRound !== undefined ? 'reefer' : handling.kind,
-          operation: handling.type === 'CARGO_LOADED' ? 'load' : 'unload',
+          playerId: cargo.playerId, tileId: cargo.tileId, revision,
+          kind: 'kind' in cargo ? cargo.reeferDueRound !== undefined ? 'reefer' : cargo.kind : 'laden',
+          operation: handling.type === 'CARGO_LOADED' || handling.type === 'HARBOR_LOADED' ? 'load' : 'unload',
         });
       } else {
         setTransfer(current => {

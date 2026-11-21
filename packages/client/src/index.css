@@ -68,6 +68,9 @@
 .chart-log summary { cursor: pointer; list-style: none; padding: 6px 0; }
 .chart-log summary::-webkit-details-marker { display: none; }
 .chart-nav-icon { display: grid; place-items: center; min-width: 32px; min-height: 32px; }
+.chart-nav-guide { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; white-space: nowrap; color: #fff9ed; }
+.chart-nav-guide:hover { text-decoration: underline; }
+@media (max-width: 620px) { .chart-nav-guide span { display: none; } }
 .chart-log-popover, .chart-error {
   z-index: 60;
   background: var(--chart-paper);

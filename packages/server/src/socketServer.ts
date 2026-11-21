@@ -1,6 +1,6 @@
 import { Server as HttpServer } from 'node:http';
 import { Server, Socket } from 'socket.io';
-import { type FreightRivalStyle, GameAction, VesselToken } from '@one-monopoly/shared';
+import { type FreightRivalStyle, GameAction, type GameMode, VesselToken } from '@one-monopoly/shared';
 import { gameStateForPlayer, getTimerPlayerId, publicGameEvents, Room, RoomManager } from './roomManager.js';
 
 // Kept public here for callers consuming the socket projection directly.
@@ -145,10 +145,10 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
     // 4. Start Game
     socket.on(
       'room:start',
-      (data: { roomId: string; playerId: string; mode?: 'classic' | 'logistics'; rivalStyle?: FreightRivalStyle }, callback?: (res: any) => void) => {
+      (data: { roomId: string; playerId: string; mode?: GameMode; rivalStyle?: FreightRivalStyle }, callback?: (res: any) => void) => {
         const seat = typeof data?.roomId === 'string' ? roomManager.getRoom(data.roomId)?.socketToPlayer.get(socket.id) : undefined;
         const result = seat && seat === data.playerId
-          ? roomManager.startGame(data.roomId, seat, data.mode === 'classic' ? 'classic' : 'logistics', data.rivalStyle)
+          ? roomManager.startGame(data.roomId, seat, data.mode, data.rivalStyle)
           : { success: false, error: 'Kết nối này không đại diện cho phòng trưởng.' };
         if (callback) callback(result);
       }
