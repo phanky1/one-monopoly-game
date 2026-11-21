@@ -73,6 +73,18 @@
 }
 .chart-action-options { grid-template-columns: repeat(auto-fit, minmax(min(100%, 90px), 1fr)); }
 
+.port-purchase-freight {
+  display: grid; gap: 5px; padding: 8px 10px; border: 1px solid #a5b8b3;
+  border-inline-start: 3px solid #367476; border-radius: 3px; color: #21454b; background: #edf3e9;
+}
+.port-purchase-freight h4 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; }
+.port-purchase-freight dl { margin: 0; font-size: 12px; }
+.port-purchase-freight dl > div { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+.port-purchase-freight dd { margin: 0; font: 700 12px/1.35 var(--action-number); white-space: nowrap; }
+.port-purchase-freight dl > div:last-child { padding-top: 4px; border-top: 1px dashed #acbcb2; font-weight: 700; }
+.port-purchase-freight .chart-button { min-height: 36px; }
+
+
 .chart-button, .chart-dialog-close {
   display: inline-flex;
   align-items: center;

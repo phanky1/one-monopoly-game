@@ -4,7 +4,7 @@ import { getRedemptionCost } from './debtRecovery.js';
 import type {
   EngineResult, GameEvent, GameState, HarborBookExportAction, HarborDischargeAction, HarborExportBooking,
   HarborExportTerms, HarborFreightOpportunity, HarborFreightQuote,
-  HarborFreightReceipt, HarborFreightState, HarborLoadAction, HarborRedeemAction, HarborRedemption, HarborRentRelief,
+  HarborFreightReceipt, HarborFreightState, HarborLoadAction, HarborPurchase, HarborPurchaseAction, HarborRedeemAction, HarborRedemption, HarborRentRelief,
   HarborRentReliefAction, Player,
 } from './types.js';
 
@@ -134,6 +134,24 @@ export function getHarborRentRelief(state: GameState, playerId: string): HarborR
   };
 }
 
+/** Cash and freight the arriving captain can put towards the bank's posted price. */
+export function getHarborPurchase(state: GameState, playerId: string): HarborPurchase | null {
+  if (state.phase !== 'AWAITING_BUY_DECISION' || state.pendingDebt) return null;
+  const berth = getUnhandledBerth(state, playerId);
+  if (!berth) return null;
+  const { captain, harbor, tileId } = berth;
+  const tile = BOARD_TILES[tileId];
+  const box = harbor.manifests[playerId];
+  if (tile.type !== 'PORT' || !tile.price || state.properties[tileId].ownerId !== null || !box || captain.balance < 0) return null;
+  const quote = getHarborFreightQuote(state, playerId, box.originTileId, tileId);
+  if (!quote) return null;
+  const cashChange = quote.carrierNet - tile.price;
+  return {
+    action: { type: 'HARBOR_BUY_AND_DISCHARGE', tileId, revision: harbor.revision },
+    quote, purchasePrice: tile.price, cashChange, shortfall: Math.max(0, -cashChange - captain.balance),
+  };
+}
+
 function reopenPort(state: GameState, tileId: number): GameState {
   return { ...state, canUpgradeCurrentPort: false,
     properties: { ...state.properties, [tileId]: { ...state.properties[tileId], isMortgaged: false } } };
@@ -158,13 +176,13 @@ export function getHarborRedemption(state: GameState, playerId: string): HarborR
 }
 
 export function dispatchHarborFreight(
-  state: GameState, action: HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborRedeemAction | HarborRentReliefAction,
+  state: GameState, action: HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction,
   actorId?: string,
 ): EngineResult {
   const harbor = state.harborFreight;
   const unchanged = { state, events: [] };
   if (!harbor || !actorId) return unchanged;
-  let opportunity: HarborRedemption | HarborRentRelief | HarborFreightOpportunity | HarborExportBooking | null;
+  let opportunity: HarborRedemption | HarborRentRelief | HarborFreightOpportunity | HarborExportBooking | HarborPurchase | null;
   let exportBooking: HarborExportTerms | undefined;
   switch (action.type) {
     case 'HARBOR_BOOK_EXPORT': {
@@ -173,6 +191,7 @@ export function dispatchHarborFreight(
       exportBooking = { operatorId: action.operatorId, operatorName: opportunity.operatorName, fee: action.fee };
       break;
     }
+    case 'HARBOR_BUY_AND_DISCHARGE': opportunity = getHarborPurchase(state, actorId); break;
     case 'HARBOR_REDEEM_AND_DISCHARGE': opportunity = getHarborRedemption(state, actorId); break;
     case 'HARBOR_DISCHARGE_FOR_RENT': opportunity = getHarborRentRelief(state, actorId); break;
     default: opportunity = getHarborFreightOpportunity(state, actorId);
@@ -203,6 +222,7 @@ export function dispatchHarborFreight(
   const receipt: HarborFreightReceipt = { ...quote, round: state.turnCount, revision: nextHarbor.revision,
     ...(originBooking && { exportBooking: originBooking }),
     ...(redemption && { redemptionCost: redemption.redemptionCost }) };
+  if ('purchasePrice' in opportunity) receipt.purchasePrice = opportunity.purchasePrice;
   if ('rentDue' in opportunity) receipt.rentRelief = { rentDue: opportunity.rentDue, shortfallAfter: opportunity.shortfallAfter };
   nextHarbor.lastDelivery = receipt;
   const events: GameEvent[] = [];

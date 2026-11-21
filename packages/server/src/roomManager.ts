@@ -11,6 +11,7 @@ import {
   getDebtRecovery,
   getHarborExportBooking,
   getHarborFreightOpportunity,
+  getHarborPurchase,
   getHarborRedemption,
   getHarborRentRelief,
   isFreightRivalStyle,
@@ -62,9 +63,11 @@ export function gameStateForPlayer(state: GameState, viewerId: string | undefine
   if (state.mode === 'harbor' && state.gameStarted && state.winnerId === null) {
     view.supportsPortSwaps = true;
     view.supportsHarborExportBooking = true;
+    view.supportsHarborPurchase = true;
   } else {
     delete view.supportsPortSwaps;
     delete view.supportsHarborExportBooking;
+    delete view.supportsHarborPurchase;
   }
   if (logistics && market && tender) {
     const bidderIds = tender.bidderIds ?? Object.keys(tender.bids);
@@ -377,7 +380,8 @@ export class RoomManager {
 
     const activePlayer = room.gameState.players[room.gameState.activePlayerIndex];
     const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_DISCHARGE' ||
-      action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT';
+      action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT' ||
+      action.type === 'HARBOR_BUY_AND_DISCHARGE';
     if ((room.gameState.mode === 'logistics' || harborAction) && activePlayer.id !== playerId) {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
@@ -433,7 +437,8 @@ export class RoomManager {
     if (nextState === room.gameState && (room.gameState.mode === 'logistics' || freightCommand || harborAction)) {
       return { success: false, error: 'Lệnh điều độ không còn hợp lệ. Hãy kiểm tra lại vận đơn và tình trạng bến.' };
     }
-    if ((action.type === 'SELL_CONTAINER' && !events.some(e => e.type === 'CONTAINER_SOLD')) ||
+    if ((action.type === 'BUY_PROPERTY' && !events.some(e => e.type === 'TILE_PURCHASED')) ||
+        (action.type === 'SELL_CONTAINER' && !events.some(e => e.type === 'CONTAINER_SOLD')) ||
         (action.type === 'MORTGAGE_TILE' && !events.some(e => e.type === 'TILE_MORTGAGED')) ||
         (action.type === 'UNMORTGAGE_TILE' && !events.some(e => e.type === 'TILE_UNMORTGAGED')) ||
         (action.type === 'SETTLE_DEBT' && !events.some(e => e.type === 'DEBT_SETTLED'))) {
@@ -571,7 +576,7 @@ export class RoomManager {
 
     const docksideDelay = (defaultDelay: number) => {
       if (lastActionType === 'HARBOR_BOOK_EXPORT' || lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE' ||
-          lastActionType === 'HARBOR_DISCHARGE_FOR_RENT') {
+          lastActionType === 'HARBOR_DISCHARGE_FOR_RENT' || lastActionType === 'HARBOR_BUY_AND_DISCHARGE') {
         return CARGO_HANDLING_DELAY_MS;
       }
       if (lastActionType !== 'ROLL_DICE') return defaultDelay;
@@ -604,13 +609,16 @@ export class RoomManager {
         const delay = docksideDelay(700);
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
-          const tile = BOARD_TILES[activePlayer.position];
-          const price = tile?.price || 0;
-          if (room.gameState!.players[state.activePlayerIndex].balance >= price + BOT_PURCHASE_RESERVE) {
+          const current = room.gameState!;
+          const captain = current.players[current.activePlayerIndex];
+          const price = BOARD_TILES[captain.position].price ?? 0;
+          if (captain.balance >= price + BOT_PURCHASE_RESERVE) {
             this.dispatchAction(room.id, activePlayer.id, { type: 'BUY_PROPERTY' });
-          } else {
-            this.dispatchAction(room.id, activePlayer.id, { type: 'SKIP_BUY' });
+            return;
           }
+          const purchase = getHarborPurchase(current, activePlayer.id);
+          this.dispatchAction(room.id, activePlayer.id, purchase && captain.balance + purchase.cashChange >= BOT_PURCHASE_RESERVE
+            ? purchase.action : { type: 'SKIP_BUY' });
         }, delay);
         break;
       }

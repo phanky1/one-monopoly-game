@@ -114,6 +114,7 @@ export const App: React.FC = () => {
       return;
     }
     const sale = events.find(event => event.type === 'AUCTION_ENDED');
+    const delivery = events.find(event => event.type === 'HARBOR_DISCHARGED')?.receipt;
     const tradeSettled = events.some(event => event.type === 'TRADE_CLOSED' && event.result === 'ACCEPTED');
     for (const evt of events) {
       if (evt.type === 'AUCTION_STARTED') {
@@ -146,9 +147,13 @@ export const App: React.FC = () => {
         const { playerId, tileId, carrierNet, operatorName, handlingFee } = evt.receipt;
         const who = state.players.find(player => player.id === playerId)?.name ?? 'Thuyền trưởng';
         const port = portGuide[BOARD_TILES[tileId].code].name;
-        logMsg = evt.receipt.redemptionCost === undefined
-          ? `${who} dỡ hàng tại ${port}, nhận $${carrierNet}M.`
-          : `${who} mở lại ${port} và dỡ hàng, dùng $${carrierNet}M cước để thanh toán tiền chuộc $${evt.receipt.redemptionCost}M.`;
+        if (evt.receipt.purchasePrice !== undefined) {
+          logMsg = `${who} mua ${port} với giá $${evt.receipt.purchasePrice}M, dùng $${carrierNet}M cước từ lô hàng vừa dỡ.`;
+        } else if (evt.receipt.redemptionCost !== undefined) {
+          logMsg = `${who} mở lại ${port} và dỡ hàng, dùng $${carrierNet}M cước để thanh toán tiền chuộc $${evt.receipt.redemptionCost}M.`;
+        } else {
+          logMsg = `${who} dỡ hàng tại ${port}, nhận $${carrierNet}M.`;
+        }
         if (handlingFee) logMsg += ` ${operatorName} nhận $${handlingFee}M phí dỡ hàng.`;
       } else if (evt.type === 'BACKHAUL_ACCEPTED' || evt.type === 'BACKHAUL_EXPIRED' || evt.type === 'BACKHAUL_FULFILLED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Đội tàu';
@@ -244,7 +249,8 @@ export const App: React.FC = () => {
           : `🌊 Tàu trôi lùi ${Math.abs(STORM_DRIFT_STEPS)} ô trong bão`;
       } else if (evt.type === 'PASSED_GO') {
         logMsg = `🏁 Đi qua Singapore Hub nhận $${evt.reward}M`;
-      } else if (evt.type === 'TILE_PURCHASED' && sale?.tileId !== evt.tileId) {
+      } else if (evt.type === 'TILE_PURCHASED' && sale?.tileId !== evt.tileId &&
+          !(delivery?.purchasePrice !== undefined && delivery.tileId === evt.tileId)) {
         logMsg = `🏗️ Đã mua ô #${evt.tileId} với giá $${evt.price}M`;
       } else if (evt.type === 'DEMURRAGE_PAID') {
         if (state.mode === 'harbor') {
@@ -472,6 +478,7 @@ export const App: React.FC = () => {
       )}
       {guideMode && <BeginnerGuide mode={guideMode} live={!!gameState?.gameStarted && !gameState.winnerId}
         supportsBooking={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborExportBooking === true}
+        supportsPurchase={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborPurchase === true}
         onClose={() => setGuideMode(null)} />}
     </div>
   );

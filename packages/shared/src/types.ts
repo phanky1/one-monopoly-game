@@ -91,6 +91,7 @@ export interface HarborManifest {
   exportBooking?: HarborExportTerms;
 }
 export interface HarborDischargeAction { type: 'HARBOR_DISCHARGE'; tileId: number; revision: number }
+export interface HarborPurchaseAction { type: 'HARBOR_BUY_AND_DISCHARGE'; tileId: number; revision: number }
 export interface HarborRedeemAction { type: 'HARBOR_REDEEM_AND_DISCHARGE'; tileId: number; revision: number }
 export interface HarborRentReliefAction { type: 'HARBOR_DISCHARGE_FOR_RENT'; tileId: number; revision: number }
 export interface HarborFreightQuote {
@@ -110,6 +111,7 @@ export interface HarborFreightReceipt extends HarborFreightQuote {
   revision: number;
   exportBooking?: HarborExportTerms;
   redemptionCost?: number;
+  purchasePrice?: number;
   rentRelief?: Pick<HarborRentRelief, 'rentDue' | 'shortfallAfter'>;
 }
 export interface HarborRentRelief {
@@ -122,6 +124,13 @@ export interface HarborRedemption {
   action: HarborRedeemAction;
   quote: HarborFreightQuote;
   redemptionCost: number;
+  cashChange: number;
+  shortfall: number;
+}
+export interface HarborPurchase {
+  action: HarborPurchaseAction;
+  quote: HarborFreightQuote;
+  purchasePrice: number;
   cashChange: number;
   shortfall: number;
 }
@@ -367,6 +376,7 @@ export interface GameState {
   /** Advertised by the connected server in live Monopoly room views. */
   supportsPortSwaps?: true;
   supportsHarborExportBooking?: true;
+  supportsHarborPurchase?: true;
   harborFreight?: HarborFreightState;
   logistics?: LogisticsState;
   cargoRevision?: number;
@@ -407,7 +417,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
-  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborRedeemAction | HarborRentReliefAction
+  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborPurchaseAction | HarborRedeemAction | HarborRentReliefAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall

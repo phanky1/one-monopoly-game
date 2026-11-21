@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Anchor, Container, PackageCheck, Ship } from 'lucide-react';
 import {
-  BOARD_TILES, getHarborExportBooking, getHarborFreightOpportunity, getHarborRedemption, getHarborRentRelief,
+  BOARD_TILES, getHarborExportBooking, getHarborFreightOpportunity, getHarborPurchase, getHarborRedemption, getHarborRentRelief,
   type GameAction, type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 import { HarborFreightReceipt } from './HarborFreightReceipt.js';
@@ -45,7 +45,9 @@ function BerthStatus({ state, loaded }: { state: GameState; loaded: boolean }) {
   const property = state.properties[tile.id];
   if (tile.type === 'PORT' || tile.type === 'GO') {
     switch (state.phase) {
-      case 'AWAITING_BUY_DECISION': return <>Hoàn tất quyết định mua cảng trước khi làm hàng.</>;
+      case 'AWAITING_BUY_DECISION': return state.supportsHarborPurchase === true && getHarborPurchase(state, captain.id)
+        ? <>Có thể dùng cước lô hàng này để mua cảng trong mục “Cơ hội đầu tư”.</>
+        : <>Hoàn tất quyết định mua cảng trước khi làm hàng.</>;
       case 'AWAITING_AUCTION': return <>Chờ kết quả đấu giá cảng trước khi làm hàng.</>;
       case 'AWAITING_DEBT_RESOLUTION': return getHarborRentRelief(state, captain.id)
         ? <>Có thể dỡ lô hàng này để trả tiền thuê trong mục “Xử lý công nợ”.</>
@@ -201,7 +203,7 @@ function BerthCard({ state, myPlayerId, onAction, onInspectPort, is3D, busy = fa
     {mine && manifest && (state.phase === 'WAIT_FOR_ROLL' || state.phase === 'END_OF_TURN') &&
       <p className="harbor-instruction">Bấm một cảng khác trên bàn cờ để so sánh tiền cước và tiền thuê.</p>}
     {receipt && <div ref={proof} tabIndex={-1} className="harbor-freight-proof" role="group"
-      aria-label={receipt.redemptionCost !== undefined ? 'Biên lai chuộc cảng và dỡ hàng tại bến' : 'Biên lai dỡ hàng tại bến'}>
+      aria-label={receipt.purchasePrice !== undefined ? 'Biên lai mua cảng và dỡ hàng tại bến' : receipt.redemptionCost !== undefined ? 'Biên lai chuộc cảng và dỡ hàng tại bến' : 'Biên lai dỡ hàng tại bến'}>
       <HarborFreightReceipt state={state} receipt={receipt} />
     </div>}
     {redemption ? <RedemptionPrice redemption={redemption} />

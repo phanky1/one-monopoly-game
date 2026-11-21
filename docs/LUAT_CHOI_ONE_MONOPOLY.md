@@ -22,7 +22,9 @@ Nếu Minh xây cấp 1 ở Cái Mép, tiền thuê tăng lên **$20M**. Lần s
 
 Khi đang chở hàng, bấm một ô cảng khác hoặc chọn **Sổ cảng** trên hải đồ để dự tính chuyến đi cho chính tàu của bạn. Chẳng hạn, nếu bạn đang ở Cái Mép của mình với hàng xếp từ Singapore, dỡ ngay sẽ thu **$12M**. Nếu giữ hàng và sau đó gieo đến Piraeus của đối thủ, chuyến hàng có cước **$20M**. Với phí bến **$5M** và tiền thuê **$10M**, số dư của bạn chỉ tăng **$5M** ở Piraeus. Dự tính dùng quyền sở hữu và mức thuê hiện tại. Bạn vẫn di chuyển theo xúc xắc.
 
-Nếu Linh đến Cái Mép khi cảng **chưa có chủ**, cô có thể mua hoặc mở đấu giá. Mỗi người xem được tiền thuê cho những lượt ghé sau, phần cước và số cảng cùng màu mình sẽ có nếu mua thành công. Nếu Minh thắng đấu giá, Linh chỉ trả phí khai thác khi chọn dỡ hàng. Lần cập bến trước phiên đấu giá không phát sinh tiền thuê.
+Nếu Linh chở hàng từ Singapore đến **Cái Mép chưa có chủ**, cô có thể chọn **Mua cảng và dỡ hàng**. Cảng có giá **$60M**, lô hàng có cước **$12M**, nên Linh chỉ cần **$48M** tiền mặt. Nếu đang có $52M, cô nhận giấy sở hữu, dỡ xong container và còn **$4M**. Phí xếp đã trả ở cảng xuất (nếu có) chỉ tính một lần. Lô hàng đã dỡ nên phải đợi lần ghé khác để xếp lại.
+
+Nếu muốn giữ hàng, Linh có thể mua bằng tiền mặt hoặc chọn **Mở đấu giá**. Khi tiền mặt cộng cước vẫn chưa đủ giá mua, cảng sẽ tự mở đấu giá. Các hãng đặt giá bằng tiền mặt. Nếu Minh thắng, Linh có thể giữ hàng hoặc dỡ và chia cước với Minh. Lần cập bến mở phiên đấu giá có tiền thuê **$0M**.
 
 Bạn cũng có thể mua cảng của đối thủ qua **Giao dịch**. Chẳng hạn Linh đã có Laem Chabang và hỏi mua Jebel Ali của Minh với giá **$120M**. Minh có thể chọn **Ra giá khác** rồi gửi một giá cao hơn, trong giới hạn tiền mặt của Linh. Nếu Linh chấp nhận **$140M**, hai bên mới đổi tiền và quyền sở hữu. Nếu Minh đang chở hàng từ Singapore, trước khi bán anh có thể dỡ tại cảng của mình để nhận đủ **$18M**. Nếu anh dỡ sau khi bán, Linh sở hữu trọn tuyến và mỗi người nhận **$9M**. Tiền thuê Jebel Ali cho lần ghé sau tăng từ **$8M** lên **$16M**.
 
@@ -161,7 +163,7 @@ flowchart TD
     A["Bắt đầu lượt"] --> B["Lắc Xúc Xắc (Roll Dice)"]
     B --> C["Tàu di chuyển theo số nút"]
     C --> D{"Ô đáp xuống là gì?"}
-    D -->|Cảng chưa có chủ| E["Mua Cảng hoặc Bỏ qua"]
+    D -->|Cảng chưa có chủ| E["Mua cảng hoặc mở đấu giá"]
     D -->|Cảng đối thủ| F{"Đủ điều kiện Slot Chartering?"}
     F -->|Có| G["Đề xuất Slot Chartering (50% cước)"]
     F -->|Không| H["Trả 100% cước cho Chủ cảng"]
@@ -177,7 +179,7 @@ flowchart TD
 
 1. **Giai đoạn Đổ Xúc Xắc:** Thuyền trưởng nhấn nút đổ xúc xắc. Nếu ra **Đôi (Doubles)**, người chơi được đi tiếp lượt nữa. Nếu đổ đôi **3 lần liên tiếp**, tàu bị phạt chạy quá tốc độ và áp giải thẳng vào Khu Neo Chờ Thông Quan!
 2. **Giai đoạn Đáp Ô:**
-   - Nếu vào cảng trống: Chọn **MUA CẢNG** hoặc bỏ qua.
+   - Tại cảng chưa có chủ, bạn có thể mua theo giá niêm yết hoặc mở đấu giá. Trong **Monopoly**, nếu đang chở lô hàng từ cảng khác, bạn cũng có thể dùng cước khi dỡ để thanh toán một phần giá mua.
    - Nếu vào cảng đối thủ: Trả cước xếp dỡ (hoặc đề xuất Slot Chartering).
    - Nếu vào ô thẻ: Rút thẻ bài ngẫu nhiên (nhận thưởng tiền mặt, cứu hộ, phạt bảo trì, dịch chuyển tàu,...).
 3. **Giai đoạn Quản Trị Cuối Lượt:**

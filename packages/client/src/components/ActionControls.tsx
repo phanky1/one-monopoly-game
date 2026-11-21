@@ -1,10 +1,10 @@
 import React from 'react';
 import { BOARD_TILES, GREEN_FLEET_COST, LOOP_GROUPS_CONFIG, getTradeRestriction, type GameAction, type GameState } from '@one-monopoly/shared';
-import { Building2, Check, Dices, DollarSign, Flag, Gavel, Handshake, Leaf, Ship, Ticket } from 'lucide-react';
+import { Building2, Check, Dices, DollarSign, Flag, Handshake, Leaf, Ship, Ticket } from 'lucide-react';
 import { DebtRescuePanel } from './DebtRescuePanel.js';
 import { StormDecision } from './StormDecision.js';
 import { PropertyAuctionPanel } from './PropertyAuctionPanel.js';
-import { PortInvestmentPreview } from './PortInvestmentPreview.js';
+import { PortPurchaseDecision } from './PortPurchaseDecision.js';
 import { HarborUpgradeTerms } from './HarborUpgradeTerms.js';
 import './chart-actions.css';
 
@@ -28,23 +28,27 @@ export const ActionControls: React.FC<Props> = ({
   const activePlayer = gameState.players[gameState.activePlayerIndex];
   const isMyTurn = activePlayer.id === myPlayerId;
   const currentTile = BOARD_TILES[activePlayer.position];
-  const [rentFocus, setRentFocus] = React.useState<{
-    revision: number; source: HTMLButtonElement; playerId: string; tileId: number; roomId: string;
+  const [receiptFocus, setReceiptFocus] = React.useState<{
+    kind: 'rent' | 'purchase'; revision: number; source: HTMLButtonElement; playerId: string; tileId: number; roomId: string;
   } | null>(null);
+  function focusAcceptedReceipt(kind: 'rent' | 'purchase', revision: number, source: HTMLButtonElement) {
+    setReceiptFocus({ kind, revision, source, roomId: gameState.roomId, tileId: currentTile.id, playerId: activePlayer.id });
+  }
   React.useLayoutEffect(() => {
-    if (!rentFocus) return;
+    if (!receiptFocus) return;
     const harbor = gameState.harborFreight;
-    if (rentFocus.roomId === gameState.roomId && harbor?.revision === rentFocus.revision) return;
+    if (receiptFocus.roomId === gameState.roomId && harbor?.revision === receiptFocus.revision) return;
     const receipt = harbor?.lastDelivery;
-    if (receipt?.rentRelief?.shortfallAfter === 0 && receipt.revision === rentFocus.revision + 1
-      && receipt.tileId === rentFocus.tileId && receipt.playerId === rentFocus.playerId
-      && rentFocus.roomId === gameState.roomId && isMyTurn && !gameState.pendingDebt
+    const matchingKind = receiptFocus.kind === 'rent' ? receipt?.rentRelief?.shortfallAfter === 0 : receipt?.purchasePrice !== undefined;
+    if (receipt && matchingKind && receipt.revision === receiptFocus.revision + 1
+      && receipt.tileId === receiptFocus.tileId && receipt.playerId === receiptFocus.playerId
+      && receiptFocus.roomId === gameState.roomId && isMyTurn && !gameState.pendingDebt
       && !document.hidden && !document.querySelector('dialog[open]')
-      && (document.activeElement === document.body || document.activeElement === rentFocus.source)) {
-      document.querySelector<HTMLElement>(`[data-harbor-rent-receipt="${receipt.revision}"]`)?.focus();
+      && (document.activeElement === document.body || document.activeElement === receiptFocus.source)) {
+      document.querySelector<HTMLElement>(`[data-harbor-${receiptFocus.kind}-receipt="${receipt.revision}"]`)?.focus();
     }
-    setRentFocus(null);
-  }, [gameState, rentFocus, isMyTurn]);
+    setReceiptFocus(null);
+  }, [gameState, receiptFocus, isMyTurn]);
 
   // Another captain's bid clock can already be running while the landing ship is moving.
   if (gameState.phase === 'AWAITING_AUCTION' && gameState.auction) {
@@ -141,9 +145,7 @@ export const ActionControls: React.FC<Props> = ({
   const debtPanel = debt && (
     <DebtRescuePanel key={JSON.stringify([activePlayer.id, debt.creditorId, debt.tileId, debt.amount, debt.reason])}
       gameState={gameState} debt={debt} canAct={isMyTurn} onAction={onAction}
-      onCoveredRentAccepted={(revision, source) => setRentFocus({
-        revision, source, roomId: gameState.roomId, tileId: currentTile.id, playerId: activePlayer.id,
-      })} />
+      onCoveredRentAccepted={(revision, source) => focusAcceptedReceipt('rent', revision, source)} />
   );
   if (isMyTurn && debtPanel) return debtPanel;
 
@@ -167,42 +169,9 @@ export const ActionControls: React.FC<Props> = ({
   }
 
   if (gameState.phase === 'AWAITING_BUY_DECISION') {
-    const price = currentTile.price || 0;
-    const canAfford = activePlayer.balance >= price;
-
-    return (
-      <section className="chart-action-panel">
-        <div className="chart-action-offer">
-          <div>
-            <p className="chart-action-copy">CƠ HỘI ĐẦU TƯ</p>
-            <h3 className="chart-action-title">
-              {currentTile.name} ({currentTile.code})
-            </h3>
-          </div>
-          <div className="chart-action-price">${price}M</div>
-        </div>
-
-        <p className="chart-action-copy">Nếu bạn không mua, tài sản sẽ được đưa ra đấu giá.</p>
-        <PortInvestmentPreview state={gameState} tileId={currentTile.id} buyerId={myPlayerId} scenario="purchase" />
-        <div className="chart-action-row">
-          <button
-            type="button"
-            onClick={() => onAction({ type: 'BUY_PROPERTY' })}
-            disabled={!canAfford}
-            className="chart-button chart-button-primary"
-          >
-            <Check size={18} aria-hidden="true" /> Mua ngay
-          </button>
-          <button
-            type="button"
-            onClick={() => onAction({ type: 'SKIP_BUY' })}
-            className="chart-button"
-          >
-            <Gavel size={18} aria-hidden="true" /> Mở đấu giá
-          </button>
-        </div>
-      </section>
-    );
+    return <PortPurchaseDecision key={`${gameState.roomId}/${activePlayer.id}/${currentTile.id}/${gameState.turnCount}`}
+      state={gameState} buyerId={activePlayer.id} onAction={onAction}
+      onPurchaseAccepted={(revision, source) => focusAcceptedReceipt('purchase', revision, source)} />;
   }
 
   if (activePlayer.inHold && gameState.phase === 'WAIT_FOR_ROLL') {

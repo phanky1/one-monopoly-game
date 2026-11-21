@@ -38,7 +38,7 @@ import {
 } from './boardData.js';
 import { createLogisticsState, dispatchLogistics } from './cargo.js';
 import {
-  createHarborFreight, dispatchHarborFreight, getHarborExportBooking, getHarborFreightOpportunity, recordHarborVisit,
+  createHarborFreight, dispatchHarborFreight, getHarborExportBooking, getHarborFreightOpportunity, getHarborPurchase, recordHarborVisit,
 } from './harborFreight.js';
 import { dispatchTrade, expireTradeOffers, isTradeAction } from './trade.js';
 import { getMissionProgress } from './missionProgress.js';
@@ -55,6 +55,9 @@ function shuffle<T>(array: T[]): T[] {
 
 function tradeChangesHarborOpportunity(before: GameState, after: GameState): boolean {
   const captainId = before.players[before.activePlayerIndex].id;
+  if (before.phase === 'AWAITING_BUY_DECISION') {
+    return getHarborPurchase(before, captainId)?.shortfall !== getHarborPurchase(after, captainId)?.shortfall;
+  }
   const previous = getHarborFreightOpportunity(before, captainId);
   const current = getHarborFreightOpportunity(after, captainId);
   if (previous?.kind !== current?.kind) return true;
@@ -141,15 +144,17 @@ export class OneMonopolyEngine {
   public static dispatch(state: GameState, action: GameAction, actorId?: string): EngineResult {
     if (!action || state.winnerId !== null) return { state, events: [] };
     if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_DISCHARGE' ||
-        action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
+        action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT' || action.type === 'HARBOR_BUY_AND_DISCHARGE') {
       const result = dispatchHarborFreight(state, action, actorId);
       if (result.state === state) return result;
-      if (action.type === 'HARBOR_DISCHARGE_FOR_RENT' && result.state.harborFreight?.lastDelivery?.rentRelief?.shortfallAfter === 0) {
-        const settled = OneMonopolyEngine.dispatchTurnAction(result.state, { type: 'SETTLE_DEBT' });
+      const paidRent = action.type === 'HARBOR_DISCHARGE_FOR_RENT' && result.state.harborFreight?.lastDelivery?.rentRelief?.shortfallAfter === 0;
+      if (action.type === 'HARBOR_BUY_AND_DISCHARGE' || paidRent) {
+        // Both legs settle in the same dispatch, through the usual deed or debt rules.
+        const settled = OneMonopolyEngine.dispatchTurnAction(result.state, { type: paidRent ? 'SETTLE_DEBT' : 'BUY_PROPERTY' });
         result.state = settled.state;
         result.events.push(...settled.events);
       }
-      if (action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
+      if (action.type !== 'HARBOR_LOAD' && action.type !== 'HARBOR_DISCHARGE') {
         expireTradeOffers(result.state, result.events);
       }
       return result;
@@ -524,11 +529,10 @@ export class OneMonopolyEngine {
           return;
         }
         if (prop.ownerId === null) {
-          if (tile.price !== undefined && player.balance >= tile.price) {
-            state.phase = 'AWAITING_BUY_DECISION';
-          } else {
-            OneMonopolyEngine.startAuction(state, events, tileId);
-          }
+          state.phase = 'AWAITING_BUY_DECISION';
+          if (tile.price !== undefined && player.balance >= tile.price) return;
+          if (getHarborPurchase(state, player.id)?.shortfall === 0) return;
+          OneMonopolyEngine.startAuction(state, events, tileId);
           return;
         }
 

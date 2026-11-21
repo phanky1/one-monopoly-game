@@ -15,14 +15,16 @@ interface Step {
   practice?: { question: string; choices: Choice[] };
 }
 
-function harborGuide(supportsBooking: boolean): Step[] {
+function harborGuide(supportsBooking: boolean, supportsPurchase: boolean): Step[] {
   return [
     {
       title: 'Xếp hàng trước khi lắc xúc xắc',
       copy: [
         'Ở Singapore, mở “Bến ở lần gieo tới” trong mục “Vận tải cảng” để xem cơ hội cập từng bến. Chọn tên bến để xem số dư thay đổi thế nào nếu chở hàng hoặc đi tàu rỗng. Muốn nhận lô miễn phí, chọn “Xếp 1 container”.',
         'Bạn xếp miễn phí cả ở cảng đang hoạt động của mình. Khi tàu đã có hàng, bấm một cảng khác trên bàn cờ hoặc mở “Sổ cảng” trên hải đồ để xem số dư dự kiến khi dỡ, sau phí bến và tiền thuê.',
-        'Chọn “Lắc xúc xắc!” để di chuyển. Ở cảng chưa có chủ, xem tiền thuê, phần cước và số cảng cùng màu bạn sẽ có trước khi mua hoặc trả giá. Sau đó bạn mới chọn dỡ hàng.',
+        supportsPurchase
+          ? 'Lắc xúc xắc để ghé cảng. Ở Cái Mép chưa có chủ, chọn “Mua cảng và dỡ hàng” để dùng $12M cước từ Singapore cùng $48M tiền mặt mua cảng giá $60M. Muốn giữ hàng, bạn có thể mua bằng tiền mặt hoặc mở đấu giá.'
+          : 'Chọn “Lắc xúc xắc!” để di chuyển. Ở cảng chưa có chủ, xem tiền thuê, phần cước và số cảng cùng màu bạn sẽ có trước khi mua hoặc trả giá. Sau đó bạn mới chọn dỡ hàng.',
       ],
       figures: [['Cảng xuất phát', 'Singapore'], ['Khoang tàu', '1 container'], ['Tiền ban đầu', '$1.500M']],
     },
@@ -55,7 +57,6 @@ function harborGuide(supportsBooking: boolean): Step[] {
 }
 
 const guides = {
-  harbor: harborGuide(true),
   logistics: [
     {
       title: 'Tìm vỏ dư ở cảng xuất phát',
@@ -111,17 +112,16 @@ const guides = {
       ],
     },
   ],
-} satisfies Record<GameMode, Step[]>;
-const legacyHarborGuide = harborGuide(false);
+} satisfies Record<Exclude<GameMode, 'harbor'>, Step[]>;
 
-interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean }
+interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean; supportsPurchase?: boolean }
 
-export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true }: Props) {
+export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true, supportsPurchase = true }: Props) {
   const [selected, setSelected] = useState(mode);
   const [page, setPage] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const id = useId(), heading = useRef<HTMLHeadingElement>(null), moveFocus = useRef(false);
-  const steps: Step[] = selected === 'harbor' && !supportsBooking ? legacyHarborGuide : guides[selected];
+  const steps: Step[] = selected === 'harbor' ? harborGuide(supportsBooking, supportsPurchase) : guides[selected];
   const step = steps[page];
   const response = answer !== null ? step.practice?.choices[answer] : null;
 
