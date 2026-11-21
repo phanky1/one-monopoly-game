@@ -131,7 +131,10 @@ export const App: React.FC = () => {
       } else if (evt.type === 'HARBOR_DISCHARGED') {
         const { playerId, tileId, carrierNet, operatorName, handlingFee } = evt.receipt;
         const who = state.players.find(player => player.id === playerId)?.name ?? 'Thuyền trưởng';
-        logMsg = `${who} dỡ hàng tại ${portGuide[BOARD_TILES[tileId].code].name}, nhận $${carrierNet}M.`;
+        const port = portGuide[BOARD_TILES[tileId].code].name;
+        logMsg = evt.receipt.redemptionCost === undefined
+          ? `${who} dỡ hàng tại ${port}, nhận $${carrierNet}M.`
+          : `${who} mở lại ${port} và dỡ hàng, dùng $${carrierNet}M cước để thanh toán tiền chuộc $${evt.receipt.redemptionCost}M.`;
         if (handlingFee) logMsg += ` ${operatorName} nhận $${handlingFee}M phí dỡ hàng.`;
       } else if (evt.type === 'BACKHAUL_ACCEPTED' || evt.type === 'BACKHAUL_EXPIRED' || evt.type === 'BACKHAUL_FULFILLED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Đội tàu';

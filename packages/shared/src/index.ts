@@ -2,11 +2,11 @@ export * from './types.js';
 export * from './freightRivals.js';
 export * from './boardData.js';
 export * from './gameEngine.js';
-export { getHarborFreightOpportunity, getHarborFreightQuote, getHarborTerminalShare } from './harborFreight.js';
+export { getHarborFreightOpportunity, getHarborFreightQuote, getHarborRedemption, getHarborTerminalShare } from './harborFreight.js';
 export { canSettleTrade, getTradeCounterAction, getTradeRestriction } from './trade.js';
 export { getBotAskingPrice } from './botAskingPrice.js';
 export * from './missionProgress.js';
-export { getDebtRecovery } from './debtRecovery.js';
+export { getDebtRecovery, getMortgageValue, getRedemptionCost } from './debtRecovery.js';
 export type { DebtRecovery, DebtRecoveryOption } from './debtRecovery.js';
 export {
   PORT_COORDINATES, LOGISTICS_DELIVERY_TARGET, LOGISTICS_ROUND_LIMIT, LOGISTICS_PORT_CAPACITY,

@@ -17,6 +17,11 @@ export function getMortgageValue(tile: BoardTile): number {
   return tile.mortgageValue || Math.floor((tile.price || 0) / 2);
 }
 
+export function getRedemptionCost(tile: BoardTile): number {
+  const principal = getMortgageValue(tile);
+  return principal + Math.ceil(principal / 10);
+}
+
 // Each property has at most one way to raise cash immediately.
 export function getPropertyCashOption(state: GameState, playerId: string, tileId: number): DebtRecoveryOption | null {
   const tile = BOARD_TILES[tileId];

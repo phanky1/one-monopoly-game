@@ -181,6 +181,7 @@ flowchart TD
 ## 7. CẦM CỐ (MORTGAGE), NỢ NẦN & PHÁ SẢN (BANKRUPTCY)
 
 - **Cầm cố tài sản:** Khi thiếu tiền mặt, người chơi có thể cầm cố các bến cảng chưa nâng cấp container với giá trị bằng **50% giá mua ban đầu**. Cảng đang cầm cố sẽ không thể thu cước của đối thủ.
-- **Chuộc cảng:** Để gỡ cầm cố, người chơi phải trả lại 50% tiền gốc kèm **10% lãi suất tái cấp vốn**.
+- **Chuộc cảng.** Trả số tiền đã vay và **10% tiền lãi**, làm tròn lãi lên đến triệu USD. Ví dụ, với khoản vay $50M tại Laem Chabang, tiền chuộc là **$55M**.
+- Trong chế độ **Monopoly**, nếu tàu đang giữ một container từ cảng khác và chưa xếp dỡ trong lần ghé này, chủ cảng có thể chọn **Chuộc cảng và dỡ hàng** ở mục **Vận tải cảng**. Cước được dùng ngay để trả ngân hàng. Ví dụ, chuộc Cái Mép tốn **$33M**. Nếu chở hàng từ Singapore có cước **$12M**, bạn chỉ cần **$21M tiền mặt**. Bạn cũng có thể giữ hàng trên tàu hoặc chuộc theo cách thông thường trên giấy sở hữu. Tiền thuê chỉ áp dụng cho các lượt đối thủ cập bến sau khi mở lại.
 - **Xử lý Nợ (Debt Resolution):** Khi số tiền phải nộp lớn hơn số dư tài khoản, hệ thống sẽ đưa người chơi vào trạng thái giải quyết nợ. Người chơi có thể bán container hoặc cầm cố cảng để xoay tiền.
 - **Tuyên bố Phá sản:** Nếu sau khi đã giải chấp và cầm cố toàn bộ tài sản mà vẫn không đủ khả năng thanh toán khoản nợ, thuyền trưởng buộc phải **Tuyên Bố Phá Sản**. Toàn bộ tài sản sẽ chuyển giao cho chủ nợ và thuyền trưởng bị loại khỏi hải trình!

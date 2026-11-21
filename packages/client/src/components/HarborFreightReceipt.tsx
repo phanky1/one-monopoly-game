@@ -15,9 +15,12 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
   const destination = portGuide[destinationTile.code]?.name ?? destinationTile.name;
   const carrier = state.players.find(player => player.id === receipt.playerId)?.name ?? 'Hãng vận chuyển';
   const group = receipt.feePercent === 50 && destinationTile.group ? LOOP_GROUPS_CONFIG[destinationTile.group] : null;
-  return <section className="harbor-freight-receipt" data-harbor-receipt={receipt.revision} aria-labelledby={title}>
+  const bankPayment = receipt.redemptionCost;
+  const cashChange = receipt.carrierNet - (bankPayment ?? 0);
+  return <section className="harbor-freight-receipt" data-harbor-receipt={receipt.revision}
+    data-harbor-redemption-receipt={bankPayment !== undefined ? receipt.revision : undefined} aria-labelledby={title}>
     <header>
-      <h4 id={title}><ReceiptText size={15} aria-hidden="true" />Biên lai dỡ hàng</h4>
+      <h4 id={title}><ReceiptText size={15} aria-hidden="true" />{bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : 'Biên lai dỡ hàng'}</h4>
       <small>Vòng {receipt.round}</small>
     </header>
     <p className="harbor-receipt-route" data-harbor-receipt-route>
@@ -25,8 +28,11 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
       <small>{number.format(receipt.distanceNm)} hải lý</small>
     </p>
     <dl>
-      <div><dt>Cước vận chuyển</dt><dd data-harbor-receipt-gross={receipt.gross}>{money(receipt.gross)}</dd></div>
-      <div className="harbor-receipt-fee">
+      <div><dt>{bankPayment !== undefined ? 'Cước hàng dùng để chuộc cảng' : 'Cước vận chuyển'}</dt>
+        <dd data-harbor-receipt-gross={receipt.gross}>{bankPayment !== undefined && '+'}{money(receipt.gross)}</dd></div>
+      {bankPayment !== undefined ? <div><dt>Đã trả ngân hàng để chuộc cảng</dt>
+        <dd data-harbor-receipt-redemption-cost={bankPayment}>−{money(bankPayment)}</dd>
+      </div> : <div className="harbor-receipt-fee">
         <dt>Phí khai thác bến{receipt.feePercent > 0 && ` (${receipt.feePercent}%)`}
           {receipt.operatorName && <small>Đã chuyển cho <b>{receipt.operatorName}</b></small>}
           {group && <small className="harbor-receipt-group" data-harbor-receipt-group>
@@ -34,9 +40,10 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
           </small>}
         </dt>
         <dd data-harbor-receipt-fee={receipt.handlingFee}>{receipt.handlingFee > 0 && '−'}{money(receipt.handlingFee)}</dd>
-      </div>
-      <div className="harbor-receipt-net"><dt>{carrier} thực nhận</dt>
-        <dd data-harbor-receipt-net={receipt.carrierNet}>+{money(receipt.carrierNet)}</dd></div>
+      </div>}
+      <div className="harbor-receipt-net"><dt>{bankPayment !== undefined ? `Thay đổi số dư của ${carrier}` : `${carrier} thực nhận`}</dt>
+        <dd data-harbor-receipt-net={cashChange} data-harbor-receipt-cash-change={bankPayment !== undefined ? cashChange : undefined}>
+          {cashChange < 0 ? '−' : cashChange > 0 ? '+' : ''}{money(Math.abs(cashChange))}</dd></div>
     </dl>
     {receipt.handlingFee > 0 && <p className="harbor-receipt-rent-note">Tiền thuê khi tàu cập bến được tính riêng.</p>}
   </section>;

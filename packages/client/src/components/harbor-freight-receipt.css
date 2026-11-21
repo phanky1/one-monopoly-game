@@ -33,3 +33,5 @@
 }
 .harbor-receipt-net dd { font-size: 14px; }
 .harbor-freight-receipt .harbor-receipt-rent-note { margin: 3px 0 0; color: #556560; font-size: 10.5px; }
+.harbor-freight-receipt[data-harbor-redemption-receipt] { border-inline-start-color: #99754f; }
+.harbor-freight-receipt [data-harbor-receipt-cash-change^="-"] { color: #7d4053; }

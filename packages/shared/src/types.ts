@@ -72,6 +72,7 @@ export interface SecretMissionCard {
 export type GameMode = 'classic' | 'logistics' | 'harbor';
 export interface HarborLoadAction { type: 'HARBOR_LOAD'; tileId: number; revision: number }
 export interface HarborDischargeAction { type: 'HARBOR_DISCHARGE'; tileId: number; revision: number }
+export interface HarborRedeemAction { type: 'HARBOR_REDEEM_AND_DISCHARGE'; tileId: number; revision: number }
 export interface HarborFreightQuote {
   playerId: string;
   originTileId: number;
@@ -84,7 +85,14 @@ export interface HarborFreightQuote {
   operatorId: string | null;
   operatorName: string | null;
 }
-export interface HarborFreightReceipt extends HarborFreightQuote { round: number; revision: number }
+export interface HarborFreightReceipt extends HarborFreightQuote { round: number; revision: number; redemptionCost?: number }
+export interface HarborRedemption {
+  action: HarborRedeemAction;
+  quote: HarborFreightQuote;
+  redemptionCost: number;
+  cashChange: number;
+  shortfall: number;
+}
 export type HarborFreightOpportunity =
   | { kind: 'load'; action: HarborLoadAction }
   | { kind: 'discharge'; action: HarborDischargeAction; quote: HarborFreightQuote };
@@ -362,7 +370,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
-  | HarborLoadAction | HarborDischargeAction
+  | HarborLoadAction | HarborDischargeAction | HarborRedeemAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall

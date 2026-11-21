@@ -67,7 +67,9 @@ export function DebtRescuePanel({ gameState, debt, canAct, onAction }: Props) {
         onClick={() => submit(option.action)} disabled={pending}>
         {sale ? <Container aria-hidden="true" /> : <Landmark aria-hidden="true" />}
         <span><strong>{BOARD_TILES[tileId].name}</strong>
-          <small>{sale ? `Bán 1 container · Cấp ${property.containerLevel} → ${property.containerLevel - 1}` : 'Thế chấp · Dừng thu cước'}</small>
+          <small>{sale ? `Bán 1 container · Cấp ${property.containerLevel} → ${property.containerLevel - 1}`
+            : gameState.mode === 'harbor' && BOARD_TILES[tileId].type === 'PORT'
+              ? 'Thế chấp · Dừng thu tiền thuê và xếp dỡ' : 'Thế chấp · Dừng thu cước'}</small>
           {sale && property.hasGreenFleet && <small className="debt-option-impact">Mất huy hiệu Tàu xanh</small>}
         </span>
         <b>+{money(option.proceeds)}</b>

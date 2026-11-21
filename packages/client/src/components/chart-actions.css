@@ -236,6 +236,8 @@
 }
 .chart-manifest-note p { margin: 2px 0 0; }
 .chart-manifest-note svg { width: 18px; height: 18px; flex: none; }
+.harbor-mortgage-terms { align-items: flex-start; }
+.harbor-mortgage-terms .chart-button { margin-top: 6px; min-height: 32px; }
 .chart-rent-schedule { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.4; }
 .chart-rent-schedule caption {
   padding: 7px 10px;

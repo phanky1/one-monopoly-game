@@ -1,8 +1,9 @@
 import { BOARD_TILES, ownsPortGroup } from './boardData.js';
 import { getFreightQuote } from './cargo.js';
+import { getRedemptionCost } from './debtRecovery.js';
 import type {
   EngineResult, GameEvent, GameState, HarborDischargeAction, HarborFreightOpportunity, HarborFreightQuote,
-  HarborFreightReceipt, HarborFreightState, HarborLoadAction, Player,
+  HarborFreightReceipt, HarborFreightState, HarborLoadAction, HarborRedeemAction, HarborRedemption, Player,
 } from './types.js';
 
 export function createHarborFreight(players: Player[]): HarborFreightState {
@@ -78,38 +79,71 @@ export function getHarborFreightOpportunity(state: GameState, playerId: string):
   return quote ? { kind: 'discharge', action: { type: 'HARBOR_DISCHARGE', tileId, revision }, quote } : null;
 }
 
+function reopenPort(state: GameState, tileId: number): GameState {
+  return { ...state, canUpgradeCurrentPort: false,
+    properties: { ...state.properties, [tileId]: { ...state.properties[tileId], isMortgaged: false } } };
+}
+
+export function getHarborRedemption(state: GameState, playerId: string): HarborRedemption | null {
+  const captain = state.players[state.activePlayerIndex];
+  if (state.mode !== 'harbor' || !captain || captain.id !== playerId || captain.balance < 0) return null;
+  const tileId = captain.position;
+  const tile = BOARD_TILES[tileId];
+  const property = state.properties[tileId];
+  if (tile?.type !== 'PORT' || !property?.isMortgaged || property.ownerId !== playerId) return null;
+
+  const discharge = getHarborFreightOpportunity(reopenPort(state, tileId), playerId);
+  if (discharge?.kind !== 'discharge') return null;
+  const redemptionCost = getRedemptionCost(tile);
+  const cashChange = discharge.quote.carrierNet - redemptionCost;
+  return {
+    action: { type: 'HARBOR_REDEEM_AND_DISCHARGE', tileId, revision: discharge.action.revision },
+    quote: discharge.quote, redemptionCost, cashChange, shortfall: Math.max(0, -cashChange - captain.balance),
+  };
+}
+
 export function dispatchHarborFreight(
-  state: GameState, action: HarborLoadAction | HarborDischargeAction, actorId?: string,
+  state: GameState, action: HarborLoadAction | HarborDischargeAction | HarborRedeemAction, actorId?: string,
 ): EngineResult {
   const harbor = state.harborFreight;
-  const opportunity = actorId ? getHarborFreightOpportunity(state, actorId) : null;
-  if (!harbor || !actorId || !opportunity || action.type !== opportunity.action.type ||
-      action.tileId !== opportunity.action.tileId || action.revision !== opportunity.action.revision) {
-    return { state, events: [] };
-  }
+  const unchanged = { state, events: [] };
+  if (!harbor || !actorId) return unchanged;
+  const opportunity = action.type === 'HARBOR_REDEEM_AND_DISCHARGE'
+    ? getHarborRedemption(state, actorId) : getHarborFreightOpportunity(state, actorId);
+  if (!opportunity || action.type !== opportunity.action.type || action.tileId !== opportunity.action.tileId ||
+      action.revision !== opportunity.action.revision || ('shortfall' in opportunity && opportunity.shortfall > 0)) return unchanged;
+
   const tileId = action.tileId;
+  const loading = !('quote' in opportunity);
   const nextHarbor: HarborFreightState = {
     ...harbor, revision: harbor.revision + 1,
     visits: { ...harbor.visits, [actorId]: { tileId, handled: true } },
-    manifests: { ...harbor.manifests, [actorId]: opportunity.kind === 'load' ? { originTileId: tileId } : null },
+    manifests: { ...harbor.manifests, [actorId]: loading ? { originTileId: tileId } : null },
   };
-  if (opportunity.kind === 'load') {
+  if (loading) {
     return {
       state: { ...state, harborFreight: nextHarbor },
       events: [{ type: 'HARBOR_LOADED', playerId: actorId, tileId }],
     };
   }
-  const receipt: HarborFreightReceipt = { ...opportunity.quote, round: state.turnCount, revision: nextHarbor.revision };
+  const redemption = 'redemptionCost' in opportunity ? opportunity : null;
+  const receipt: HarborFreightReceipt = { ...opportunity.quote, round: state.turnCount, revision: nextHarbor.revision,
+    ...(redemption && { redemptionCost: redemption.redemptionCost }) };
   nextHarbor.lastDelivery = receipt;
-  const events: GameEvent[] = [{ type: 'HARBOR_DISCHARGED', receipt }];
+  const events: GameEvent[] = [];
+  if (redemption) events.push({ type: 'TILE_UNMORTGAGED', playerId: actorId, tileId, cost: redemption.redemptionCost });
+  events.push({ type: 'HARBOR_DISCHARGED', receipt });
+  const carrierCashChange = redemption?.cashChange ?? receipt.carrierNet;
+  const carrierReason = redemption ? 'Cước hàng khô sau khi chuộc cảng' : 'Cước vận chuyển hàng khô';
   const players = state.players.map(player => {
     const isCarrier = player.id === actorId;
     if (!isCarrier && player.id !== receipt.operatorId) return player;
-    const delta = isCarrier ? receipt.carrierNet : receipt.handlingFee;
+    const delta = isCarrier ? carrierCashChange : receipt.handlingFee;
     const balance = player.balance + delta;
     events.push({ type: 'BALANCE_CHANGED', playerId: player.id, newBalance: balance, delta,
-      reason: isCarrier ? 'Cước vận chuyển hàng khô' : 'Phí khai thác bến cảng' });
+      reason: isCarrier ? carrierReason : 'Phí khai thác bến cảng' });
     return { ...player, balance };
   });
-  return { state: { ...state, players, harborFreight: nextHarbor }, events };
+  const settled = redemption ? reopenPort(state, tileId) : state;
+  return { state: { ...settled, players, harborFreight: nextHarbor }, events };
 }

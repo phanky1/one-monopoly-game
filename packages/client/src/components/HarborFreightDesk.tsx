@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Anchor, Container, PackageCheck, Ship } from 'lucide-react';
 import {
-  BOARD_TILES, getHarborFreightOpportunity, type GameAction, type GameState, type HarborFreightQuote,
+  BOARD_TILES, getHarborFreightOpportunity, getHarborRedemption, type GameAction, type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 import { HarborFreightReceipt } from './HarborFreightReceipt.js';
 import { portGuide } from './ports/portGuide.js';
@@ -56,8 +56,26 @@ function BerthStatus({ state, loaded }: { state: GameState; loaded: boolean }) {
 }
 
 type HarborOffer = NonNullable<ReturnType<typeof getHarborFreightOpportunity>>;
-type CargoCommand = HarborOffer['action'];
+type Redemption = NonNullable<ReturnType<typeof getHarborRedemption>>;
+type CargoCommand = HarborOffer['action'] | Redemption['action'];
 interface Submission { action: CargoCommand; keyboard: boolean }
+
+function RedemptionPrice({ redemption }: { redemption: Redemption }) {
+  const { quote, redemptionCost, cashChange, shortfall } = redemption;
+  return <section className="harbor-redemption-price" data-harbor-redemption-quote tabIndex={-1}
+    aria-label={`Chi phí chuộc cảng và dỡ hàng tại ${place(quote.tileId)}`}>
+    <h4>Chuộc {place(quote.tileId)} bằng cước hàng</h4>
+    <dl>
+      <div><dt>Cước lô hàng</dt><dd data-harbor-redemption-credit={quote.carrierNet}>+{money(quote.carrierNet)}</dd></div>
+      <div><dt>Giá chuộc trả ngân hàng</dt><dd data-harbor-redemption-cost={redemptionCost}>−{money(redemptionCost)}</dd></div>
+      <div className="harbor-redemption-cash"><dt>{cashChange > 0 ? 'Tiền dư về tàu' : 'Tiền mặt cần góp'}</dt>
+        <dd data-harbor-redemption-cash={cashChange}>{money(Math.abs(cashChange))}</dd></div>
+    </dl>
+    <p>Có thể dùng cước để chuộc cảng khi dỡ tại đây, hoặc giữ container trên tàu để đi tiếp.</p>
+    {shortfall > 0 && <p className="harbor-redemption-shortfall" data-harbor-redemption-shortfall={shortfall}>
+      Số dư của thuyền trưởng còn thiếu <strong>{money(shortfall)}</strong> để chuộc cảng.</p>}
+  </section>;
+}
 
 function HarborAction({ offer, disabled, submit }: {
   offer: HarborOffer; disabled: boolean; submit: (action: CargoCommand, keyboard: boolean) => void;
@@ -85,6 +103,7 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
   const manifest = harbor.manifests[captain.id];
   const visit = harbor.visits[captain.id];
   const offer = getHarborFreightOpportunity(state, captain.id);
+  const redemption = getHarborRedemption(state, captain.id);
   const mine = captain.id === myPlayerId;
   const at = place(captain.position);
   const last = harbor.lastDelivery;
@@ -135,10 +154,12 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
     <p className="harbor-manifest" ref={summary} tabIndex={-1} data-harbor-manifest={manifest ? 'laden' : 'empty'}>
       <Ship aria-hidden="true" />{manifest ? <>1 container từ <strong>{place(manifest.originTileId)}</strong></> : 'Khoang tàu trống'}
     </p>
-    {receipt && <div ref={proof} tabIndex={-1} className="harbor-freight-proof" role="group" aria-label="Biên lai dỡ hàng tại bến">
+    {receipt && <div ref={proof} tabIndex={-1} className="harbor-freight-proof" role="group"
+      aria-label={receipt.redemptionCost !== undefined ? 'Biên lai chuộc cảng và dỡ hàng tại bến' : 'Biên lai dỡ hàng tại bến'}>
       <HarborFreightReceipt state={state} receipt={receipt} />
     </div>}
-    {offer?.kind === 'discharge' ? <>
+    {redemption ? <RedemptionPrice redemption={redemption} />
+      : offer?.kind === 'discharge' ? <>
       <p className="harbor-instruction">{number.format(offer.quote.distanceNm)} hải lý đến <strong>{at}</strong>.
         {' '}Có thể dỡ tại đây hoặc giữ hàng cho chuyến sau.</p>
       <FreightPrice quote={offer.quote} />
@@ -146,6 +167,11 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
       : !receipt && <p className="harbor-instruction"><BerthStatus state={state} loaded={!!manifest} /></p>}
     {mine && offer && <HarborAction key={`${offer.kind}/${manifest?.originTileId ?? ''}`} offer={offer}
       disabled={busy || pending} submit={submit} />}
+    {mine && redemption && <button type="button" className="harbor-action" data-harbor-redeem
+      disabled={busy || pending || redemption.shortfall > 0}
+      onClick={event => submit(redemption.action, event.detail === 0)}>
+      <PackageCheck aria-hidden="true" />Chuộc cảng và dỡ hàng
+    </button>}
     {failedRevision === harbor.revision && <p className="harbor-adjustment" role="alert">Lệnh làm hàng chưa được xác nhận. Kiểm tra lại vận đơn rồi thử lại.</p>}
   </section>;
 }

@@ -9,6 +9,8 @@ import {
   getTradeRestriction,
   getEmptyNeed,
   getHarborTerminalShare,
+  getMortgageValue,
+  getRedemptionCost,
   getImportTruckReservation,
   getPortTruckSchedule,
   getReserveImportTruckAction,
@@ -30,6 +32,7 @@ import { getPortCallCargo, getPortCallLoad } from './ports/portCallCargo.js';
 import type { PortDischarge, PortLoad } from './ports/portArrival.js';
 import { ScheduledOperations } from './TruckTimetable.js';
 import { BoardDialog } from './BoardDialog.js';
+import { HarborMortgageTerms } from './HarborMortgageTerms.js';
 import { PortMiniature } from './ports/PortMiniature.js';
 import { portGuide, type PortGuide } from './ports/portGuide.js';
 import { getPortTender, type PortTenderNotice } from './ports/portTender.js';
@@ -249,13 +252,13 @@ export const PropertyModal: React.FC<Props> = ({
   const charterPartner = prop?.slotCharter?.active
     ? gameState.players.find((player) => player.id === prop.slotCharter?.partnerId)
     : null;
-  const isMine = prop?.ownerId === myPlayerId;
+  const isMine = !!myPlayerId && prop?.ownerId === myPlayerId;
   const groupConfig = tile.group ? LOOP_GROUPS_CONFIG[tile.group] : null;
 
   const buildCost = tile.buildCost || groupConfig?.buildCost || 50;
   const refund = Math.floor(buildCost * 0.5);
-  const mortgageValue = tile.mortgageValue || Math.floor((tile.price || 0) * 0.5);
-  const unmortgageCost = Math.ceil(mortgageValue * 1.1);
+  const mortgageValue = getMortgageValue(tile);
+  const unmortgageCost = getRedemptionCost(tile);
 
   const activePlayer = gameState.players[gameState.activePlayerIndex];
   const isMyTurn = activePlayer?.id === myPlayerId;
@@ -431,6 +434,7 @@ export const PropertyModal: React.FC<Props> = ({
               </>
             )}
 
+            <HarborMortgageTerms state={gameState} tileId={tileId} ownerId={myPlayerId} onClose={onClose} />
             {!prop.isMortgaged ? (
               <button
                 onClick={() => onAction({ type: 'MORTGAGE_TILE', tileId })}
@@ -442,6 +446,7 @@ export const PropertyModal: React.FC<Props> = ({
             ) : (
               <button
                 onClick={() => onAction({ type: 'UNMORTGAGE_TILE', tileId })}
+                disabled={!isMyTurn || activePlayer.balance < unmortgageCost || gameState.phase === 'AWAITING_STORM_DECISION'}
                 className="chart-button chart-button-primary"
               >
                 <DollarSign aria-hidden="true" /> Chuộc lại (Nộp ${unmortgageCost}M)

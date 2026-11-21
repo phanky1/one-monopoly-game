@@ -40,7 +40,7 @@ import { createLogisticsState, dispatchLogistics } from './cargo.js';
 import { createHarborFreight, dispatchHarborFreight, getHarborFreightOpportunity, recordHarborVisit } from './harborFreight.js';
 import { dispatchTrade, expireTradeOffers } from './trade.js';
 import { getMissionProgress } from './missionProgress.js';
-import { getMortgageValue, getPropertyCashOption } from './debtRecovery.js';
+import { getPropertyCashOption, getRedemptionCost } from './debtRecovery.js';
 
 function shuffle<T>(array: T[]): T[] {
   const result = [...array];
@@ -133,8 +133,12 @@ export class OneMonopolyEngine {
 
   public static dispatch(state: GameState, action: GameAction, actorId?: string): EngineResult {
     if (!action || state.winnerId !== null) return { state, events: [] };
-    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE') {
-      return dispatchHarborFreight(state, action, actorId);
+    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' || action.type === 'HARBOR_REDEEM_AND_DISCHARGE') {
+      const result = dispatchHarborFreight(state, action, actorId);
+      if (action.type === 'HARBOR_REDEEM_AND_DISCHARGE' && result.state !== state) {
+        expireTradeOffers(result.state, result.events);
+      }
+      return result;
     }
     if (state.mode === 'logistics') {
       return dispatchLogistics(state, action, actorId ?? state.players[state.activePlayerIndex]?.id);
@@ -1309,8 +1313,7 @@ export class OneMonopolyEngine {
     const prop = state.properties[tileId];
     if (!tile || !prop || prop.ownerId !== player.id || !prop.isMortgaged) return;
 
-    const mortgageValue = getMortgageValue(tile);
-    const unmortgageCost = Math.ceil(mortgageValue * 1.1); // 10% interest
+    const unmortgageCost = getRedemptionCost(tile);
 
     if (player.balance < unmortgageCost) return;
 

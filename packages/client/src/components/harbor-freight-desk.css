@@ -31,3 +31,17 @@
 .harbor-action:focus-visible, .harbor-manifest:focus-visible, .harbor-freight-proof:focus-visible { outline: 2px solid #9d2e62; outline-offset: 2px; }
 .harbor-adjustment { color: #85335a; font-size: .75rem; }
 @media (pointer: coarse) { .harbor-action { min-height: 44px; } }
+.harbor-redemption-price { min-width: 0; padding: 7px 9px; border: 1px solid #b4beb0; border-inline-start: 3px solid #9b7750; border-radius: 3px; background: #fff9e9; }
+.harbor-redemption-price:focus-visible { outline: 2px solid #9d2e62; outline-offset: 2px; }
+.harbor-redemption-price h4 { margin: 0 0 4px; color: #294a4e; font: 700 .9rem/1.25 var(--chart-sans, system-ui); }
+.harbor-redemption-price dl { display: grid; gap: 2px; margin: 0; }
+.harbor-redemption-price dl > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; gap: 8px; }
+.harbor-redemption-price dt { color: #49605c; font-size: .75rem; }
+.harbor-redemption-price dd { margin: 0; font: 700 .8rem/1.3 var(--chart-mono, monospace); white-space: nowrap; }
+.harbor-redemption-price .harbor-redemption-cash { border-top: 1px dashed #b4bdae; margin-top: 1px; padding-top: 3px; }
+.harbor-redemption-cash dt { color: #354e4a; font-weight: 700; }
+.harbor-redemption-price p { margin-top: 4px; color: #4f655b; font-size: .73rem; line-height: 1.35; }
+.harbor-redemption-price .harbor-redemption-shortfall { color: #854052; }
+.harbor-action[data-harbor-redeem] { color: #fff9e9; border-color: #345752; background: #365e58; }
+.harbor-action[data-harbor-redeem]:hover:enabled { background: #274a47; }
+.harbor-action[data-harbor-redeem]:disabled { cursor: default; }

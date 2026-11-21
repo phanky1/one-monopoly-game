@@ -10,6 +10,7 @@ import {
   GameState,
   getDebtRecovery,
   getHarborFreightOpportunity,
+  getHarborRedemption,
   isFreightRivalStyle,
   LOOP_GROUPS_CONFIG,
   OneMonopolyEngine,
@@ -23,11 +24,23 @@ import { getFreightBotAction } from './freightBot.js';
 
 const TURN_SECONDS = 45;
 const BOT_PURCHASE_RESERVE = 80;
+const CARGO_HANDLING_DELAY_MS = 3600;
 const rivalTokens: Record<FreightRivalStyle, readonly [VesselToken, VesselToken]> = {
   standard: ['ONE_APUS', 'PILOT_BOAT'],
   equipment: ['GANTRY_CRANE', 'CONTAINER_TRUCK'],
   coastal: ['BUNKER_BARGE', 'PILOT_BOAT'],
 };
+
+function getBotHarborAction(state: GameState, captainId: string): GameAction | null {
+  const freight = getHarborFreightOpportunity(state, captainId);
+  if (freight) return freight.action;
+  const reopening = getHarborRedemption(state, captainId);
+  const captain = state.players[state.activePlayerIndex];
+  if (reopening && !reopening.shortfall && captain.balance + reopening.cashChange >= BOT_PURCHASE_RESERVE) {
+    return reopening.action;
+  }
+  return null;
+}
 
 export function gameStateForPlayer(state: GameState, viewerId: string | undefined): GameState {
   const logistics = state.logistics;
@@ -351,7 +364,8 @@ export class RoomManager {
     )) return { success: false, error: 'Yêu cầu giữ xe nhận hàng không hợp lệ.' };
 
     const activePlayer = room.gameState.players[room.gameState.activePlayerIndex];
-    const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE';
+    const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' ||
+      action.type === 'HARBOR_REDEEM_AND_DISCHARGE';
     if ((room.gameState.mode === 'logistics' || harborAction) && activePlayer.id !== playerId) {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
@@ -410,6 +424,7 @@ export class RoomManager {
     }
     if ((action.type === 'SELL_CONTAINER' && !events.some(e => e.type === 'CONTAINER_SOLD')) ||
         (action.type === 'MORTGAGE_TILE' && !events.some(e => e.type === 'TILE_MORTGAGED')) ||
+        (action.type === 'UNMORTGAGE_TILE' && !events.some(e => e.type === 'TILE_UNMORTGAGED')) ||
         (action.type === 'SETTLE_DEBT' && !events.some(e => e.type === 'DEBT_SETTLED'))) {
       return { success: false, error: 'Không thể thực hiện thao tác này với số dư và tài sản hiện tại.' };
     }
@@ -495,7 +510,7 @@ export class RoomManager {
       const captain = state.players[state.activePlayerIndex];
       if (this.isBot(room, captain.id)) {
         // Leave time for the 3.4-second handoff before moving the ship or starting another job.
-        const delay = lastActionType === 'LOAD_CARGO' || lastActionType === 'UNLOAD_CARGO' ? 3600 : 1800;
+        const delay = lastActionType === 'LOAD_CARGO' || lastActionType === 'UNLOAD_CARGO' ? CARGO_HANDLING_DELAY_MS : 1800;
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
           if (room.gameState !== state) return;
@@ -543,21 +558,23 @@ export class RoomManager {
       return;
     }
 
-    const computeTravelDelay = () => {
+    const docksideDelay = (defaultDelay: number) => {
+      if (lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE') return CARGO_HANDLING_DELAY_MS;
+      if (lastActionType !== 'ROLL_DICE') return defaultDelay;
       const steps = (state.dice[0] || 1) + (state.dice[1] || 1);
       return Math.max(1600, 950 + steps * 240 + 600);
     };
 
     switch (state.phase) {
       case 'WAIT_FOR_ROLL': {
-        const delay = lastActionType === 'ROLL_DICE' ? computeTravelDelay() : 1000;
+        const delay = docksideDelay(1000);
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
           const current = room.gameState!;
           const captain = current.players[current.activePlayerIndex];
-          const freight = getHarborFreightOpportunity(current, activePlayer.id);
+          const freight = getBotHarborAction(current, activePlayer.id);
           if (freight) {
-            this.dispatchAction(room.id, activePlayer.id, freight.action);
+            this.dispatchAction(room.id, activePlayer.id, freight);
             return;
           }
           if (captain.inHold && captain.balance >= 150) {
@@ -570,7 +587,7 @@ export class RoomManager {
       }
 
       case 'AWAITING_BUY_DECISION': {
-        const delay = lastActionType === 'ROLL_DICE' ? computeTravelDelay() : 700;
+        const delay = docksideDelay(700);
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
           const tile = BOARD_TILES[activePlayer.position];
@@ -585,7 +602,7 @@ export class RoomManager {
       }
 
       case 'AWAITING_STORM_DECISION': {
-        const delay = lastActionType === 'ROLL_DICE' ? computeTravelDelay() : 700;
+        const delay = docksideDelay(700);
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
           if (activePlayer.balance >= 100) {
@@ -617,14 +634,14 @@ export class RoomManager {
       }
 
       case 'END_OF_TURN': {
-        const delay = lastActionType === 'ROLL_DICE' ? computeTravelDelay() : 700;
+        const delay = docksideDelay(700);
         room.botTimer = setTimeout(() => {
           room.botTimer = null;
           const current = room.gameState!;
           const captain = current.players[current.activePlayerIndex];
-          const freight = getHarborFreightOpportunity(current, activePlayer.id);
+          const freight = getBotHarborAction(current, activePlayer.id);
           if (freight) {
-            this.dispatchAction(room.id, activePlayer.id, freight.action);
+            this.dispatchAction(room.id, activePlayer.id, freight);
             return;
           }
           const tile = BOARD_TILES[captain.position];
