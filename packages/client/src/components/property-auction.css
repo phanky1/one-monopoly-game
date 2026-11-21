@@ -41,7 +41,7 @@
 .chart-auction-custom form { display: grid; gap: 5px; margin-top: 5px; }
 .chart-auction-custom label { font-weight: 700; }
 .chart-auction-entry { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 7px; }
-.chart-auction-entry input {
+.chart-auction-entry input, .chart-auction-bid-line input {
   width: 100%;
   min-width: 0;
   padding: 6px 9px;
@@ -51,4 +51,29 @@
   color: var(--action-ink);
   font: 650 16px/1.35 var(--action-number);
 }
-.chart-auction-custom :is(input, summary):focus-visible { outline: 3px solid #087d89; outline-offset: 2px; }
+.chart-auction-custom :is(input, summary):focus-visible, .chart-auction-bid input:focus-visible {
+  outline: 3px solid #087d89; outline-offset: 2px;
+}
+.chart-auction-bid { display: grid; gap: 4px; }
+.chart-auction-bid label { font-size: 13px; font-weight: 700; }
+.chart-auction-bid label small { font-size: 12px; font-weight: 500; }
+.chart-auction-bid-line { display: grid; grid-template-columns: minmax(62px, 1fr) auto auto; gap: 5px; }
+.chart-auction-bid-line .chart-button { min-height: 36px; padding: 6px 9px; }
+.chart-auction-bid > p, .harbor-auction-wallet > p {
+  margin: 0; color: var(--action-muted); font-size: 11px; line-height: 1.4;
+}
+.chart-auction-bid > [data-auction-cash-error] { color: #882c51; }
+.harbor-auction-wallet { min-width: 0; }
+.harbor-auction-wallet table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.harbor-auction-wallet caption { margin-bottom: 3px; text-align: left; font-weight: 750; font-size: 14px; }
+.harbor-auction-wallet th, .harbor-auction-wallet td {
+  text-align: right; padding: 4px 6px; border-bottom: 1px solid #c5cebd;
+}
+.harbor-auction-wallet th:first-child { text-align: left; }
+.harbor-auction-wallet thead { background: #e7edde; }
+.harbor-auction-wallet thead th { color: #415e59; font-size: 11px; }
+.harbor-auction-wallet tbody th { font-weight: 650; }
+.harbor-auction-wallet th small { display: block; font-size: 11px; color: var(--action-muted); font-weight: 500; }
+.harbor-auction-wallet td { font: 650 12px/1.4 var(--action-number); white-space: nowrap; }
+.harbor-auction-wallet tr[data-auction-outcome="bid"] td { color: #8b285b; }
+.harbor-auction-wallet > p { margin-top: 4px; }

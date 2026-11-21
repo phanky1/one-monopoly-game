@@ -29,6 +29,17 @@ function harborGuide(supportsBooking: boolean, supportsPurchase: boolean): Step[
       figures: [['Cảng xuất phát', 'Singapore'], ['Khoang tàu', '1 container'], ['Tiền ban đầu', '$1.500M']],
     },
     {
+      title: 'Thử trả giá Cái Mép',
+      copy: [
+        'Bạn cập Cái Mép với $52M và một container từ Singapore. Bạn mở đấu giá. Linh đang dẫn với $40M. Đến lượt mình, nhập 50 vào ô “Giá trả của bạn” để xem trước số dư.',
+        'Nếu bạn thắng, dỡ hàng sẽ mang về $12M. Nếu Linh thắng và đây là cảng duy nhất của cô trong nhóm màu, bạn có thể dỡ để nhận $9M. Bạn quyết định dỡ hay giữ hàng sau khi phiên kết thúc.',
+      ],
+      practice: { question: 'Bạn thắng với giá $50M. Khi vừa nhận cảng và hàng vẫn trên tàu, bạn còn bao nhiêu tiền mặt?', choices: [
+        { label: '$2M', correct: true, feedback: 'Đúng. Trả $50M từ số dư $52M thì còn $2M. Nếu dỡ hàng sau đó, số dư mới lên $14M.' },
+        { label: '$14M', correct: false, feedback: 'Đó là số dư sau khi dỡ hàng. Khi vừa chốt phiên, bạn chỉ thanh toán giá mua cảng.' },
+      ] },
+    },
+    {
       title: 'Phân biệt tiền thuê và cước hàng',
       copy: [
         'Cái Mép có giá mua $60M. Giả sử Minh sở hữu cảng, chưa nâng cấp và chưa đủ bộ màu. Nếu có đủ tiền khi cập bến, bạn trả Minh $4M tiền thuê.',

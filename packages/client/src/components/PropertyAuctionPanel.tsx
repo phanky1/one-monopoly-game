@@ -2,6 +2,8 @@ import { useId, useRef, useState } from 'react';
 import { Gavel } from 'lucide-react';
 import { AUCTION_BID_SECONDS, AUCTION_INCREMENT, BOARD_TILES, type GameAction, type GameState, type PropertyAuction } from '@one-monopoly/shared';
 import { PortInvestmentPreview } from './PortInvestmentPreview.js';
+import { HarborAuctionWallet } from './HarborAuctionWallet.js';
+import { getHarborAuctionChoices } from './harborAuctionChoices.js';
 import './property-auction.css';
 
 interface Props {
@@ -31,6 +33,8 @@ export function PropertyAuctionPanel({ auction, gameState, myPlayerId, onAction 
   const validBid = (value: number) => Number.isSafeInteger(value)
     && value >= nextBid && value <= balance && value % AUCTION_INCREMENT === 0;
   const customBid = Number(amount);
+  const choices = getHarborAuctionChoices(gameState, myPlayerId, amount === '' ? null : customBid);
+  const draftInvalid = !!choices?.canBid && !choices.bid;
 
   function submit(bid?: number) {
     if (!canAct || submitted.current || (bid !== undefined && !validBid(bid))) return;
@@ -56,7 +60,29 @@ export function PropertyAuctionPanel({ auction, gameState, myPlayerId, onAction 
         ) : <p>Chưa có người trả giá.</p>}
         <p>{canAct ? 'Đến lượt bạn trả giá.' : <>Đến lượt <b>{bidder?.name}</b> trả giá.</>}</p>
       </div>
-      {canAct && (
+      {canAct && choices && <form className="chart-auction-bid" onSubmit={event => {
+        event.preventDefault();
+        if (choices.bid) submit(choices.bid.price);
+      }}>
+        {choices.canBid && <>
+          <label htmlFor={amountId}>Giá trả của bạn <small>(triệu USD)</small></label>
+          <div className="chart-auction-bid-line">
+            <input id={amountId} data-auction-cash-input type="number" inputMode="numeric" required
+              min={choices.minimumBid} max={choices.maximumBid} step={AUCTION_INCREMENT} value={amount}
+              onChange={event => setAmount(event.target.value)} aria-invalid={draftInvalid} aria-describedby={hintId} disabled={pending} />
+            <button type="submit" data-auction-cash-submit className="chart-button chart-button-primary"
+              disabled={pending || draftInvalid}>{choices.bid ? `Trả $${choices.bid.price}M` : 'Gửi giá'}</button>
+            <button type="button" className="chart-button" disabled={pending} onClick={() => submit()}>Rút khỏi phiên</button>
+          </div>
+          <p id={hintId} data-auction-cash-error={draftInvalid || undefined}>
+            {draftInvalid ? `Nhập từ $${choices.minimumBid}M đến $${choices.maximumBid}M theo bước $${AUCTION_INCREMENT}M.`
+              : `Tối thiểu $${choices.minimumBid}M · Tiền mặt $${balance}M`}
+          </p>
+        </>}
+        {!choices.canBid && <button type="button" className="chart-button" disabled={pending}
+          onClick={() => submit()}>Rút khỏi phiên</button>}
+      </form>}
+      {canAct && !choices && (
         <>
           <div className="chart-action-row">
             <button type="button" className="chart-button chart-button-primary" disabled={pending || !validBid(nextBid)}
@@ -81,6 +107,7 @@ export function PropertyAuctionPanel({ auction, gameState, myPlayerId, onAction 
           ) : <p className="chart-action-copy">Số dư ${balance}M chưa đủ để trả ${nextBid}M.</p>}
         </>
       )}
+      {choices && <HarborAuctionWallet choices={choices} viewerId={myPlayerId} />}
       {canWin && (
         <PortInvestmentPreview state={gameState} tileId={tile.id} buyerId={myPlayerId} scenario="auction" />
       )}
