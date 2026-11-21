@@ -16,6 +16,8 @@ Chọn **Tạo phòng mới**, nhập tên, chọn quân cờ rồi nhấn **Kh�
 
 Ví dụ, Linh xếp hàng ở Singapore rồi gieo được 3, cập Cái Mép. Minh sở hữu riêng cảng này, chưa xây và chưa thế chấp, nên Linh trả Minh **$4M tiền thuê**. Nếu Linh dỡ hàng, ngân hàng trả thêm **$12M cước**, gồm **$9M cho Linh** và **$3M phí bốc dỡ cho Minh** (25%). Nếu Minh sở hữu cả Cái Mép và Cát Lái, tiền thuê ở Cái Mép chưa xây là **$8M** và cước chia **$6M mỗi người** (50%). Cảng đang thế chấp tạm dừng xếp dỡ.
 
+Nếu Linh đến Cái Mép khi cảng **chưa có chủ**, cô có thể mua hoặc mở đấu giá. Mỗi người xem được tiền thuê cho những lượt ghé sau, phần cước và số cảng cùng màu mình sẽ có nếu mua thành công. Nếu Minh thắng đấu giá, Linh chỉ trả phí khai thác khi chọn dỡ hàng. Lần cập bến trước phiên đấu giá không phát sinh tiền thuê.
+
 ### Empty Reposition
 
 Đến lượt mình, chọn loại hàng và cảng đích, xếp lên tàu, chọn cảng để chạy đến rồi dỡ. Với hàng xuất, hãy tìm bến còn xe nhận. Với **Container rỗng**, hãy lấy vỏ ở bến đang dư và chọn bến còn thiếu. Bạn được đi một chặng thông thường mỗi lượt.

@@ -4,6 +4,7 @@ import { Building2, Check, Dices, DollarSign, Flag, Gavel, Handshake, Leaf, Ship
 import { DebtRescuePanel } from './DebtRescuePanel.js';
 import { StormDecision } from './StormDecision.js';
 import { PropertyAuctionPanel } from './PropertyAuctionPanel.js';
+import { PortInvestmentPreview } from './PortInvestmentPreview.js';
 import './chart-actions.css';
 
 interface Props {
@@ -31,7 +32,7 @@ export const ActionControls: React.FC<Props> = ({
   if (gameState.phase === 'AWAITING_AUCTION' && gameState.auction) {
     const auction = gameState.auction;
     return <PropertyAuctionPanel key={`${auction.id}-${auction.revision}`} auction={auction}
-      players={gameState.players} myPlayerId={myPlayerId} onAction={onAction} />;
+      gameState={gameState} myPlayerId={myPlayerId} onAction={onAction} />;
   }
 
   if (isRolling) {
@@ -161,9 +162,7 @@ export const ActionControls: React.FC<Props> = ({
         </div>
 
         <p className="chart-action-copy">Nếu bạn không mua, tài sản sẽ được đưa ra đấu giá.</p>
-        {gameState.mode === 'harbor' && currentTile.type === 'PORT' && <p className="chart-action-copy" data-harbor-purchase>
-          Chủ cảng được xếp hàng xuất tại đây và nhận 25% cước khi đối thủ dỡ hàng. Sở hữu trọn nhóm màu để nhận 50%.
-        </p>}
+        <PortInvestmentPreview state={gameState} tileId={currentTile.id} buyerId={myPlayerId} scenario="purchase" />
         <div className="chart-action-row">
           <button
             type="button"

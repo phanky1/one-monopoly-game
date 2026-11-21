@@ -1,24 +1,29 @@
 import { useId, useRef, useState } from 'react';
 import { Gavel } from 'lucide-react';
-import { AUCTION_BID_SECONDS, AUCTION_INCREMENT, BOARD_TILES, type GameAction, type Player, type PropertyAuction } from '@one-monopoly/shared';
+import { AUCTION_BID_SECONDS, AUCTION_INCREMENT, BOARD_TILES, type GameAction, type GameState, type PropertyAuction } from '@one-monopoly/shared';
+import { PortInvestmentPreview } from './PortInvestmentPreview.js';
 import './property-auction.css';
 
 interface Props {
   auction: PropertyAuction;
-  players: Player[];
+  gameState: GameState;
   myPlayerId: string | null;
   onAction: (action: GameAction, onFailure?: () => void) => void;
 }
 
-export function PropertyAuctionPanel({ auction, players, myPlayerId, onAction }: Props) {
+export function PropertyAuctionPanel({ auction, gameState, myPlayerId, onAction }: Props) {
   const titleId = useId();
   const amountId = useId();
   const hintId = useId();
   const tile = BOARD_TILES[auction.tileId];
+  const players = gameState.players;
   const bidder = players.find((player) => player.id === auction.bidderId);
   const leader = players.find((player) => player.id === auction.leaderId);
   const canAct = bidder?.id === myPlayerId && !bidder.isBankrupt && !auction.passedIds.includes(bidder.id);
   const nextBid = auction.highestBid + AUCTION_INCREMENT;
+  const viewer = players.find(player => player.id === myPlayerId);
+  const canWin = viewer && !viewer.isBankrupt && !auction.passedIds.includes(viewer.id)
+    && (viewer.id === auction.leaderId || viewer.balance >= nextBid);
   const balance = bidder?.balance ?? 0;
   const [amount, setAmount] = useState(String(nextBid));
   const [pending, setPending] = useState(false);
@@ -75,6 +80,9 @@ export function PropertyAuctionPanel({ auction, players, myPlayerId, onAction }:
             </details>
           ) : <p className="chart-action-copy">Số dư ${balance}M chưa đủ để trả ${nextBid}M.</p>}
         </>
+      )}
+      {canWin && (
+        <PortInvestmentPreview state={gameState} tileId={tile.id} buyerId={myPlayerId} scenario="auction" />
       )}
       <p className="chart-auction-rules">Bước giá ${AUCTION_INCREMENT}M. Hết {AUCTION_BID_SECONDS} giây, người đến lượt tự động rút khỏi phiên.</p>
     </section>
