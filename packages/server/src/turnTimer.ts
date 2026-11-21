@@ -45,7 +45,8 @@ export class TurnTimer {
     }
   }
 
-  public reset(): void {
+  public reset(durationSeconds = this.durationSeconds): void {
+    this.durationSeconds = durationSeconds;
     this.start();
   }
 

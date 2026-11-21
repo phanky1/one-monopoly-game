@@ -1,0 +1,31 @@
+.harbor-loading-preview {
+  min-width: 0; border-block-start: 1px solid #bac9ba;
+  color: #25484d; font-size: .77rem;
+}
+.harbor-loading-preview summary {
+  display: flex; align-items: center; gap: 5px; min-height: 32px; padding-block: 3px;
+  color: #21494d; cursor: pointer; font-weight: 700; list-style: none;
+}
+.harbor-loading-preview summary::-webkit-details-marker { display: none; }
+.harbor-loading-preview summary svg { flex: none; }
+.harbor-loading-preview[open] summary svg { transform: rotate(90deg); }
+.harbor-loading-preview summary small {
+  margin-inline-start: auto; font-size: .7rem; color: #465e58; font-weight: 550;
+  text-align: end; font-variant-numeric: tabular-nums;
+}
+.harbor-loading-body { display: grid; gap: 7px; padding: 2px 0 4px; }
+.harbor-loading-body p { color: #455d56; font-size: .73rem; }
+.harbor-loading-body table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.harbor-loading-body thead { background: #e2e9dc; }
+.harbor-loading-body th, .harbor-loading-body td {
+  padding: 2px 5px; border-block-end: 1px solid #c6d0c0; text-align: right; white-space: nowrap;
+}
+.harbor-loading-body th { font-size: .71rem; color: #3b5956; }
+.harbor-loading-body :is(th, td):nth-child(2) { text-align: left; white-space: normal; }
+.harbor-loading-body td:last-child { color: #77334e; font-weight: 700; }
+.harbor-loading-body button {
+  min-height: 24px; padding: 1px 0; border: 0; background: transparent;
+  color: #215b64; font: inherit; font-weight: 650; cursor: pointer; text-align: left;
+  text-decoration: underline; text-decoration-color: #80a5a0; text-underline-offset: 2px;
+}
+.harbor-loading-preview :is(summary, button):focus-visible { outline: 2px solid #9d2e62; outline-offset: 2px; }

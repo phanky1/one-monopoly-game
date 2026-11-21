@@ -1,0 +1,91 @@
+.harbor-freight-receipt {
+  min-width: 0;
+  padding: 8px 10px 7px;
+  border: 1px solid #9eafa2;
+  border-inline-start: 3px solid #345c62;
+  border-radius: 3px;
+  background: #fffbef;
+  color: #213f46;
+  text-align: start;
+  font: 500 12px/1.35 var(--chart-sans);
+}
+.harbor-freight-receipt header, .harbor-receipt-route, .harbor-freight-receipt h4 {
+  display: flex;
+  align-items: center;
+  gap: 4px 7px;
+}
+.harbor-freight-receipt header { justify-content: space-between; }
+.harbor-freight-receipt h4 { margin: 0; font: 700 15px/1.2 var(--chart-display); }
+.harbor-freight-receipt h4 svg { flex: none; color: #785064; }
+.harbor-freight-receipt header small, .harbor-receipt-route small { color: #536762; font: 600 10px/1.3 var(--chart-mono); }
+.harbor-freight-receipt .harbor-receipt-route { flex-wrap: wrap; margin: 5px 0 4px; overflow-wrap: anywhere; }
+.harbor-receipt-route svg { flex: none; color: #8b3d60; }
+.harbor-receipt-route small { margin-inline-start: auto; white-space: nowrap; }
+.harbor-freight-receipt dl { margin: 0; }
+.harbor-freight-receipt dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; padding: 2px 0; }
+.harbor-freight-receipt dt { overflow-wrap: anywhere; }
+.harbor-freight-receipt dd { margin: 0; text-align: end; white-space: nowrap; font: 650 12px/1.35 var(--chart-mono); }
+.harbor-receipt-fee dt > small, .harbor-voyage-result small { display: block; color: #4e6663; font-size: 11px; font-weight: 500; }
+.harbor-freight-receipt .harbor-voyage-result { margin-top: 6px; padding-top: 4px; border-top: 1px dashed #b6baaa; }
+.harbor-voyage-result > div:last-child { color: #783754; font-weight: 750; }
+.harbor-receipt-group i { display: inline-block; width: 7px; height: 7px; margin-inline-end: 4px; border: 1px solid #0003; border-radius: 50%; }
+.harbor-freight-receipt .harbor-receipt-net {
+  margin-top: 3px; padding-top: 5px; border-top: 1px dashed #a9b5a9;
+  color: #244a45; font-weight: 750;
+}
+.harbor-receipt-net dd { font-size: 14px; }
+.harbor-freight-receipt .harbor-receipt-rent-note { margin: 3px 0 0; color: #556560; font-size: 10.5px; }
+.harbor-freight-receipt[data-harbor-redemption-receipt] { border-inline-start-color: #99754f; }
+.harbor-freight-receipt [data-harbor-receipt-cash-change^="-"] { color: #7d4053; }
+.harbor-freight-receipt:is([data-harbor-rent-receipt], [data-harbor-purchase-receipt]):focus-visible { outline: 3px solid #087d89; outline-offset: 2px; }
+.harbor-exchange-stamp {
+  display: flex; align-items: center; gap: 11px; min-height: 43px; margin-top: 5px;
+  border-block: 1px solid #c3cdbd; background: #eaf0e2;
+}
+.harbor-exchange-stamp p { margin: 0; padding: 3px 5px 3px 0; }
+.harbor-exchange-stamp p > * { display: block; overflow-wrap: anywhere; }
+.harbor-exchange-stamp p span { color: #506762; font-size: 11px; }
+.harbor-exchange-scene {
+  position: relative; flex: 0 0 108px; height: 43px; overflow: hidden;
+  background: linear-gradient(to bottom, transparent 0 37px, #9cbdb9 37px 39px, #cfe3da 39px);
+}
+.harbor-exchange-scene i { position: absolute; display: block; }
+.harbor-exchange-ship {
+  left: 6px; bottom: 4px; width: 43px; height: 9px; background: #315460;
+  clip-path: polygon(0 0, 100% 0, 80% 100%, 14% 100%);
+}
+.harbor-exchange-quay {
+  left: 58px; bottom: 2px; width: 50px; height: 9px; border-top: 2px solid #765d3e;
+  background: repeating-linear-gradient(90deg, #ae9a77 0 12px, #c4b291 12px 14px);
+}
+.harbor-exchange-gantry {
+  top: 3px; left: 17px; width: 83px; height: 29px; border-top: 3px solid #346464; border-right: 4px solid #346464;
+}
+.harbor-exchange-gantry::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 23px; height: 13px;
+  background: linear-gradient(32deg, transparent 43%, #55807b 46% 55%, transparent 58%);
+}
+.harbor-exchange-box {
+  left: 16px; top: 20px; width: 18px; height: 10px; border: 1px solid #753451; border-radius: 1px;
+  background: repeating-linear-gradient(90deg, #b03e71 0 3px, #d77c9b 3px 4px);
+}
+.harbor-box-inbound { transform: translate(43px, 2px); }
+.harbor-box-outbound {
+  border-color: #2e6464; background: repeating-linear-gradient(90deg, #307d78 0 3px, #70ae9b 3px 4px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-harbor-turnaround-motion="live"] .harbor-box-inbound { animation: harbor-discharge-box 1.9s ease-in-out both; }
+  [data-harbor-turnaround-motion="live"] .harbor-box-outbound { animation: harbor-load-next-box 1.9s ease-in-out both; }
+}
+@keyframes harbor-discharge-box {
+  0%, 5% { transform: translate(0, 0); }
+  18% { transform: translate(0, -12px); }
+  37% { transform: translate(43px, -12px); }
+  48%, 100% { transform: translate(43px, 2px); }
+}
+@keyframes harbor-load-next-box {
+  0%, 49% { transform: translate(63px, 2px); }
+  61% { transform: translate(63px, -12px); }
+  83% { transform: translate(0, -12px); }
+  94%, 100% { transform: translate(0, 0); }
+}

@@ -1,0 +1,175 @@
+.chart-slab[data-mode="logistics"] .logistics-port {
+  position: relative;
+  display: grid;
+  grid-template: minmax(0, 1fr) auto auto / minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 1px 2px;
+  overflow: hidden;
+  border: 1px solid #75988b;
+  background: linear-gradient(155deg, #fffff3, #e8ead6);
+  place-self: stretch;
+  container-type: normal;
+  cursor: pointer;
+}
+.chart-slab[data-mode="logistics"] .logistics-port:hover { background: #fff0d6; border-color: #9e3b64; }
+.chart-slab[data-mode="logistics"] .logistics-port:focus-visible { outline: 2px solid #a32966; outline-offset: -2px; }
+.board-tile.logistics-port .port-miniature { grid-area: 1 / 1; }
+.logistics-code {
+  grid-area: 2 / 1;
+  color: #163a42;
+  font: 750 11px/1 var(--chart-mono);
+  letter-spacing: -.025em;
+}
+.logistics-stock {
+  grid-area: 3 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 3px;
+  padding-top: 1px;
+  font: 700 9px/1 var(--chart-mono);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.stock-out { color: #943758; }
+.stock-in { color: #175c63; }
+.stock-empty { color: #585c4d; }
+.stock-tender { color: #932051; }
+.stock-award { color: #165d58; }
+.logistics-port[data-port-tender] {
+  --pennant-ink: #9c225a;
+  box-shadow: inset 0 0 0 2px var(--pennant-ink);
+}
+.logistics-port[data-port-tender="assigned"] { --pennant-ink: #165d58; }
+.port-tender-flag {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 0 0 3px 0;
+  background: var(--pennant-ink);
+  color: #fff9e8;
+}
+.port-tender-flag svg { width: 11px; height: 11px; }
+@media (prefers-reduced-motion: no-preference) {
+  .port-tender-flag svg { animation: raise-tender-flag .55s ease-out both; }
+  @keyframes raise-tender-flag { from { opacity: .25; transform: translateY(3px); } }
+}
+.terminal-tender-note {
+  margin: 8px 0;
+  padding: 7px 10px;
+  border-left: 3px solid #9c225a;
+  color: #3a403e;
+  background: #f6ebdf;
+  font-size: 13px;
+}
+.terminal-tender-note[data-phase="assigned"] { border-color: #165d58; background: #e5efe4; }
+.terminal-tender-note p { margin: 3px 0 0; }
+.chart-slab[data-mode="logistics"] .logistics-seamark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #94b2a8;
+  background-color: #dce8dd;
+  background-image: repeating-linear-gradient(120deg, transparent 0 4px, #698d8010 4px 5px);
+  box-shadow: inset 0 0 0 2px #eaf1e2;
+  pointer-events: none;
+}
+.logistics-seamark > svg {
+  width: 35%;
+  height: 37%;
+  max-width: 24px;
+  max-height: 24px;
+  color: #617f76;
+}
+@container (max-width: 600px) or (max-height: 420px) {
+  .logistics-port .logistics-code { font-size: 8px; }
+  .logistics-port .logistics-stock { gap: 1px; font-size: 7px; }
+}
+
+@container (max-width: 330px) {
+  .logistics-port .logistics-stock { font-size: 6px; }
+}
+
+.logistics-chart-key {
+  position: absolute;
+  top: 61%;
+  left: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 94%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: max-content;
+  padding: 4px 7px;
+  border: 1px solid #789687;
+  border-radius: 3px;
+  background: #fbf7e6ef;
+  font: 650 clamp(8px, 1.25cqw, 11px)/1.25 var(--chart-sans);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.board-tilted .logistics-chart-key {
+  left: 45%;
+  top: 55%;
+  transform-origin: 0 0;
+  transform: translateZ(2px) rotate(calc(0deg - var(--board-yaw))) scaleY(calc(1 / cos(var(--board-tilt)))) translate(-50%, -50%);
+}
+@container (max-width: 480px) {
+  .logistics-chart-key { gap: 4px; padding: 3px 4px; }
+}
+
+.terminal-port-information { display: grid; gap: 15px; min-width: 0; align-content: start; }
+.terminal-port-information > .port-miniature-detail { margin: 0; }
+.terminal-quay-column { display: grid; align-content: start; gap: 16px; min-width: 0; }
+@media (min-width: 760px) {
+  .chart-dialog:has(.terminal-detail[data-working-berth]) { width: min(49rem, calc(100vw - 2rem)); }
+  .terminal-detail[data-working-berth] { grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); column-gap: 22px; }
+  .terminal-detail[data-working-berth] > .chart-manifest-heading { grid-column: 1 / -1; }
+  .terminal-detail[data-working-berth] .terminal-port-information { grid-column: 1; grid-row: 2; }
+  .terminal-detail[data-working-berth] .terminal-quay-column { grid-column: 2; grid-row: 2; }
+}
+.terminal-activity { color: var(--action-ink); }
+.terminal-activity h4 {
+  margin: 0 0 6px;
+  font: 650 1.2rem/1.1 var(--chart-display);
+}
+.terminal-activity dl { margin: 0; border-top: 1px solid #bac9bb; }
+.terminal-activity dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 6px 2px;
+  border-bottom: 1px solid #c8d1c1;
+}
+.terminal-activity dt { font-size: .83rem; }
+.terminal-activity dd, .terminal-activity dd span, .terminal-equipment dt {
+  display: flex;
+  align-items: center;
+}
+.terminal-activity dd { gap: 10px; margin: 0; }
+.terminal-activity dd strong { font: 700 .8rem/1.2 var(--chart-mono); white-space: nowrap; }
+.terminal-trucks { gap: 2px; }
+.terminal-trucks svg { width: 17px; height: 17px; }
+.terminal-queue[data-direction="export"] .terminal-trucks { color: #a62f62; }
+.terminal-queue[data-direction="import"] .terminal-trucks { color: #297776; }
+.terminal-queue[data-direction="export"] .terminal-trucks svg path:first-child { fill: #e8a8bd; }
+.terminal-equipment dt { gap: 5px; }
+.terminal-equipment dt svg { width: 17px; height: 17px; color: #61776a; }
+.terminal-equipment dd { flex-wrap: wrap; justify-content: end; }
+.terminal-equipment dd span { font-size: .73rem; color: #54665f; }
+.terminal-geography p { margin: 0 0 .25rem; }

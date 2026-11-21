@@ -1,0 +1,17 @@
+.reefer-terms, .reefer-receipt {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #254d63;
+}
+.reefer-terms {
+  padding: 6px 8px;
+  border-left: 2px solid #548095;
+  background: #e9f1f1;
+}
+.reefer-receipt { padding: 3px 0 0; }
+.reefer-terms > svg, .reefer-receipt > svg { width: 15px; height: 15px; margin-top: 1px; }
+.freight-kind input[value="reefer"]:checked + span { border-color: #548095; background: #e1eef1; box-shadow: inset 0 -2px #548095; }
+.freight-kind:has(input[value="reefer"]) label > span { text-align: center; padding-inline: 2px; }

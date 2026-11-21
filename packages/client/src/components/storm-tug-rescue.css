@@ -1,0 +1,89 @@
+.storm-tug-rescue {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  left: 50%;
+  top: 53%;
+  width: 0;
+  height: 0;
+  font-size: clamp(8px, 1.5cqw, 13px);
+}
+.storm-tug-rescue[data-view='tilted'] { top: 74%; }
+.storm-tug-rescue[data-face='left'] { transform: scaleX(-1); }
+.storm-tug-rescue .storm-tug-rope {
+  position: absolute;
+  width: 3.6em;
+  height: 2.16em;
+  left: .65em;
+  top: -1.65em;
+  overflow: visible;
+  transform-origin: left center;
+}
+.storm-tug-vessel {
+  position: absolute;
+  display: block;
+  width: 5.5em;
+  aspect-ratio: 4 / 3;
+  left: 3.25em;
+  top: -2.9em;
+}
+.storm-tug-vessel .storm-tug-wake {
+  position: absolute;
+  overflow: visible;
+  width: 3.6em;
+  height: 1.36em;
+  left: -1.5em;
+  bottom: -.03em;
+  transform: rotate(-5deg);
+}
+.storm-tug-poster, .storm-tug-model, .storm-tug-model model-viewer {
+  position: absolute;
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.storm-tug-model model-viewer {
+  --progress-bar-height: 0px;
+  --poster-color: transparent;
+  background: transparent;
+  opacity: 0;
+}
+.storm-tug-vessel[data-ready] model-viewer { opacity: 1; }
+.storm-tug-vessel[data-ready] .storm-tug-poster { visibility: hidden; }
+.storm-tug-rescue[data-motion='still'] .storm-tug-wake { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .storm-tug-rescue[data-motion='sail'] .storm-tug-vessel {
+    animation: storm-tug-approach var(--tow-duration) ease-in-out both;
+  }
+  .storm-tug-rescue[data-motion='sail'] .storm-tug-rope {
+    animation: storm-tug-haul var(--tow-duration) ease-in-out both;
+  }
+  .storm-tug-rescue[data-motion='sail'] .storm-tug-wake {
+    animation: storm-tug-foam var(--tow-duration) ease-out both;
+  }
+}
+@keyframes storm-tug-approach {
+  0% { opacity: 0; transform: translate(-2.7em, 1.8em) rotate(-9deg); }
+  15% { opacity: 1; }
+  40%, 74% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  100% { opacity: 0; transform: translate(1.8em, -.35em) rotate(3deg); }
+}
+@keyframes storm-tug-haul {
+  0%, 20% { opacity: 0; transform: scaleX(.3) rotate(15deg); }
+  43%, 74% { opacity: 1; transform: scaleX(1); }
+  85%, 100% { opacity: 0; transform: scaleX(1.15); }
+}
+@keyframes storm-tug-foam {
+  0% { opacity: 0; }
+  25%, 43% { opacity: .95; }
+  66% { opacity: .45; }
+  82% { opacity: .8; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storm-tug-wake { display: none; }
+}

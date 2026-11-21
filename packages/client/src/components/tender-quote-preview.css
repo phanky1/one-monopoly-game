@@ -1,0 +1,18 @@
+.tender-quote-preview, .tender-quote-unavailable {
+  min-width: 0;
+  margin: 0;
+  padding: 7px 9px;
+  border-inline-start: 3px solid #8b315a;
+  background: #fff9eb;
+  color: #24464c;
+}
+.tender-quote-route { display: flex; align-items: baseline; justify-content: space-between; gap: 2px 8px; flex-wrap: wrap; }
+.tender-quote-route strong { font: 700 15px/1.2 var(--chart-display); }
+.tender-quote-route > span, .tender-quote-math dt { color: #516560; font: 600 11px/1.25 var(--chart-sans); }
+.tender-quote-math { display: flex; flex-wrap: wrap; gap: 7px 13px; margin: 5px 0 3px; }
+.tender-quote-math dd { margin: 1px 0 0; font: 700 13px/1.2 var(--chart-mono); }
+.tender-quote-total { padding-inline-start: 8px; border-inline-start: 1px solid #cbb6ba; }
+.tender-quote-total dd { color: #8a2153; }
+.tender-form .tender-quote-preview p, .tender-form .tender-quote-unavailable {
+  margin: 3px 0 0; font: 500 11px/1.4 var(--chart-sans);
+}

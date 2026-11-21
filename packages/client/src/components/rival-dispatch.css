@@ -1,0 +1,42 @@
+.rival-dispatch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(60px, 20%, 83px);
+  align-items: center;
+  gap: 7px;
+  min-height: 80px;
+  margin-bottom: 9px;
+  padding: 8px 10px;
+  border: 1px solid #aebfb3;
+  border-inline-start: 3px solid #44736f;
+  border-radius: 3px;
+  background: #f4f5e9;
+  color: #24444a;
+}
+.rival-dispatch-info { min-width: 0; }
+.rival-dispatch h2 { margin: 0; color: #48655f; font: 700 11px/1.25 var(--chart-sans); }
+.rival-dispatch h2 span { margin-inline-end: 2px; }
+.rival-dispatch p { margin: 4px 0 2px; font: 700 13px/1.25 var(--chart-sans); overflow-wrap: anywhere; }
+.rival-dispatch small { display: block; font: 550 11px/1.3 var(--chart-sans); color: #48615d; }
+.rival-port {
+  display: inline-flex; align-items: center; min-height: 24px; margin-block: -4px; padding-inline: 2px;
+  color: #165c60; font: inherit; font-weight: 750; text-decoration: underline; text-underline-offset: 2px;
+  cursor: pointer;
+}
+.rival-port:hover { color: #942b59; }
+.rival-port:focus-visible { outline: 2px solid #a03060; outline-offset: 1px; }
+.rival-payment { margin-inline-start: .45em; color: #256453; font: 750 12px var(--chart-mono); white-space: nowrap; }
+.rival-rule { width: 100%; height: auto; overflow: visible; }
+.rival-rule [data-rival-voyage] { transform: translate(86px, 14px); }
+.rival-rule [data-position="origin"] { transform: translate(13px, 22px); }
+.rival-rule [data-position="berth"] { transform: translate(52px, 19px); }
+.rival-deck-load { fill: #b63b68; stroke: #8a3551; stroke-width: .6; }
+.rival-rule [data-service="empty"] .rival-deck-load { fill: #6185a4; stroke: #38596d; }
+.rival-rule [data-service="reefer"] .rival-deck-load { fill: #e2ece0; stroke: #518285; }
+@media (prefers-reduced-motion: no-preference) {
+  .rival-dispatch[data-animate="true"] [data-rival-voyage] { animation: rival-passage 1.15s ease-in-out both; }
+  @keyframes rival-passage {
+    from { transform: translate(13px, 22px); }
+    50% { transform: translate(50px, 18px) rotate(-6deg); }
+    to { transform: translate(86px, 14px); }
+  }
+}

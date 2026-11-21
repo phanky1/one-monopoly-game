@@ -1,0 +1,123 @@
+/* Keep the effects in chart coordinates. Side labels turn independently on the tilted board. */
+.tile-weather-surface {
+  --lit-x: clamp(0%, calc(50% - var(--cast-x, 0px) * 4.5), 100%);
+  --lit-y: clamp(0%, calc(50% - var(--cast-y, 4px) * 4.5), 100%);
+  --sun-wash: #ffc26991;
+  --moon-wash: #8bb9d2a1;
+  --shower-wash: #99c5cb70;
+  --storm-wash: #719ba8a3;
+  position: absolute;
+  inset: var(--weather-inset, 1px);
+  overflow: hidden;
+  contain: paint;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.board-tile > .tile-content { position: relative; }
+.board-tile:is([data-mission-target], [data-auction], .chart-mortgaged) > .tile-weather-surface { opacity: .42; }
+.board-tile:is(:hover, :focus-visible) > .tile-weather-surface { opacity: .6; }
+
+.chart-corner > .tile-weather-surface {
+  --weather-inset: 3px;
+  --sun-core: #f6da821c;
+  --sun-wash: #bd923626;
+  --sun-rim: #f1d78852;
+  --moon-core: #abd9ed24;
+  --moon-wash: #507a9547;
+  --moon-rim: #b8deeb52;
+  --wet-glow: #a8d4db24;
+  --rain-shine: #8faeb746;
+  --pool-fill: #83aab73d;
+  --shower-wash: #487c8269;
+  --storm-wash: #32596794;
+}
+
+.chart-slab[data-weather='clear'][data-light='sun'] .tile-weather-surface {
+  background:
+    radial-gradient(ellipse at var(--lit-x) var(--lit-y), var(--sun-core, #fff7aeaa), transparent 52%),
+    radial-gradient(ellipse farthest-corner at var(--lit-x) var(--lit-y), var(--sun-wash) 8%, transparent 85%);
+  box-shadow: inset calc(var(--cast-x) * .4) calc(var(--cast-y) * .4) 2px var(--sun-rim, #fff3a891);
+}
+
+.chart-slab[data-weather='clear'][data-light='moon'] .tile-weather-surface {
+  background:
+    radial-gradient(ellipse at var(--lit-x) var(--lit-y), var(--moon-core, #dbf4ffa8), transparent 53%),
+    linear-gradient(var(--moon-wash), var(--moon-wash));
+  box-shadow: inset calc(var(--cast-x) * .6) calc(var(--cast-y) * .6) 1px var(--moon-rim, #e9faffcf);
+}
+
+.chart-slab[data-weather='showers'] .tile-weather-surface {
+  --wet-wash: var(--shower-wash);
+  --rain-ink: #598b9bb8;
+  --rain-size: 7px;
+  --pool-rim: #528896a1;
+  --rain-period: 2.8s;
+}
+
+.chart-slab[data-weather='storm'] .tile-weather-surface {
+  --wet-wash: var(--storm-wash);
+  --rain-ink: #34677bd9;
+  --rain-size: 11px;
+  --pool-rim: #396c81cf;
+  --rain-period: 1.25s;
+}
+
+.chart-slab[data-light='moon'] { --wet-glow: #cbe5ffb8; }
+
+.chart-slab:is([data-weather='showers'], [data-weather='storm']) .chart-corner > .tile-weather-surface {
+  --rain-ink: #83a8b34d;
+  --pool-rim: #8db3bd4d;
+  opacity: .55;
+}
+
+.chart-slab:is([data-weather='showers'], [data-weather='storm']) .tile-weather-surface {
+  background:
+    radial-gradient(ellipse at var(--lit-x) var(--lit-y), var(--wet-glow, #f1fbff8f), transparent 66%),
+    linear-gradient(155deg, transparent 20%, var(--wet-wash) 80%);
+}
+
+.chart-slab:is([data-weather='showers'], [data-weather='storm']) .tile-weather-surface::before {
+  --drop: linear-gradient(113deg, transparent 36%, var(--rain-ink) 43% 53%, var(--rain-shine, #f6ffffd4) 57%, transparent 65%);
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    var(--drop) var(--wet-x) 62% / 6px var(--rain-size) no-repeat,
+    var(--drop) 12% 17% / 4px var(--rain-size) no-repeat,
+    var(--drop) 89% 45% / 5px var(--rain-size) no-repeat;
+}
+
+.chart-slab:is([data-weather='showers'], [data-weather='storm']) .tile-weather-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 7px 2px at var(--wet-x) 82%, transparent 44%, var(--pool-rim) 63%, transparent 91%),
+    radial-gradient(ellipse 9px 2px at var(--wet-x) 84%, var(--pool-fill, #daeff4bd) 13%, transparent 88%);
+}
+
+/* One moving rain patch per four tiles, with a matching impact ring on alternate patches. */
+@media (prefers-reduced-motion: no-preference) {
+  .chart-slab[data-weather-motion='active']:is([data-weather='showers'], [data-weather='storm']) .tile-weather-surface[data-shower]::before {
+    animation: tile-rainfall var(--rain-period) linear var(--rain-delay) infinite;
+  }
+
+  .chart-slab[data-weather-motion='active']:is([data-weather='showers'], [data-weather='storm']) .tile-weather-surface[data-ripple]::after {
+    transform-origin: var(--wet-x) 82%;
+    animation: tile-puddle-ripple var(--rain-period) ease-out var(--rain-delay) infinite;
+  }
+}
+
+@keyframes tile-rainfall {
+  0%, 66%, 100% { opacity: 0; }
+  0% { transform: translate(2px, -5px); }
+  12%, 48% { opacity: 1; }
+  66%, 100% { transform: translate(-2px, 6px); }
+}
+
+@keyframes tile-puddle-ripple {
+  0%, 38% { opacity: 0; transform: scale(.4); }
+  48% { opacity: 1; }
+  88%, 100% { opacity: 0; transform: scale(1.45); }
+}

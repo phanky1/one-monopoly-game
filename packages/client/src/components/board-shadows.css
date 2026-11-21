@@ -1,0 +1,65 @@
+.chart-slab {
+  --ground-x: var(--cast-x, 4px);
+  --ground-y: var(--cast-y, 5px);
+  --penumbra: var(--cast-blur, 3px);
+  --shadow-rgb: 24 46 43;
+  --cast-ink: rgb(var(--shadow-rgb) / var(--cast-opacity, .34));
+  --slab-reach: 1.9;
+  --slab-cast: calc(var(--ground-x) * var(--slab-reach)) calc(var(--ground-y) * var(--slab-reach))
+    calc(6px + var(--penumbra) * 2.4) -2px var(--cast-ink);
+
+  /* Billboarded artwork faces the screen. Rotate ground offsets by the board yaw,
+     then foreshorten the vertical component by the board tilt. */
+  --yaw-cos: cos(var(--board-yaw, 0deg));
+  --yaw-sin: sin(var(--board-yaw, 0deg));
+  --screen-cast-x: calc(var(--ground-x) * var(--yaw-cos) - var(--ground-y) * var(--yaw-sin));
+  --screen-cast-y: calc((var(--ground-x) * var(--yaw-sin) + var(--ground-y) * var(--yaw-cos)) * cos(var(--board-tilt, 0deg)));
+}
+
+.chart-slab[data-weather='storm'] { --shadow-rgb: 30 40 54; }
+.chart-slab[data-light='moon'] { --shadow-rgb: 13 21 49; }
+.chart-slab.board-tilted { --slab-reach: 3; }
+
+.chart-slab .chart-counter {
+  box-shadow: calc(var(--ground-x) * .7) calc(var(--ground-y) * .7) var(--penumbra) var(--cast-ink);
+}
+
+.chart-slab .chart-model-pawn { --pawn-reach: 1.15; }
+.chart-slab .chart-model-pawn[data-tall] { --pawn-reach: 1.65; }
+.chart-slab .chart-model-pawn::before {
+  box-shadow: calc(var(--screen-cast-x) * var(--pawn-reach)) calc(var(--screen-cast-y) * var(--pawn-reach))
+    var(--penumbra) 1px var(--cast-ink);
+}
+.chart-slab .chart-model-pawn .token-model > img { filter: brightness(var(--model-exposure, 1)); }
+
+.chart-slab .chart-die-2d::before, .chart-slab .chart-die-3d::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  background: var(--cast-ink);
+  filter: blur(var(--penumbra));
+}
+
+.chart-slab .chart-die-2d::before {
+  inset: 5%;
+  border-radius: 20%;
+  translate: var(--ground-x) var(--ground-y);
+}
+
+.chart-slab .chart-die-3d::before {
+  inset: 59% 3% 2%;
+  border-radius: 45%;
+  translate: calc(var(--screen-cast-x) * 1.5) calc(var(--screen-cast-y) * 1.5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chart-slab.transition-all { transition: all .7s ease-out, box-shadow .6s ease-in-out; }
+  .chart-slab .chart-counter, .chart-slab .chart-model-pawn::before { transition: box-shadow .6s ease-in-out; }
+  .chart-slab .chart-die-2d::before, .chart-slab .chart-die-3d::before {
+    transition: translate .6s ease-in-out, background-color .6s ease-in-out, filter .6s ease-in-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-slab.transition-all { transition-duration: 0s; }
+}

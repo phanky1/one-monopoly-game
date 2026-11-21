@@ -83,54 +83,151 @@ describe('OneMonopolyEngine Unit Tests', () => {
     assert.ok(goEvent);
   });
 
-  it('Even Building Rule works correctly for INTRA_ASIA route', () => {
+  it('blocks building on first purchase visit and allows at most 1 upgrade per subsequent visit to an owned port', () => {
     const state = OneMonopolyEngine.createGame('room-1', initialPlayers);
-    state.properties[1].ownerId = 'p1';
-    state.properties[3].ownerId = 'p1';
+    // Player 2 owns Tile 3 (VNVUT) so Player 1 never owns full color group
+    state.properties[3].ownerId = 'p2';
 
-    // Build container on Tile 1 -> level 1
+    // 1. First visit to Tile 1 (VNSGN): roll [0, 1] -> lands on Tile 1 and buys it
     let res = OneMonopolyEngine.dispatch(state, {
+      type: 'ROLL_DICE',
+      forcedDice: [0, 1],
+    });
+    assert.equal(res.state.phase, 'AWAITING_BUY_DECISION');
+
+    res = OneMonopolyEngine.dispatch(res.state, {
+      type: 'BUY_PROPERTY',
+    });
+    assert.equal(res.state.properties[1].ownerId, 'p1');
+    assert.equal(res.state.canUpgradeCurrentPort, false);
+
+    // Attempt to build immediately on the purchase visit -> BLOCKED
+    res = OneMonopolyEngine.dispatch(res.state, {
+      type: 'BUILD_CONTAINER',
+      tileId: 1,
+    });
+    assert.equal(res.state.properties[1].containerLevel, 0, 'Cannot build on the same visit as buying the port');
+
+    // 2. Subsequent visit to Tile 1: Player 1 moves from tile 31 -> rolls [1, 1] -> lands on Tile 1
+    res.state.players[0].position = 31;
+    res.state.phase = 'WAIT_FOR_ROLL';
+    res.state.hasRolled = false;
+
+    res = OneMonopolyEngine.dispatch(res.state, {
+      type: 'ROLL_DICE',
+      forcedDice: [1, 1],
+    });
+    assert.equal(res.state.players[0].position, 1);
+    assert.equal(res.state.canUpgradeCurrentPort, true);
+
+    // First upgrade on this visit -> SUCCEEDS (level 0 -> 1)
+    res = OneMonopolyEngine.dispatch(res.state, {
       type: 'BUILD_CONTAINER',
       tileId: 1,
     });
     assert.equal(res.state.properties[1].containerLevel, 1);
-    assert.equal(res.state.properties[3].containerLevel, 0);
+    assert.equal(res.state.canUpgradeCurrentPort, false);
 
-    // Try to build container on Tile 1 again (level 2) while Tile 3 is level 0 -> Blocked
+    // Second upgrade on the SAME visit -> BLOCKED (remains level 1)
     res = OneMonopolyEngine.dispatch(res.state, {
       type: 'BUILD_CONTAINER',
       tileId: 1,
     });
-    assert.equal(res.state.properties[1].containerLevel, 1, 'Blocked by even building rule');
+    assert.equal(res.state.properties[1].containerLevel, 1, 'Cannot upgrade more than once in a single visit');
 
-    // Build on Tile 3 -> level 1
+    // 3. Another visit to Tile 1 -> allows 1 more upgrade (level 1 -> 2)
+    res.state.players[0].position = 31;
+    res.state.phase = 'WAIT_FOR_ROLL';
+    res.state.hasRolled = false;
+
     res = OneMonopolyEngine.dispatch(res.state, {
-      type: 'BUILD_CONTAINER',
-      tileId: 3,
+      type: 'ROLL_DICE',
+      forcedDice: [1, 1],
     });
-    assert.equal(res.state.properties[3].containerLevel, 1);
+    assert.equal(res.state.canUpgradeCurrentPort, true);
 
-    // Now Tile 1 can be built to level 2!
     res = OneMonopolyEngine.dispatch(res.state, {
       type: 'BUILD_CONTAINER',
       tileId: 1,
     });
     assert.equal(res.state.properties[1].containerLevel, 2);
+    assert.equal(res.state.canUpgradeCurrentPort, false);
+  });
+
+  it('allows selling containers and mortgaging any port remotely without group-wide restrictions', () => {
+    const state = OneMonopolyEngine.createGame('room-1', initialPlayers);
+    state.properties[1].ownerId = 'p1';
+    state.properties[3].ownerId = 'p1';
+    state.properties[1].containerLevel = 2;
+    state.properties[3].containerLevel = 0;
+    // Player 1 is far away at tile 10
+    state.players[0].position = 10;
+
+    // Can mortgage Tile 3 (0 containers) even though Tile 1 has 2 containers
+    let res = OneMonopolyEngine.dispatch(state, {
+      type: 'MORTGAGE_TILE',
+      tileId: 3,
+    });
+    assert.equal(res.state.properties[3].isMortgaged, true);
+
+    // Cannot mortgage Tile 1 while it still has containers
+    res = OneMonopolyEngine.dispatch(res.state, {
+      type: 'MORTGAGE_TILE',
+      tileId: 1,
+    });
+    assert.equal(res.state.properties[1].isMortgaged, false);
+
+    // Can sell containers on Tile 1 remotely from tile 10
+    res = OneMonopolyEngine.dispatch(res.state, {
+      type: 'SELL_CONTAINER',
+      tileId: 1,
+    });
+    assert.equal(res.state.properties[1].containerLevel, 1);
   });
 
   it('Green Fleet Upgrade & Carbon Tax Exemption', () => {
     const state = OneMonopolyEngine.createGame('room-1', initialPlayers);
-    // Player 1 owns Tokyo Hub (Tile 31) with Siêu tàu ONE Innovation (level 5)
+    // Player 1 owns Tokyo Hub (Tile 31) with 4 containers
     state.properties[31].ownerId = 'p1';
-    state.properties[31].containerLevel = 5;
+    state.properties[31].containerLevel = 4;
+    state.players[0].position = 28;
 
-    const initialBal = state.players[0].balance;
+    // Visit 1 to Tile 31: Upgrade from level 4 to level 5 (ONE Innovation)
+    let visit1 = OneMonopolyEngine.dispatch(state, {
+      type: 'ROLL_DICE',
+      forcedDice: [1, 2], // 28 -> 31
+    });
+    assert.equal(visit1.state.canUpgradeCurrentPort, true);
+    visit1 = OneMonopolyEngine.dispatch(visit1.state, {
+      type: 'BUILD_CONTAINER',
+      tileId: 31,
+    });
+    assert.equal(visit1.state.properties[31].containerLevel, 5);
+    assert.equal(visit1.state.canUpgradeCurrentPort, false);
 
-    // Upgrade to Green Fleet
-    const res1 = OneMonopolyEngine.dispatch(state, {
+    // Cannot also upgrade Green Fleet in the same visit!
+    const sameVisitGreen = OneMonopolyEngine.dispatch(visit1.state, {
       type: 'UPGRADE_GREEN_FLEET',
       tileId: 31,
     });
+    assert.equal(sameVisitGreen.state.properties[31].hasGreenFleet, false);
+
+    // Visit 2 to Tile 31: Now at level 5, landing on it allows Green Fleet upgrade
+    visit1.state.players[0].position = 28;
+    visit1.state.phase = 'WAIT_FOR_ROLL';
+    visit1.state.hasRolled = false;
+    const visit2 = OneMonopolyEngine.dispatch(visit1.state, {
+      type: 'ROLL_DICE',
+      forcedDice: [1, 2], // 28 -> 31
+    });
+    const initialBal = visit2.state.players[0].balance;
+    assert.equal(visit2.state.canUpgradeCurrentPort, true);
+
+    const res1 = OneMonopolyEngine.dispatch(visit2.state, {
+      type: 'UPGRADE_GREEN_FLEET',
+      tileId: 31,
+    });
+    assert.equal(res1.state.canUpgradeCurrentPort, false);
 
     assert.equal(res1.state.properties[31].hasGreenFleet, true);
     assert.equal(res1.state.players[0].balance, initialBal - GREEN_FLEET_COST);

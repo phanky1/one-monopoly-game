@@ -1,0 +1,16 @@
+.port-investment-preview {
+  min-width: 0; padding: 8px 10px;
+  color: #23454d; background: #f0f2e7;
+  border: 1px solid #adbdaf; border-inline-start: 3px solid #47706d; border-radius: 3px;
+  font: 500 12px/1.35 var(--chart-sans);
+}
+.port-investment-preview header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 2px 8px; }
+.port-investment-preview h4 { margin: 0; font: 700 14px/1.25 var(--chart-sans); }
+.port-investment-preview .port-investment-group { margin: 0; color: #4a6260; font-size: 11px; }
+.port-investment-group b { white-space: nowrap; color: #344f51; font-variant-numeric: tabular-nums; }
+.port-investment-preview .port-investment-rates { display: grid; gap: 2px; margin: 5px 0 0; }
+.port-investment-rates > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px; }
+.port-investment-rates dd { margin: 0; font: 700 13px/1.35 var(--chart-mono); white-space: nowrap; }
+.port-investment-preview .port-investment-landing { margin: 2px 0 0; color: #526662; font-size: 11px; }
+.port-investment-preview .port-investment-arrival { margin: 5px 0 0; padding-top: 5px; border-top: 1px solid #c2cdbd; color: #3f5055; overflow-wrap: anywhere; }
+.port-investment-arrival b { color: #783650; white-space: nowrap; font-variant-numeric: tabular-nums; }

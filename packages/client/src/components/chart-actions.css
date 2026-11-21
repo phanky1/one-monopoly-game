@@ -1,0 +1,311 @@
+/* Paper records and controls on the nautical chart. */
+.chart-dialog, .chart-action-panel, .chart-button {
+  --action-ink: #123847;
+  --action-muted: #476468;
+  --action-paper: #fffbed;
+  --action-rule: #a8b8ab;
+  --action-magenta: #b00b60;
+  --action-number: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.chart-action-panel, .chart-dialog-sheet {
+  color: var(--action-ink);
+  background: var(--action-paper);
+  overflow-wrap: anywhere;
+}
+
+.chart-action-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--action-rule);
+  border-top: 3px solid var(--action-ink);
+  border-radius: 5px;
+  box-shadow: 0 3px 8px #072e3514;
+}
+
+.chart-action-status, .chart-action-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.chart-action-status { min-height: 46px; }
+.chart-action-title { margin: 0; font-weight: 800; }
+.chart-action-status > svg, .chart-action-title > svg { flex: none; color: var(--action-magenta); }
+.chart-action-copy { margin: 0; font-size: 13px; line-height: 1.55; color: var(--action-muted); }
+.chart-action-copy strong { color: var(--action-ink); }
+
+.chart-action-offer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chart-action-offer .chart-action-copy, .chart-dialog-kicker, .chart-manifest-facts dt {
+  color: var(--action-muted);
+  font-family: var(--action-number);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.chart-action-offer .chart-action-title { margin-top: 2px; font-size: 16px; }
+.chart-action-price, .chart-winner-balance strong {
+  color: var(--action-magenta);
+  font-family: var(--action-number);
+  font-size: 20px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chart-action-row, .chart-action-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.chart-action-options { grid-template-columns: repeat(auto-fit, minmax(min(100%, 90px), 1fr)); }
+
+.port-purchase-freight {
+  display: grid; gap: 5px; padding: 8px 10px; border: 1px solid #a5b8b3;
+  border-inline-start: 3px solid #367476; border-radius: 3px; color: #21454b; background: #edf3e9;
+}
+.port-purchase-freight h4 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; }
+.port-purchase-freight dl { margin: 0; font-size: 12px; }
+.port-purchase-freight dl > div { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+.port-purchase-freight dd { margin: 0; font: 700 12px/1.35 var(--action-number); white-space: nowrap; }
+.port-purchase-freight dl > div:last-child { padding-top: 4px; border-top: 1px dashed #acbcb2; font-weight: 700; }
+.port-purchase-freight .chart-button { min-height: 36px; }
+
+
+.chart-button, .chart-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 11px;
+  border: 1px solid #7a9495;
+  border-radius: 4px;
+  color: var(--action-ink);
+  background: #f6f2e4;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.chart-button > svg, .chart-dialog-close svg { width: 17px; height: 17px; flex: none; }
+.chart-button:hover:enabled, .chart-dialog-close:hover { background: #e5ebdf; border-color: var(--action-ink); }
+.chart-button-primary { color: white; border-color: var(--action-magenta); background: var(--action-magenta); }
+.chart-button-primary:hover:enabled { background: #93034d; border-color: #93034d; }
+.chart-button-danger { color: #942b29; border-color: #ba7e70; }
+.chart-button-danger:hover:enabled { background: #f7e4da; border-color: #942b29; }
+.chart-button-navy { color: white; background: var(--action-ink); border-color: var(--action-ink); }
+.chart-button-navy:hover:enabled { background: #204e59; }
+.chart-button:disabled { color: #637272; background: #e6e8df; border-color: #bcc7c0; cursor: not-allowed; }
+.chart-button:focus-visible, .chart-dialog-close:focus-visible {
+  outline: 3px solid #087d89;
+  outline-offset: 2px;
+}
+.chart-button-wide { width: 100%; min-height: 46px; letter-spacing: .035em; }
+
+.chart-storm-decision { border-top-color: #9f3862; }
+.chart-storm-decision .chart-action-title { font-size: 16px; }
+.chart-storm-choice {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 14px;
+  gap: 9px;
+  align-items: center;
+  min-height: 54px;
+  text-align: left;
+  background: #f4f1e3;
+}
+.chart-storm-choice > svg:first-child { color: #28646c; }
+.chart-storm-tug-choice { grid-template-columns: 68px minmax(0, 1fr) 14px; }
+.storm-tug-portrait {
+  width: 68px;
+  height: 51px;
+  object-fit: contain;
+  background: radial-gradient(ellipse at 50% 67%, #9ccbbf 0%, #dce8d8 46%, transparent 65%);
+}
+.chart-storm-choice > svg:last-child { width: 14px; color: #49626a; }
+.chart-storm-choice strong, .chart-storm-choice small { display: block; }
+.chart-storm-choice strong { font-size: 14px; }
+.chart-storm-choice small { margin-top: 2px; color: #415d63; font-size: 12px; font-weight: 500; line-height: 1.4; }
+.chart-storm-choice:disabled :is(svg, small) { color: #617273; }
+
+.chart-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(26rem, calc(100% - 1.5rem));
+  max-width: none;
+  max-height: calc(100dvh - 1.5rem);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #647c7a;
+  border-radius: 7px;
+  background: var(--action-paper);
+  box-shadow: 0 18px 70px #062b3670;
+}
+.chart-dialog::backdrop { background: #082c39bb; backdrop-filter: blur(3px); }
+
+.chart-dialog-sheet {
+  position: relative;
+  display: grid;
+  gap: 15px;
+  padding: 25px;
+  border-top: 5px solid var(--action-ink);
+}
+.chart-dialog-sheet::before {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 4px;
+  content: "";
+  background: repeating-linear-gradient(to right, #778a7c 0 1px, transparent 1px 8px);
+  pointer-events: none;
+}
+.chart-dialog-close {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+.chart-dialog-title {
+  margin: 0;
+  color: var(--action-ink);
+  font-family: 'Source Sans 3', 'Inter', system-ui, sans-serif;
+  font-size: clamp(22px, 5vw, 28px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.17;
+  text-wrap: balance;
+}
+.chart-dialog-kicker { margin: 0; }
+.chart-dialog-copy { color: var(--action-muted); font-size: 15px; line-height: 1.55; margin: 0; }
+
+.chart-manifest-heading {
+  display: grid;
+  gap: 9px;
+  padding: 0 20px 14px 0;
+  border-bottom: 2px solid var(--action-ink);
+}
+.chart-manifest-heading .chart-dialog-kicker, .chart-manifest-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chart-manifest-heading .chart-dialog-kicker { padding-right: 14px; }
+.chart-manifest-heading .chart-dialog-kicker > span:first-child { color: var(--action-ink); }
+.chart-manifest-route i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid #17374333; }
+
+.chart-manifest-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin: 0;
+}
+.chart-manifest-facts dd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0 0;
+  min-height: 24px;
+  color: var(--action-ink);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.chart-manifest-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  background: #e7eee1;
+  border-left: 3px solid #547f75;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.chart-manifest-note p { margin: 2px 0 0; }
+.chart-manifest-note svg { width: 18px; height: 18px; flex: none; }
+.harbor-mortgage-terms { align-items: flex-start; }
+.harbor-mortgage-terms .chart-button { margin-top: 6px; min-height: 32px; }
+.chart-rent-schedule { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.4; }
+.chart-rent-schedule caption {
+  padding: 7px 10px;
+  background: var(--action-ink);
+  color: var(--action-paper);
+  font-size: 12px;
+  font-weight: 750;
+  text-align: left;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.chart-rent-schedule th, .chart-rent-schedule td { padding: 7px 9px; border-bottom: 1px solid #ccd1be; }
+.chart-rent-schedule th { text-align: left; font-weight: 550; }
+.chart-rent-schedule td {
+  font-family: var(--action-number);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.chart-rent-schedule tr:nth-child(even) { background: #f1f1e2; }
+.chart-manifest-actions { display: grid; gap: 7px; }
+
+.chart-event-sheet, .chart-winner-sheet { padding-top: 27px; }
+.chart-event-sheet .chart-dialog-kicker, .chart-winner-sheet .chart-dialog-kicker { color: var(--action-muted); }
+.chart-event-icon {
+  display: grid;
+  place-items: center;
+  width: 53px;
+  height: 53px;
+  border: 1px solid #9aab9c;
+  border-radius: 50%;
+  outline: 1px solid #bcc6b4;
+  outline-offset: 3px;
+  color: var(--action-ink);
+  background: #e9edde;
+}
+.chart-event-sheet .chart-dialog-title, .chart-winner-sheet .chart-dialog-title { margin-top: -8px; }
+.chart-winner-balance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-block: 1px solid var(--action-rule);
+}
+.chart-winner-balance strong { display: block; margin-top: 3px; }
+
+@media (max-width: 480px) {
+  .chart-action-panel { gap: 7px; padding: 10px 12px; }
+  .chart-dialog-sheet { gap: 12px; padding: 21px 16px 16px; }
+  .chart-manifest-heading { padding-bottom: 11px; }
+  .chart-rent-schedule th, .chart-rent-schedule td { padding-block: 6px; }
+}
+
+.charter-rent, .charter-claim h4, .charter-claim p { margin: 0; }
+.charter-rent { border-block: 1px solid #b7c5b8; font-size: 13px; }
+.charter-rent > div { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; }
+.charter-rent dd { margin: 0; font-weight: 750; font-variant-numeric: tabular-nums; }
+.charter-claim { display: grid; gap: 4px; padding: 8px 10px; border-inline-start: 3px solid #387477; background: #eaf1e8; }
+.charter-claim h4, .charter-claim p { font-size: 12px; line-height: 1.45; }

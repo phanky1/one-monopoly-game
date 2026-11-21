@@ -1,0 +1,50 @@
+.board-tile[data-port-tile] { padding: 1px; }
+.board-tile[data-port-tile] > .tile-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 3px minmax(0, 1fr) auto auto;
+  justify-items: center;
+  align-items: center;
+  gap: 0;
+  padding: 1px 2px;
+  rotate: none;
+  transform: none;
+}
+.board-tile[data-port-tile] :is(.tile-group-color, .port-start-stripe) {
+  width: 96%; height: 3px; margin: 0; grid-row: 1;
+}
+.port-start-stripe { background: #d3ae65; border-radius: 2px; }
+.board-tile[data-port-tile] .port-miniature { grid-area: 2 / 1; width: 100%; height: 100%; min-height: 0; min-width: 0; }
+.board-tile[data-port-tile] .tile-code-row { grid-area: 3 / 1; margin: 0; }
+.board-tile[data-port-tile] .tile-amount { grid-area: 4 / 1; margin: 0; }
+.board-tile[data-port-tile] .tile-content > .tile-upgrade { grid-area: 2 / 1; align-self: end; justify-self: end; z-index: 1; margin: 0; }
+.port-deed { display: grid; gap: 9px; }
+.port-deed-geography { color: var(--action-ink); font-size: .8rem; line-height: 1.4; }
+.port-deed-geography p { margin: 3px 0 5px; }
+.port-deed-geography button { color: #8e2354; font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 480px) and (orientation: portrait) {
+  /* The turn controls can scroll below a full-width chart on short phones. */
+  .game-table:has(.board-viewport) {
+    grid-template-rows: auto minmax(calc(100vw + 94px), 1fr) auto auto;
+  }
+
+  .board-tile[data-port-tile] > .tile-content { padding: 0; }
+
+  /* Wide side tiles fit the quay beside its two-line manifest. */
+  @container (min-aspect-ratio: 1.15) {
+    .board-tile[data-port-tile] > .tile-content {
+      grid-template: 2px repeat(2, minmax(0, 1fr)) / minmax(0, 1fr) auto;
+      column-gap: 1px;
+    }
+    .board-tile[data-port-tile] :is(.tile-group-color, .port-start-stripe) {
+      grid-area: 1 / 1 / 2 / 3;
+      height: 2px;
+    }
+    .board-tile[data-port-tile] .port-miniature { grid-area: 2 / 1 / 4 / 2; }
+    .board-tile[data-port-tile] .tile-code-row { grid-area: 2 / 2; align-self: end; }
+    .board-tile[data-port-tile] .tile-amount { grid-area: 3 / 2; align-self: start; }
+    .board-tile[data-port-tile] .tile-code,
+    .board-tile[data-port-tile] .tile-amount > span { font-size: min(8px, 17cqw); }
+  }
+}

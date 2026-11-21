@@ -1,0 +1,249 @@
+.cargo-transfer {
+  --cycle: 3400ms;
+  --from-x: 4.25em;
+  --to-x: 0em;
+  --pickup-height: 1.82em;
+  --drop-height: 2.48em;
+  --cab: #2e93a1;
+  position: absolute;
+  left: 55%;
+  top: 43%;
+  z-index: 5;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  font-size: clamp(8px, 1.42cqw, 13px);
+}
+
+.cargo-transfer[data-operation='unload'] {
+  --from-x: 0em;
+  --to-x: 4.25em;
+  --pickup-height: 2.48em;
+  --drop-height: 1.82em;
+  --cab: #e6aa52;
+}
+.cargo-transfer[data-view='tilted'] { top: 65%; }
+.cargo-transfer[data-face='left'] { transform: scaleX(-1); }
+.cargo-berth, .cargo-berth span, .cargo-berth i { position: absolute; display: block; }
+.cargo-berth { left: -.88em; top: -3.65em; width: 8em; height: 4.5em; }
+.cargo-berth::before {
+  content: '';
+  position: absolute;
+  left: 2.4em;
+  top: 3.84em;
+  width: 5.23em;
+  height: .38em;
+  border-bottom: .13em solid #37585d;
+  background: repeating-linear-gradient(115deg, #d39d4c 0 .38em, #f4dfab .38em .76em);
+  transform: skewX(-18deg);
+}
+
+.cargo-gantry { inset: 0; }
+.cargo-mast {
+  left: 2.44em;
+  top: .56em;
+  width: 1.49em;
+  height: 3.29em;
+  background: linear-gradient(80deg, #254f58 0 35%, #58a0a1 38% 70%, #2e6269 75%);
+  clip-path: polygon(29% 0, 67% 0, 100% 100%, 76% 100%, 47% 25%, 23% 100%, 0 100%);
+}
+.cargo-jib {
+  left: .14em;
+  top: .27em;
+  width: 6.13em;
+  height: .56em;
+  border-block: .12em solid #295a63;
+  background: repeating-linear-gradient(48deg, transparent 0 .34em, #4f9294 .35em .51em);
+}
+.cargo-machinery {
+  left: 2.56em;
+  top: -.02em;
+  width: 1.13em;
+  height: .56em;
+  border: .09em solid #335d62;
+  background: linear-gradient(90deg, #f0cc82 55%, #659494 55%);
+}
+
+.cargo-truck { left: 4.13em; top: 2.44em; width: 3.69em; height: 1.58em; }
+.cargo-chassis {
+  top: .91em;
+  width: 3.63em;
+  height: .24em;
+  border-top: .08em solid #efcf8f;
+  background: #344b53;
+}
+.cargo-cab {
+  left: 2.29em;
+  top: .12em;
+  width: 1.23em;
+  height: .98em;
+  border-bottom: .12em solid #304d53;
+  background: var(--cab);
+  clip-path: polygon(0 0, 67% 0, 93% 42%, 100% 49%, 100% 100%, 0 100%);
+}
+.cargo-cab::before {
+  content: '';
+  position: absolute;
+  left: .23em;
+  top: .14em;
+  width: .63em;
+  height: .32em;
+  background: #e3f2e9;
+  border-left: .1em solid #345665;
+  transform: skewX(18deg);
+}
+.cargo-cab::after { content: ''; position: absolute; right: 0; bottom: .12em; width: .19em; height: .12em; background: #fff6bd; }
+.cargo-wheel {
+  top: .94em;
+  width: .49em;
+  height: .49em;
+  border-radius: 50%;
+  background: radial-gradient(circle, #dae0ce 0 22%, #243f49 26%);
+}
+.cargo-wheel-back { left: .38em; }
+.cargo-wheel-front { left: 2.75em; }
+
+.cargo-box {
+  --crate-light: #e785ab;
+  --crate-base: #be306c;
+  position: absolute;
+  width: 1.54em;
+  height: .76em;
+  box-sizing: border-box;
+  border: .1em solid #493e4c;
+  border-top-color: #fff0c9;
+  background: repeating-linear-gradient(90deg, var(--crate-base) 0 .25em, var(--crate-light) .25em .34em);
+  box-shadow: inset -.15em -.1em #293e492e;
+  pointer-events: none;
+}
+.cargo-box::after {
+  content: '';
+  position: absolute;
+  top: .09em;
+  right: .08em;
+  width: .22em;
+  height: .21em;
+  background: #fff0c9;
+}
+[data-cargo-kind='empty'] .cargo-box, .cargo-box[data-cargo-kind='empty'] {
+  --crate-base: #afcbd2;
+  --crate-light: #628b9b;
+  border-color: #376273;
+  border-top-color: #e9f4f1;
+}
+[data-cargo-kind='empty'] .cargo-box::after, .cargo-box[data-cargo-kind='empty']::after {
+  inset: .06em .12em;
+  width: auto;
+  height: auto;
+  border: .07em solid #608797;
+  background: #d6e4e5;
+}
+.cargo-ship-box { left: .1em; top: 3.25em; }
+.cargo-truck-box { left: .22em; top: .15em; }
+.cargo-transfer[data-operation='load'] .cargo-truck-box,
+.cargo-transfer[data-operation='unload'] .cargo-ship-box,
+.cargo-suspended-box { opacity: 0; }
+.cargo-transfer[data-view='tilted'] .cargo-box { box-shadow: inset -.2em -.13em #24354866, .08em .1em .12em #344a4e4d; }
+.cargo-transfer[data-view='tilted'] .cargo-box::before {
+  content: '';
+  position: absolute;
+  top: -.24em;
+  left: .04em;
+  right: -.12em;
+  height: .17em;
+  background: #f4c3c8;
+  transform: skewX(-39deg);
+}
+.cargo-transfer[data-view='tilted'][data-cargo-kind='empty'] .cargo-box::before { background: #d7e8e7; }
+.cargo-transfer[data-turnaround] { --cycle: 1700ms; }
+.cargo-transfer[data-turnaround][data-operation='load'] .cargo-box {
+  --crate-base: #167b79;
+  --crate-light: #66b7ab;
+  border-color: #204f52;
+}
+.cargo-transfer[data-turnaround][data-operation='load'] .cargo-box::before { background: #abdbcc; }
+[data-cargo-kind='reefer'] .cargo-box, .cargo-box[data-cargo-kind='reefer'] {
+  --crate-base: #d5e9e9;
+  --crate-light: #fffdf0;
+  border-color: #2c7383;
+  border-top-color: #fff;
+}
+[data-cargo-kind='reefer'] .cargo-box::after, .cargo-box[data-cargo-kind='reefer']::after {
+  width: .46em;
+  height: .42em;
+  border: 1px solid #316978;
+  background: repeating-linear-gradient(0deg, #effaff 0 1px, #4e8593 1px 2px);
+}
+.cargo-transfer[data-view='tilted'][data-cargo-kind='reefer'] .cargo-box::before { background: #eef8fa; }
+.cargo-transfer[data-view='tilted'] .cargo-cab {
+  background: linear-gradient(140deg, #e5e7c8 0 17%, transparent 19%),
+    linear-gradient(90deg, transparent 62%, #31596261 64%), var(--cab);
+}
+.cargo-transfer[data-view='tilted'] .cargo-chassis::before {
+  content: '';
+  position: absolute;
+  left: .12em;
+  bottom: 100%;
+  width: 2em;
+  height: .27em;
+  background: #a4b5b0;
+  transform: skewX(-40deg);
+}
+.cargo-transfer[data-view='tilted'] .cargo-gantry { filter: drop-shadow(.13em .08em 0 #365764a1); }
+
+.cargo-trolley { left: .1em; top: .46em; width: 1.54em; transform: translateX(var(--to-x)); }
+.cargo-trolley::before { content: ''; display: block; height: .24em; border-radius: .13em; background: #374b51; }
+.cargo-cables {
+  left: .12em;
+  top: .15em;
+  width: 1.3em;
+  height: .53em;
+  border-inline: .09em solid #324955;
+}
+.cargo-spreader {
+  left: -.19em;
+  top: 100%;
+  width: 1.5em;
+  height: .19em;
+  background: #e8b145;
+  border-bottom: .07em solid #493e38;
+}
+.cargo-suspended-box { left: -.21em; top: calc(100% + .16em); }
+.cargo-manifest-box {
+  left: 55%;
+  top: 43%;
+  z-index: 2;
+  font-size: clamp(6px, .95cqw, 9px);
+  transform: translate(-50%, -55%);
+}
+.chart-model-pawn .cargo-manifest-box { top: 65%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cargo-transfer[data-motion='move'] .cargo-berth { animation: cargo-berth-visit var(--cycle) both; }
+  .cargo-transfer[data-motion='move'] .cargo-truck { animation: cargo-truck-visit var(--cycle) ease-in-out both; }
+  .cargo-transfer[data-motion='move'] .cargo-trolley { animation: cargo-trolley-travel var(--cycle) ease-in-out both; }
+  .cargo-transfer[data-motion='move'] .cargo-cables { animation: cargo-cable-travel var(--cycle) ease-in-out both; }
+  .cargo-transfer[data-motion='move'] .cargo-suspended-box { animation: cargo-in-hook var(--cycle) steps(1, end) both; }
+  .cargo-transfer[data-motion='move'][data-operation='load'] .cargo-truck-box,
+  .cargo-transfer[data-motion='move'][data-operation='unload'] .cargo-ship-box { animation: cargo-before-lift var(--cycle) steps(1, end) both; }
+  .cargo-transfer[data-motion='move'][data-operation='load'] .cargo-ship-box,
+  .cargo-transfer[data-motion='move'][data-operation='unload'] .cargo-truck-box { animation: cargo-after-drop var(--cycle) steps(1, end) both; }
+}
+@keyframes cargo-berth-visit { 0%, 100% { opacity: 0; } 6%, 94% { opacity: 1; } }
+@keyframes cargo-truck-visit {
+  0%, 100% { opacity: 0; transform: translateX(3.1em); }
+  8%, 93% { opacity: 1; }
+  20%, 77% { opacity: 1; transform: translateX(0); }
+}
+@keyframes cargo-trolley-travel {
+  0%, 43% { transform: translateX(var(--from-x)); }
+  62%, 100% { transform: translateX(var(--to-x)); }
+}
+@keyframes cargo-cable-travel {
+  0%, 18%, 44%, 61%, 90%, 100% { height: .53em; }
+  30%, 34% { height: var(--pickup-height); }
+  72%, 76% { height: var(--drop-height); }
+}
+@keyframes cargo-in-hook { 0%, 75%, 100% { opacity: 0; } 33% { opacity: 1; } }
+@keyframes cargo-before-lift { 0% { opacity: 1; } 33%, 100% { opacity: 0; } }
+@keyframes cargo-after-drop { 0% { opacity: 0; } 75%, 100% { opacity: 1; } }

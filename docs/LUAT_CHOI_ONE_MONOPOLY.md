@@ -2,13 +2,58 @@
 > **Bản quyền thiết kế:** Chủ đề Hãng tàu Container Toàn cầu Ocean Network Express (ONE)  
 > **Quy mô bàn cờ:** 32 Ô (Lưới 9x9 - Góc nhìn 3D Isometric chuẩn Business Tour)  
 > **Số người chơi:** 2 – 4 Thuyền trưởng  
-> **Vốn khởi điểm:** **$1,500M** (Triệu Đô la Mỹ Logistics)
+> Mỗi thuyền trưởng bắt đầu ở Singapore với **$1.500M** trong Monopoly và Monopoly cổ điển, hoặc **$0M** trong Empty Reposition. Đơn vị M là triệu USD.
 
 ---
 
-## 1. MỤC TIÊU VÀ ĐIỀU KIỆN CHIẾN THẮNG
+## Chuyến đầu cho người mới
 
-Trong **ONE Monopoly**, người chơi hóa thân thành các Giám đốc Điều hành Hãng tàu Container thuộc liên minh toàn cầu. Mục tiêu là:
+Chọn **Tạo phòng mới**, nhập tên, chọn quân cờ rồi nhấn **Khởi tạo phòng chơi**. Gửi mã phòng cho bạn bè để họ chọn **Vào bằng mã**, hoặc bắt đầu ngay để đấu với máy. Chủ phòng chọn chế độ trước khi bắt đầu. Bạn có thể mở lại hướng dẫn ở phòng chờ và ngay trên bàn cờ.
+
+### Monopoly
+
+Ở Singapore, bạn có thể xếp một container hàng khô trước khi gieo xúc xắc. Khi đến cảng chưa có chủ, hãy quyết định mua hoặc mở đấu giá. Tại một cảng khác nơi xếp, bạn có thể dỡ hoặc giữ hàng trên tàu. Nếu cập cảng đối thủ mà thiếu tiền thuê, mục **Xử lý công nợ** cho phép dùng cước của lô hàng đang chở để trả thuê. Bạn chọn một thao tác làm hàng cho mỗi lần ghé. Cảng đã xây từ cấp 1 có thêm thao tác dỡ và xếp lô mới cùng lúc. Bạn xếp miễn phí ở Singapore và ở cảng đang hoạt động của mình. Tại cảng đối thủ đã xây ít nhất một cấp, tàu có khoang trống có thể trả phí cho chủ cảng để xếp hàng. **Thắng khi bạn là thuyền trưởng cuối cùng còn khả năng thanh toán.**
+
+Trước khi nhận lô hàng, mở **Vận tải cảng → Bến ở lần gieo tới**. Ví dụ, từ Singapore có hai cách gieo được tổng 3 để đến Cái Mép (1 + 2 hoặc 2 + 1), tức **2/36**. Chọn tên bến để xem cước, phần chủ cảng nhận và tiền thuê. Dự tính dùng quyền sở hữu hiện tại và chỉ đếm các lần gieo đưa tàu thẳng đến cảng. Lá bài có thể đưa tàu đi tiếp.
+
+Nếu Linh xếp hàng miễn phí ở Singapore rồi gieo được 3, cô cập Cái Mép. Minh sở hữu riêng cảng này, chưa xây và chưa thế chấp, nên Linh trả Minh **$4M tiền thuê**. Nếu Linh dỡ hàng, ngân hàng trả thêm **$12M cước**, gồm **$9M cho Linh** và **$3M phí bốc dỡ cho Minh** (25%). Đi tàu trống vẫn phải trả $4M thuê, nên chở lô hàng này giúp Linh kiếm thêm **$9M**. Nếu Minh sở hữu cả Cái Mép và Cát Lái, tiền thuê ở Cái Mép chưa xây là **$8M** và cước chia **$6M mỗi người** (50%). Cảng đang thế chấp tạm dừng xếp dỡ.
+
+Nếu Minh xây cấp 1 ở Cái Mép, tiền thuê tăng lên **$20M**. Lần sau, nếu Linh cập bến với khoang trống, cô trả tiền thuê rồi có thể rời bến hoặc trả thêm **$3M** cho Minh để xếp hàng. Nếu Minh sở hữu cả nhóm màu, phí xếp là **$6M**. Các cấp xây tiếp theo chỉ tăng tiền thuê. Với mức phí xếp $3M, nếu Linh đem lô hàng về dỡ ở Singapore, cô nhận **$12M** khi dỡ. Trừ phí xếp đã trả ở Cái Mép, chuyến hàng mang về **$9M** trước tiền thuê và thưởng qua ô xuất phát.
+
+Nếu Linh đến Cái Mép cấp 1 của Minh với một container từ Singapore, cô có hai cách làm hàng sau khi trả tiền thuê. Chọn **Dỡ hàng** để nhận **$9M** và rời bến với khoang trống. Chọn **Dỡ và xếp lô mới** để nhận $9M rồi trả $3M phí xếp, số dư tăng **$6M** và trên tàu có một lô mới từ **Cái Mép**. Chỉ khi dỡ lô mới tại một cảng khác, Linh mới nhận cước cho chặng kế tiếp. Nếu Minh ghé chính cảng đã nâng cấp của mình, anh có thể dỡ lô từ Singapore, nhận đủ **$12M** và xếp lô mới miễn phí.
+
+Khi tàu cập bến và có thể dỡ container, chọn **Tuyến lô hàng** trên hải đồ giữa bàn. Bản đồ nối cảng xếp ghi trên vận đơn với cảng vừa đến, kể cả khi tàu đã ghé một bến khác giữa đường. Bạn thấy khoảng cách tính cước, cước của tàu và phí khai thác của chủ cảng. Tiền thuê khi cập bến được tính riêng. Chọn **Vận tải cảng** để xem các cách làm hàng. Sau khi dỡ, mở lại tuyến để xem số liệu đã thanh toán hoặc chọn **Xem biên lai**. Chọn **Về cảng** để trở lại vị trí, quốc gia và thông tin địa lý của cảng vừa đến.
+
+Khi đang chở hàng, bấm một ô cảng khác hoặc chọn **Sổ cảng** trên hải đồ để dự tính chuyến đi cho chính tàu của bạn. Chẳng hạn, nếu bạn đang ở Cái Mép của mình với hàng xếp từ Singapore, dỡ ngay sẽ thu **$12M**. Nếu giữ hàng và sau đó gieo đến Piraeus của đối thủ, chuyến hàng có cước **$20M**. Với phí bến **$5M** và tiền thuê **$10M**, số dư của bạn chỉ tăng **$5M** ở Piraeus. Dự tính dùng quyền sở hữu và mức thuê hiện tại. Bạn vẫn di chuyển theo xúc xắc.
+
+Nếu Linh chở hàng từ Singapore đến **Cái Mép chưa có chủ**, cô có thể chọn **Mua cảng và dỡ hàng**. Cảng có giá **$60M**, lô hàng có cước **$12M**, nên Linh chỉ cần **$48M** tiền mặt. Nếu đang có $52M, cô nhận giấy sở hữu, dỡ xong container và còn **$4M**. Phí xếp đã trả ở cảng xuất (nếu có) chỉ tính một lần. Lô hàng đã dỡ nên phải đợi lần ghé khác để xếp lại.
+
+Nếu muốn giữ hàng, Linh có thể mua bằng tiền mặt hoặc chọn **Mở đấu giá**. Khi tiền mặt cộng cước vẫn chưa đủ giá mua, cảng sẽ tự mở đấu giá. Các hãng đặt giá bằng tiền mặt. Nếu Minh thắng, Linh có thể giữ hàng hoặc dỡ và chia cước với Minh. Lần cập bến mở phiên đấu giá có tiền thuê **$0M**.
+
+Đến lượt trả giá cảng, nhập số tiền vào **Giá trả của bạn**. Bảng **Số dư của bạn** so sánh hai khả năng. Ví dụ, Minh đang chở hàng từ Singapore, có **$52M** và Linh đang dẫn với **$40M** ở Cái Mép. Nếu Minh trả **$50M** và thắng, Minh còn **$2M** khi nhận cảng, hoặc **$14M** sau khi dỡ hàng. Nếu Linh thắng ở mức $40M và chưa có đủ nhóm màu, Minh vẫn có **$52M** khi chốt phiên, hoặc **$61M** sau khi dỡ hàng vì Linh nhận $3M phí bến. Minh có thể sửa giá trước khi bấm **Trả $50M**. Nếu Minh rút, các hãng còn lại vẫn có thể trả giá cao hơn.
+
+Bạn cũng có thể mua cảng của đối thủ qua **Giao dịch**. Chẳng hạn Linh đã có Laem Chabang và hỏi mua Jebel Ali của Minh với giá **$120M**. Minh có thể chọn **Ra giá khác** rồi gửi một giá cao hơn, trong giới hạn tiền mặt của Linh. Nếu Linh chấp nhận **$140M**, hai bên mới đổi tiền và quyền sở hữu. Nếu Minh đang chở hàng từ Singapore, trước khi bán anh có thể dỡ tại cảng của mình để nhận đủ **$18M**. Nếu anh dỡ sau khi bán, Linh sở hữu trọn tuyến và mỗi người nhận **$9M**. Tiền thuê Jebel Ali cho lần ghé sau tăng từ **$8M** lên **$16M**.
+
+Trong **Monopoly**, bạn có thể trao đổi hai giấy sở hữu. Chọn cảng muốn nhận rồi chọn **Cảng của bạn muốn đem đổi**. Để tiền bù ở **0** nếu đổi ngang. Nếu thêm tiền, người gửi đề nghị trả người nhận. Hai bên xem được tiền thuê và phần cước của từng bến ở các tuyến sắp hoàn thành hoặc bị tách. Người nhận có thể chấp nhận, từ chối hoặc đề nghị tăng tiền bù một lần. Hai cảng và khoản tiền được chuyển cùng lúc khi có người chấp nhận. Tàu vẫn giữ container đang chở. Chỉ có thể trao đổi cảng chưa thế chấp, không có thỏa thuận chia chỗ đang hiệu lực và thuộc nhóm chưa xây công trình.
+
+Ví dụ, Linh giữ Hamburg và Busan. Minh giữ Rotterdam và Yantian. Linh đưa Busan để lấy Rotterdam. Sau khi đổi ngang, Linh có trọn tuyến Bắc Âu, còn Minh có trọn tuyến Tây Thái Bình Dương. Tại Yantian chưa xây, lần tới Linh ghé bến, tiền thuê tăng từ **$20M** lên **$40M**. Nếu Linh dỡ một lô hàng Singapore có cước **$14M**, Minh nhận **$7M** phí bến và Linh nhận **$7M** cước.
+
+### Empty Reposition
+
+Đến lượt mình, chọn loại hàng và cảng đích, xếp lên tàu, chọn cảng để chạy đến rồi dỡ. Với hàng xuất, hãy tìm bến còn xe nhận. Với **Container rỗng**, hãy lấy vỏ ở bến đang dư và chọn bến còn thiếu. Bạn được đi một chặng thông thường mỗi lượt.
+
+Thử ngay lượt đầu ở Singapore. Bến có **4 vỏ**, cần giữ **1**. Cái Mép đang có **1 vỏ**, cần **2**. Chọn **Container rỗng** đi Cái Mép, chạy tàu đến đó rồi dỡ. Bến đủ **2/2 vỏ**, bạn nhận **$6M** và ghi một lần giao thành công.
+
+Khi một người giao đủ **3 chuyến**, cả bàn chơi hết vòng đó. Ván cũng kết thúc sau **8 vòng**. Người giao nhiều chuyến nhất thắng. Nếu hòa, xét tổng tiền cước kiếm được, rồi đến thứ tự ghế ban đầu.
+
+**Monopoly cổ điển** giữ luật xúc xắc, mua cảng và thu tiền thuê của bản gốc. Các mục dưới đây trình bày luật tài sản của hai chế độ Monopoly.
+
+---
+
+## 1. MỤC TIÊU VÀ ĐIỀU KIỆN CHIẾN THẮNG TRONG MONOPOLY
+
+Trong hai chế độ Monopoly, mỗi người chơi điều hành một hãng tàu.
+
 1. Thu gom và sở hữu các bến cảng trọng yếu trên 8 hải trình xuyên lục địa.
 2. Thiết lập 4 Tuyến Dịch Vụ Huyết Mạch (VSS, MD2, FE2, PS3) và làm chủ 2 Nền Tảng Số Đột Phá.
 3. Nâng cấp bến bãi bằng các **Lô Container Magenta** và Siêu tàu **ONE Innovation (24.000 TEU)**.
@@ -48,7 +93,7 @@ Bàn cờ gồm **4 ô góc hình vuông** và **28 ô cạnh hình chữ nhật
 
 ## 3. DANH MỤC CẢNG BIỂN, TUYẾN DỊCH VỤ & NỀN TẢNG SỐ
 
-### 3.1. 16 Bến Cảng Biển (8 Nhóm Tuyến Thương Mại)
+### 3.1. 17 Bến Cảng Biển (8 Nhóm Tuyến Thương Mại)
 Khi sở hữu trọn bộ màu của tuyến, tiền cước đất trống (chưa có container) được **nhân đôi (x2)**!
 
 | Tuyến (Màu) | Ô | Cảng biển | Mã | Giá Mua | Cước Cơ Bản | 1 Lô | 2 Lô | 3 Lô | 4 Lô | Siêu Tàu 24K | Phí Nâng Cấp |
@@ -83,8 +128,8 @@ Gồm 2 ô: **ONE QUOTE (Ô 10)** và **ONE Eco Calculator (Ô 22)**. Giá mua *
 ## 4. QUY TẮC NÂNG CẤP HẠ TẦNG CẢNG BIỂN
 
 > [!IMPORTANT]
-> **Quy Tắc Xây Dựng Đồng Đều (Even Building Rule):**  
-> Bạn chỉ được nâng cấp cảng khi đã sở hữu đủ tất cả cảng trong cùng nhóm màu. Khi nâng cấp, số lượng Lô Container giữa các cảng trong nhóm không được chênh lệch nhau quá 1 lô (Ví dụ: Không được lên 2 lô ở Cát Lái nếu Cái Mép vẫn đang ở mức 0).
+> **Quy Tắc Nâng Cấp Khi Tàu Ghé Lại Cảng (Revisit Dockside Upgrade Rule):**  
+> Bạn không cần phải gom đủ bộ màu mới được xây dựng container. Sau khi mua cảng, hãy đợi đến lần ghé sau để xây. Mỗi lần đáp lại vào cảng thuộc sở hữu của mình, bạn được phép **nâng cấp tối đa 1 lần** (đặt thêm 1 Lô Container, lên Siêu tàu ONE Innovation hoặc gắn Huy hiệu Tàu Nhiên Liệu Xanh).
 
 - **Mức 1 – 4 (Lô Container Magenta):** Đặt từ 1 đến 4 lô container lên cảng để nâng mức thu phí cước bốc dỡ theo bảng biểu.
 - **Mức 5 (Cực đại - Siêu tàu ONE Innovation 24.000 TEU):** Khi cảng đã có 4 lô container, trả thêm chi phí nâng cấp để đổi lấy biểu tượng Siêu Tàu Megaship. Cước phí đạt mức khủng khiếp nhất game!
@@ -94,11 +139,11 @@ Gồm 2 ô: **ONE QUOTE (Ô 10)** và **ONE Eco Calculator (Ô 22)**. Giá mua *
 ## 5. CƠ CHẾ ĐẶC QUYỀN HÀNG HẢI ONE (EXCLUSIVE LOGISTICS MECHANICS)
 
 ### 5.1. Thỏa Thuận Chia Sẻ Chỗ "As ONE, We Can" (Slot Chartering)
-Mô phỏng chân thực nghiệp vụ liên minh hàng hải thực tế:
-- **Điều kiện kích hoạt:** Khi Thuyền trưởng **A** đi vào cảng của Thuyền trưởng **B** (cảng đã có ít nhất 1 lô container), nếu **A đang sở hữu ít nhất 1 Tuyến Dịch Vụ Huyết Mạch (VSS, MD2, FE2, PS3)**, hệ thống sẽ đề xuất kích hoạt cơ chế *Slot Chartering*.
-- **Quyền lợi đôi bên:**
-  1. Thuyền trưởng **A** chỉ phải thanh toán **50% tiền cước** của lượt đi này.
-  2. Ở lượt đi kế tiếp, khi có bất kỳ người chơi thứ ba nào khác ghé vào cảng này, **doanh thu tiền cước được chia đôi (50/50) tự động giữa A và B**.
+Khi một hãng có tuyến dịch vụ (VSS, MD2, FE2 hoặc PS3) cập cảng đối thủ đã xây từ cấp 1, chủ cảng có thể đồng ý hoặc từ chối chia chỗ. Nếu từ chối hay hết giờ, khách phải trả đủ tiền thuê. Nếu đồng ý, khách trả một nửa tiền thuê, làm tròn xuống. Quyền chia chỗ có hiệu lực sau khi hãng thanh toán tiền thuê đã giảm.
+
+Hãng có quyền được nhận một nửa tiền thuê, làm tròn xuống, từ lần đầu một hãng thứ ba cập bến. Chủ cảng nhận phần còn lại. Phí khai thác container thuộc về chủ cảng. Ví dụ ở Hong Kong cấp 1, tiền thuê niêm yết là **$175M**. Hãng có tuyến dịch vụ trả **$87M** khi đề nghị được chấp nhận. Nếu giữ quyền và hãng thứ ba trả $175M, chủ cảng nhận **$88M**, đối tác nhận **$87M**.
+
+Trong **Monopoly**, đối tác cũng có thể chọn **Dùng quyền chia chỗ để xếp hàng** ở chính bến đó. Tàu rỗng nhận một lô xuất. Tàu có hàng từ bến khác dỡ lô đang chở và nhận lô mới. Chủ cảng vẫn nhận phí khai thác của lô vừa dỡ. Quyền miễn **$3M** phí xếp lô mới, hoặc **$6M** khi chủ cảng có trọn nhóm màu. Dùng quyền một lần sẽ kết thúc thỏa thuận. Bạn cũng có thể trả phí xếp bình thường để giữ quyền chia tiền thuê. Khi chỉ còn hai hãng, quyền vẫn dùng được để xếp hàng.
 
 ### 5.2. Nâng Cấp "Tàu Nhiên Liệu Xanh" (Green Fleet Upgrade - Methanol / Ammonia)
 - **Điều kiện:** Tại bất kỳ bến cảng nào đã nâng cấp lên Siêu tàu ONE Innovation (Mức 5), chủ cảng có quyền chi thêm **$150M** để gắn **Huy Hiệu Xanh (Green Fuel Ready 🌱)**.
@@ -110,7 +155,7 @@ Mô phỏng chân thực nghiệp vụ liên minh hàng hải thực tế:
 ### 5.3. Thẻ Hợp Đồng Chiến Lược Premier Alliance (Secret Missions)
 Đầu ván đấu, mỗi thuyền trưởng được bốc bí mật **1 Hợp Đồng Chiến Lược**. Hoàn thành điều kiện sẽ mở khóa tiền mặt thưởng ngay lập tức:
 - **Hợp Đồng 1: Cầu Nối Việt Nam – Mỹ:** Sở hữu đồng thời Cảng Cái Mép (VNVUT), Los Angeles (USLAX) và Tuyến PS3 $\rightarrow$ **Thưởng ngay $400M**.
-- **Hợp Đồng 2: Di Sản Nhật – Singapore:** Sở hữu Tokyo Hub (JPTYO), Busan (KRPUS) và 1 Siêu tàu ONE Innovation (Mức 5) $\rightarrow$ **Thưởng ngay $500M**.
+- **Hợp Đồng 2: Di Sản Nhật – Hàn:** Sở hữu Tokyo Hub (JPTYO), Busan (KRPUS) và 1 Siêu tàu ONE Innovation (Mức 5) $\rightarrow$ **Thưởng ngay $500M**.
 - **Hợp Đồng 3: Tiên Phong Số & Xanh:** Sở hữu cả ONE QUOTE, ONE Eco Calculator và có ít nhất 1 Huy hiệu Tàu Nhiên Liệu Xanh $\rightarrow$ **Thưởng ngay $350M**.
 - **Hợp Đồng 4: Vua Tuyến Huyết Mạch:** Sở hữu ít nhất 3 trong 4 Tuyến Dịch Vụ (VSS, MD2, FE2, PS3) $\rightarrow$ **Thưởng ngay $450M**.
 - **Hợp Đồng 5: Trục Vận Tải Châu Á Thần Tốc:** Sở hữu trọn bộ Tuyến Intra-Asia (Cát Lái, Cái Mép) và Tuyến VSS $\rightarrow$ **Thưởng ngay $350M**.
@@ -124,9 +169,9 @@ flowchart TD
     A["Bắt đầu lượt"] --> B["Lắc Xúc Xắc (Roll Dice)"]
     B --> C["Tàu di chuyển theo số nút"]
     C --> D{"Ô đáp xuống là gì?"}
-    D -->|Cảng chưa có chủ| E["Mua Cảng hoặc Bỏ qua"]
+    D -->|Cảng chưa có chủ| E["Mua cảng hoặc mở đấu giá"]
     D -->|Cảng đối thủ| F{"Đủ điều kiện Slot Chartering?"}
-    F -->|Có| G["Đề xuất Slot Chartering (50% cước)"]
+    F -->|Có| G["Đề xuất Slot Chartering (50% tiền thuê)"]
     F -->|Không| H["Trả 100% cước cho Chủ cảng"]
     D -->|Thẻ Thị Trường / Vận Hành| I["Rút thẻ & Nhận hiệu ứng"]
     D -->|Lệnh Giữ Tàu| J["Vào Khu Neo Đậu Kiểm Hóa"]
@@ -140,7 +185,7 @@ flowchart TD
 
 1. **Giai đoạn Đổ Xúc Xắc:** Thuyền trưởng nhấn nút đổ xúc xắc. Nếu ra **Đôi (Doubles)**, người chơi được đi tiếp lượt nữa. Nếu đổ đôi **3 lần liên tiếp**, tàu bị phạt chạy quá tốc độ và áp giải thẳng vào Khu Neo Chờ Thông Quan!
 2. **Giai đoạn Đáp Ô:**
-   - Nếu vào cảng trống: Chọn **MUA CẢNG** hoặc bỏ qua.
+   - Tại cảng chưa có chủ, bạn có thể mua theo giá niêm yết hoặc mở đấu giá. Trong **Monopoly**, nếu đang chở lô hàng từ cảng khác, bạn cũng có thể dùng cước khi dỡ để thanh toán một phần giá mua.
    - Nếu vào cảng đối thủ: Trả cước xếp dỡ (hoặc đề xuất Slot Chartering).
    - Nếu vào ô thẻ: Rút thẻ bài ngẫu nhiên (nhận thưởng tiền mặt, cứu hộ, phạt bảo trì, dịch chuyển tàu,...).
 3. **Giai đoạn Quản Trị Cuối Lượt:**
@@ -154,6 +199,8 @@ flowchart TD
 ## 7. CẦM CỐ (MORTGAGE), NỢ NẦN & PHÁ SẢN (BANKRUPTCY)
 
 - **Cầm cố tài sản:** Khi thiếu tiền mặt, người chơi có thể cầm cố các bến cảng chưa nâng cấp container với giá trị bằng **50% giá mua ban đầu**. Cảng đang cầm cố sẽ không thể thu cước của đối thủ.
-- **Chuộc cảng:** Để gỡ cầm cố, người chơi phải trả lại 50% tiền gốc kèm **10% lãi suất tái cấp vốn**.
+- **Chuộc cảng.** Trả số tiền đã vay và **10% tiền lãi**, làm tròn lãi lên đến triệu USD. Ví dụ, với khoản vay $50M tại Laem Chabang, tiền chuộc là **$55M**.
+- Trong chế độ **Monopoly**, nếu tàu đang giữ một container từ cảng khác và chưa xếp dỡ trong lần ghé này, chủ cảng có thể chọn **Chuộc cảng và dỡ hàng** ở mục **Vận tải cảng**. Cước được dùng ngay để trả ngân hàng. Ví dụ, chuộc Cái Mép tốn **$33M**. Nếu chở hàng từ Singapore có cước **$12M**, bạn chỉ cần **$21M tiền mặt**. Bạn cũng có thể giữ hàng trên tàu hoặc chuộc theo cách thông thường trên giấy sở hữu. Tiền thuê chỉ áp dụng cho các lượt đối thủ cập bến sau khi mở lại.
 - **Xử lý Nợ (Debt Resolution):** Khi số tiền phải nộp lớn hơn số dư tài khoản, hệ thống sẽ đưa người chơi vào trạng thái giải quyết nợ. Người chơi có thể bán container hoặc cầm cố cảng để xoay tiền.
+- Trong **Monopoly**, nếu đang nợ tiền thuê tại chính cảng vừa cập của đối thủ, tàu có thể dỡ một lô hàng từ cảng khác ngay trong mục **Xử lý công nợ**. Ở Piraeus, ví dụ, bạn có $2M và nợ $10M. Chuyến Singapore có cước $20M. Chủ cảng thu $5M phí dỡ hàng, tàu nhận $15M. Chọn **Dỡ hàng và trả tiền thuê** để thanh toán đủ $10M và còn $7M tiền mặt. Nếu phần cước vẫn chưa đủ, bạn có thể dỡ hàng để huy động vốn rồi bán công trình hoặc thế chấp tài sản trước khi thanh toán toàn bộ tiền thuê.
 - **Tuyên bố Phá sản:** Nếu sau khi đã giải chấp và cầm cố toàn bộ tài sản mà vẫn không đủ khả năng thanh toán khoản nợ, thuyền trưởng buộc phải **Tuyên Bố Phá Sản**. Toàn bộ tài sản sẽ chuyển giao cho chủ nợ và thuyền trưởng bị loại khỏi hải trình!

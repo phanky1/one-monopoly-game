@@ -1,0 +1,10 @@
+.empty-yard-booking {
+  display: grid; gap: 3px; padding: 5px 8px; border-inline-start: 2px solid #829f93;
+  background: #edf2e6; color: #284e4d; font: 550 12px/1.3 var(--chart-sans);
+}
+.empty-yard-caption { display: block; color: #486156; font: 600 11px/1.25 var(--chart-sans); }
+.empty-yard-impact { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px 8px; font-variant-numeric: tabular-nums; }
+.empty-yard-quantity { white-space: nowrap; }
+.empty-yard-balance { font-weight: 650; }
+.diversion-comparison .empty-yard-impact { display: grid; justify-items: center; gap: 1px; }
+.diversion-comparison .empty-yard-caption { margin-top: 2px; font-size: 10px; }

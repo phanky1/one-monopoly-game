@@ -1,0 +1,11 @@
+.waybill-amendment {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0;
+  padding-inline-start: 8px;
+  border-inline-start: 2px solid #a64c70;
+  color: #40575c;
+  font: 500 .76rem/1.35 var(--chart-sans, system-ui);
+  overflow-wrap: anywhere;
+}
+.waybill-amendment strong { color: #7b284c; font-weight: 700; }

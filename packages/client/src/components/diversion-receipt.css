@@ -1,0 +1,53 @@
+.diversion-receipt { width: 100%; min-width: 0; container-type: inline-size; }
+.diversion-slip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #183f46;
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.chart-position .diversion-slip span {
+  color: inherit;
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.diversion-stamp {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 3px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  background: #f6e7e9;
+  color: #8d2855;
+  font: 750 10px/1 var(--chart-mono);
+  transform: rotate(-4deg);
+}
+.diversion-captain { max-width: 13ch; overflow: hidden; text-overflow: ellipsis; }
+.diversion-label i { font-style: normal; }
+.diversion-port { display: inline-flex; align-items: baseline; gap: 4px; }
+.diversion-port code { font: 700 11px/1 var(--chart-mono); }
+.diversion-port small { font: inherit; }
+.chart-position .diversion-arrow { color: #96305e; }
+@container (max-width: 660px) {
+  .diversion-port small { display: none; }
+}
+@container (max-width: 460px) {
+  .diversion-captain { display: none; }
+  .diversion-slip { gap: 5px; font-size: 11px; }
+}
+@container (max-width: 270px) {
+  .diversion-label i { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .diversion-stamp { animation: diversion-stamp-in 380ms ease-out both; }
+  @keyframes diversion-stamp-in {
+    from { opacity: .3; transform: translateY(-3px) rotate(-10deg) scale(1.23); }
+    48% { opacity: 1; transform: rotate(-4deg) scale(.94); }
+    to { transform: rotate(-4deg); }
+  }
+}

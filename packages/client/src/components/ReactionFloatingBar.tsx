@@ -1,48 +1,19 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ReactionEvent } from '../hooks/useSocket.js';
+import { cabinReactions } from '../hooks/useSocket.js';
 
 interface Props {
-  reactions: ReactionEvent[];
   onSendReaction: (emoji: string) => void;
 }
 
-export const ReactionFloatingBar: React.FC<Props> = ({ reactions, onSendReaction }) => {
-  const emojis = ['🚢', '📦', '💸', '👏', '🔥'];
-
+export function ReactionFloatingBar({ onSendReaction }: Props) {
   return (
-    <>
-      {/* Floating Emojis Screen Container */}
-      <div className="fixed bottom-24 right-8 pointer-events-none z-40 flex flex-col items-center">
-        <AnimatePresence>
-          {reactions.map((rx) => (
-            <motion.div
-              key={rx.id}
-              initial={{ opacity: 1, y: 0, scale: 0.8 }}
-              animate={{ opacity: 0, y: -160, scale: 1.4 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 2.2, ease: 'easeOut' }}
-              className="text-4xl filter drop-shadow-md select-none my-1"
-            >
-              {rx.emoji}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Floating Action Trigger Bar */}
-      <div className="fixed bottom-6 right-6 bg-white/90 backdrop-blur-md px-3 py-2 rounded-2xl shadow-xl border border-gray-100 flex items-center gap-1.5 z-30">
-        {emojis.map((emoji) => (
-          <button
-            key={emoji}
-            onClick={() => onSendReaction(emoji)}
-            className="w-10 h-10 rounded-xl hover:bg-pink-50 hover:scale-115 active:scale-90 transition flex items-center justify-center text-xl cursor-pointer"
-            title={`Thả biểu cảm ${emoji}`}
-          >
-            {emoji}
-          </button>
-        ))}
-      </div>
-    </>
+    <div className="table-reactions" role="group" aria-label="Biểu cảm">
+      <span className="chart-reaction-label">Biểu cảm</span>
+      {Array.from(cabinReactions, ([emoji, name]) => (
+        <button key={emoji} type="button" className="chart-reaction" onClick={() => onSendReaction(emoji)}
+          aria-label={`Gửi ${name}`} title={`Gửi ${name}`}>
+          <span aria-hidden="true">{emoji}</span>
+        </button>
+      ))}
+    </div>
   );
-};
+}

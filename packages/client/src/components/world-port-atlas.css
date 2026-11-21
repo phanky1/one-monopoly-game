@@ -1,0 +1,285 @@
+.world-port-atlas {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.world-atlas-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  overflow: hidden;
+  container-type: inline-size;
+  color: #112f3a;
+  background: #fcf8e9;
+  border: 1px solid #53736d;
+  border-radius: 3px;
+  box-shadow: 0 2px 5px #163f4536;
+  font-family: var(--chart-sans);
+}
+
+/* Stay in the paper plane: a full-depth billboard would intersect the board.
+   Undo the projected camera angle in two dimensions so north and the type stay upright. */
+.world-port-atlas-tilted {
+  --atlas-upright: rotate(calc(0deg - var(--board-yaw))) scaleY(calc(1 / cos(var(--board-tilt))));
+  transform: translateZ(2px);
+}
+.world-port-atlas-tilted .world-atlas-sheet {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.world-port-atlas-tilted .world-atlas-map-window {
+  position: absolute;
+  inset: 0;
+}
+.world-port-atlas-tilted .world-atlas-geography {
+  transform-box: view-box;
+  transform-origin: center;
+  transform: var(--atlas-upright);
+}
+.world-port-atlas-tilted .world-atlas-heading,
+.world-port-atlas-tilted .world-atlas-caption {
+  position: absolute;
+  width: 68%;
+  z-index: 1;
+  transform-origin: 0 0;
+  transform: var(--atlas-upright) translate(-50%, -50%);
+  border-radius: 3px;
+  box-shadow: 0 2px 7px #173c4038;
+}
+.world-port-atlas-tilted .world-atlas-heading { left: 68%; top: 32%; }
+.world-port-atlas-tilted .world-atlas-caption { left: 34%; top: 66%; border: 1px solid #779187; }
+.world-port-atlas-tilted[data-view="world"] .world-atlas-heading { left: 74%; top: 26%; width: 61%; }
+.world-port-atlas-tilted[data-view="world"] .world-atlas-heading h3 { font-size: clamp(13px, 3.6cqw, 17px); }
+.world-port-atlas-tilted[data-view="world"] .world-atlas-caption { left: 26%; top: 74%; width: 49%; }
+.world-atlas-heading nav { display: flex; flex: none; align-items: center; gap: 4px; }
+.world-port-atlas-tilted .world-atlas-heading h3 span { display: block; margin: 2px 0 0; }
+.world-atlas-pin-code {
+  fill: #fff9ec;
+  text-anchor: middle;
+  font: 650 7px var(--chart-mono);
+  letter-spacing: .35px;
+}
+.world-atlas-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+  padding: 6px 9px 6px 12px;
+  border-bottom: 1px solid #365963;
+  background: #123641;
+  color: #fff8e2;
+  text-align: left;
+}
+.world-atlas-heading > div { min-width: 0; }
+.world-atlas-arrival {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 clamp(8px, 2.35cqw, 10px)/1.2 var(--chart-mono);
+  letter-spacing: .065em;
+  color: #b8dad2;
+}
+.world-atlas-heading h3 {
+  margin: 1px 0 0;
+  font: 650 clamp(15px, 5.6cqw, 24px)/1.15 var(--chart-display);
+}
+.world-atlas-heading h3 span {
+  margin-left: 4px;
+  font: 550 clamp(10px, 3.1cqw, 13px)/1.2 var(--chart-sans);
+  color: #e3dfc7;
+}
+.world-atlas-close, .world-atlas-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.world-atlas-close {
+  width: 32px;
+  height: 32px;
+  color: #fcf8e9;
+  background: none;
+  border: 1px solid #79948e;
+  border-radius: 3px;
+}
+.world-atlas-close svg { width: 17px; height: 17px; }
+.world-atlas-close:hover { background: #2e515b; }
+.world-atlas-map-window {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 42% 44%, #dbede3, #a7d0c8);
+}
+.world-atlas-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.world-atlas-countries, .world-atlas-continents {
+  text-anchor: middle;
+  paint-order: stroke fill;
+  stroke: #f0f0d5;
+  stroke-width: 1.8px;
+  stroke-linejoin: round;
+  fill: #34594f;
+  font: 550 8.7px var(--chart-sans);
+}
+.world-atlas-continents { font: 650 7.6px var(--chart-mono); letter-spacing: .7px; }
+.world-atlas-toggle {
+  gap: 4px;
+  min-height: 29px;
+  padding: 3px 7px;
+  border: 1px solid #67857d;
+  border-radius: 3px;
+  background: #fcf9ed;
+  color: #1b4248;
+  font: 650 clamp(10px, 2.85cqw, 12px)/1 var(--chart-sans);
+}
+.world-atlas-toggle svg { width: 13px; height: 13px; }
+.world-atlas-toggle:hover { background: #fff4cc; }
+.world-atlas-close:focus-visible, .world-atlas-toggle:focus-visible {
+  outline: 2px solid #df4388;
+  outline-offset: -3px;
+}
+.world-atlas-caption {
+  flex: none;
+  padding: 6px 11px 8px;
+  background: #fcf8e9;
+  border-top: 1px solid #91a49a;
+  text-align: left;
+}
+.world-atlas-coordinates {
+  color: #984660;
+  font: 650 clamp(9px, 2.7cqw, 11px)/1.2 var(--chart-mono);
+}
+.world-atlas-caption p {
+  margin: 2px 0 0;
+  font: 500 clamp(10px, 3.12cqw, 13px)/1.34 var(--chart-sans);
+  color: #283f40;
+}
+.world-atlas-freight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 5px;
+  padding-top: 4px;
+  border-top: 1px solid #a6b5a6;
+}
+.world-atlas-freight [role="status"] {
+  color: #275248;
+  font: 600 clamp(10px, 2.85cqw, 12px)/1.3 var(--chart-sans);
+}
+.world-atlas-freight button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  max-width: 50%;
+  min-height: 27px;
+  padding: 3px 6px;
+  border: 1px solid #265c51;
+  border-radius: 3px;
+  background: #28584e;
+  color: #fffcef;
+  font: 650 clamp(10px, 2.8cqw, 12px)/1.2 var(--chart-sans);
+  pointer-events: auto;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.world-atlas-freight button svg { width: 12px; height: 12px; flex: none; }
+.world-atlas-freight button:hover { background: #153e36; }
+.world-atlas-freight:has(.world-atlas-feeder-open) { flex-wrap: wrap; justify-content: start; }
+.world-atlas-freight:has(.world-atlas-feeder-open) [role="status"] { flex-basis: 100%; }
+.world-atlas-freight .world-atlas-feeder-open { border-color: #668984; background: #f5f3e3; color: #20535a; }
+.world-atlas-freight .world-atlas-feeder-open:hover { background: #dce9da; }
+.world-atlas-feeder-pin { cursor: pointer; pointer-events: all; }
+.world-atlas-freight button:focus-visible { outline: 2px solid #ffd47f; outline-offset: -3px; }
+.world-port-atlas-tilted[data-has-freight] .world-atlas-caption {
+  left: 33%; top: 67%; width: 69%;
+}
+.world-port-atlas-tilted[data-has-freight][data-view="world"] .world-atlas-caption {
+  left: 31%; top: 69%; width: 62%;
+}
+
+@container (max-width: 780px) or (max-height: 520px) {
+  .world-port-atlas-tilted .world-atlas-heading,
+  .world-port-atlas-tilted .world-atlas-caption { width: 86%; }
+  .world-port-atlas-tilted .world-atlas-heading,
+  .world-port-atlas-tilted[data-view="world"] .world-atlas-heading { left: 52%; top: 15%; width: 86%; }
+  .world-port-atlas-tilted .world-atlas-caption,
+  .world-port-atlas-tilted[data-view="world"] .world-atlas-caption { left: 48%; top: 83%; width: 86%; }
+  .world-port-atlas-tilted[data-has-freight] .world-atlas-caption,
+  .world-port-atlas-tilted[data-has-freight][data-view="world"] .world-atlas-caption {
+    left: 48%; top: 77%; width: 86%;
+  }
+}
+@container (max-width: 270px) {
+  .world-atlas-heading { padding: 3px 4px 4px 6px; }
+  .world-atlas-close, .world-atlas-toggle { width: 28px; height: 28px; }
+  .world-atlas-toggle span { display: none; }
+  .world-atlas-heading h3 { font-size: 15px; }
+  .world-atlas-caption { padding: 3px 6px 4px; }
+  .world-atlas-freight { gap: 4px; margin-top: 3px; padding-top: 3px; }
+  .world-atlas-freight button { min-height: 24px; }
+  .world-atlas-toggle { min-height: 24px; gap: 3px; padding-inline: 5px; }
+}
+.world-atlas-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.world-atlas-meta:has(.world-atlas-deed) { flex-wrap: wrap; }
+.world-atlas-deed {
+  display: inline-flex; align-items: center; gap: 2px; min-height: 25px; margin-inline-start: auto;
+  padding: 2px 6px; border: 1px solid #937285; border-radius: 3px;
+  background: #fff9ec; color: #78294e; pointer-events: auto; cursor: pointer;
+  font: 650 clamp(10px, 2.8cqw, 12px)/1.2 var(--chart-sans);
+}
+.world-atlas-deed svg { width: 12px; height: 12px; }
+.world-atlas-deed:hover { background: #f2e6e5; }
+.world-atlas-deed:focus-visible { outline: 2px solid #922959; outline-offset: 1px; }
+.world-atlas-roll { display: inline-flex; align-items: center; gap: 3px; color: #376267; font: 650 10px/1.2 var(--chart-mono); }
+.world-atlas-roll svg { width: 12px; height: 12px; }
+
+.world-atlas-cargo-toggle { border-color: #668c85; color: #145957; }
+.world-atlas-cargo-toggle + .world-atlas-deed { margin-inline-start: 0; }
+.world-atlas-cargo-ports { display: flex; align-items: center; gap: 6px; padding-bottom: 3px; border-bottom: 1px solid #c3cbbb; }
+.world-atlas-cargo-ports > span { min-width: 0; }
+.world-atlas-cargo-ports b { color: #145b59; font: 650 clamp(11px, 4cqw, 16px)/1.15 var(--chart-display); }
+.world-atlas-cargo-ports > span:last-child b { color: #892552; }
+.world-atlas-cargo-ports small { display: inline-block; margin-inline-start: 4px; color: #47615d; font-size: .78em; }
+.world-atlas-cargo-ports svg { width: 15px; height: 15px; flex: none; color: #58706a; }
+.world-atlas-cargo-terms {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1px 6px;
+  padding-top: 3px; font: 500 clamp(10px, 2.65cqw, 12px)/1.2 var(--chart-sans);
+}
+.world-atlas-cargo-terms span { grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere; }
+.world-atlas-cargo-terms strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.world-atlas-cargo-terms button { min-height: 22px; }
+/* The map window clips the coastline. Let long port names wrap on the upright card. */
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-sheet { overflow: visible; }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading { left: 70%; top: 30%; width: 62%; }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading h3 { font-size: clamp(14px, 4.2cqw, 21px); }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading button { width: 27px; min-height: 27px; height: 27px; padding: 3px; }
+.world-port-atlas-tilted[data-view="cargo"] [data-atlas-cargo-back] span { display: none; }
+.world-port-atlas-tilted[data-view="cargo"] .world-atlas-caption { left: 29%; top: 71%; width: 64%; padding: 4px 7px 5px; }
+@container (max-width: 780px) or (max-height: 520px) {
+  .world-port-atlas-tilted[data-view="cargo"] .world-atlas-heading { left: 52%; top: 16%; width: 83%; }
+  .world-port-atlas-tilted[data-view="cargo"] .world-atlas-caption { left: 48%; top: 80%; width: 83%; }
+}

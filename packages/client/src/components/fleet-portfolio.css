@@ -1,0 +1,93 @@
+.table-players > .table-player { display: block; padding: 0; }
+.fleet-portfolio-open {
+  width: 100%;
+  min-height: 45px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  column-gap: 7px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.fleet-balance { display: grid; justify-items: end; gap: 2px; }
+.fleet-portfolio-open:hover { background: #e9eee3; }
+.fleet-asset-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: end;
+  gap: 3px;
+  min-width: 26px;
+  font: 600 11px var(--chart-mono);
+  color: #385c60;
+}
+.fleet-asset-count svg, .fleet-open-arrow { width: 13px; height: 13px; }
+.fleet-open-arrow { color: #385c60; }
+.fleet-portfolio-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  font-variant-numeric: tabular-nums;
+}
+.fleet-portfolio-summary dt { color: var(--action-muted); font-size: 12px; }
+.fleet-portfolio-summary dd { margin: 1px 0 0; font: 650 17px/1.35 var(--action-number); }
+.fleet-group-heading, .fleet-group-heading h3 { display: flex; align-items: baseline; }
+.fleet-group-heading {
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--action-rule);
+}
+.fleet-group-heading h3 { align-items: center; gap: 7px; font-size: 14px; font-weight: 700; }
+.fleet-group-heading i { flex: none; width: 10px; height: 10px; border: 1px solid #18364040; }
+.fleet-group-heading > span { flex: none; color: var(--action-muted); font: 600 10px var(--action-number); }
+.fleet-property {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) fit-content(46%);
+  align-items: baseline;
+  gap: 3px 7px;
+  padding-block: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.fleet-property + .fleet-property { border-top: 1px dotted #afb9ab; }
+.fleet-property > span:first-child { min-width: 0; }
+.fleet-property small { display: block; color: #954765; font-size: 11px; }
+.fleet-rent { font: 650 12px/1.45 var(--action-number); text-align: right; }
+.fleet-rent > span { font: 500 11px var(--action-number); color: var(--action-muted); }
+.fleet-offer-button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid #99aba2;
+  border-radius: 4px;
+  background: #f1f2e6;
+  color: var(--action-ink);
+  font-weight: 650;
+  cursor: pointer;
+}
+.fleet-offer-button:hover { background: #e4eada; }
+.fleet-offer-button:focus-visible { outline: 2px solid #087d89; outline-offset: 2px; }
+@media (pointer: coarse) {
+  .fleet-offer-button { min-height: 44px; }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  .fleet-portfolio-open {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 0 4px;
+    min-height: 42px;
+  }
+  .fleet-portfolio-open .chart-token { grid-area: 1 / 1 / 3; }
+  .fleet-portfolio-open .chart-player-name { grid-area: 1 / 2 / 2 / 4; }
+  .fleet-portfolio-open .chart-balance { grid-area: 2 / 2; }
+  .fleet-asset-count { grid-area: 2 / 3; min-width: 18px; font-size: 10px; }
+  .fleet-asset-count svg { width: 10px; height: 10px; }
+  .fleet-open-arrow { grid-area: 1 / 4 / 3; width: 10px; }
+}

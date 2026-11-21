@@ -1,0 +1,33 @@
+.feeder-route-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  background: #b7d9cc;
+  border: 1px solid #789890;
+  border-radius: 4px;
+  isolation: isolate;
+}
+.feeder-route-map text { font-family: var(--chart-mono, monospace); }
+.feeder-map-leader { fill: none; stroke-width: 1; }
+.feeder-map-from .feeder-map-leader { stroke: #315a60; }
+.feeder-map-to .feeder-map-leader { stroke: #8a4765; }
+.feeder-map-from rect { fill: #244750; stroke: #fff7e4; }
+.feeder-map-to rect { fill: #fff5de; stroke: #98305d; }
+.feeder-map-from text, .feeder-map-to text { font-size: 13px; font-weight: 750; letter-spacing: .35px; }
+.feeder-map-from text { fill: #fff8e5; }
+.feeder-map-to text { fill: #7b204c; }
+.feeder-map-north text, .feeder-map-scale text {
+  fill: #274d52; stroke: #e8efdb; stroke-width: 2; paint-order: stroke;
+  font-size: 10px; font-weight: 700;
+}
+.feeder-map-model { stroke: #fff3d6; stroke-width: .45; stroke-linejoin: round; }
+.feeder-map-distance { fill: #7b2450; stroke: #f9f3db; stroke-width: 4px; paint-order: stroke; font-size: 12px; font-weight: 700; }
+.feeder-map-trace { fill: none; stroke: white; stroke-width: 14; stroke-linecap: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .feeder-map-trace {
+    stroke-dasharray: 1;
+    animation: feeder-map-draw .55s ease-out;
+  }
+  @keyframes feeder-map-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+}

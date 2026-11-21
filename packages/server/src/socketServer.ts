@@ -1,7 +1,10 @@
 import { Server as HttpServer } from 'node:http';
 import { Server, Socket } from 'socket.io';
-import { GameAction, VesselToken } from '@one-monopoly/shared';
-import { Room, RoomManager } from './roomManager.js';
+import { type FreightRivalStyle, GameAction, type GameMode, VesselToken } from '@one-monopoly/shared';
+import { gameStateForPlayer, getTimerPlayerId, publicGameEvents, Room, RoomManager } from './roomManager.js';
+
+// Kept public here for callers consuming the socket projection directly.
+export { gameStateForPlayer } from './roomManager.js';
 
 export function setupSocketServer(httpServer: HttpServer): { io: Server; roomManager: RoomManager } {
   const io = new Server(httpServer, {
@@ -18,6 +21,7 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
       id: p.id,
       name: p.name,
       token: p.token,
+      ...(p.freightRivalStyle && { freightRivalStyle: p.freightRivalStyle }),
       isReady: p.isReady,
       isOnline: p.isOnline,
     })),
@@ -27,7 +31,12 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
 
   const roomManager = new RoomManager({
     onBroadcastUpdate: (roomId, state, events) => {
-      io.to(roomId).emit('game:update', { state, events });
+      const room = roomManager.getRoom(roomId);
+      if (!room) return;
+      const publicEvents = publicGameEvents(events);
+      for (const [socketId, playerId] of room.socketToPlayer) {
+        io.to(socketId).emit('game:update', { state: gameStateForPlayer(state, playerId), events: publicEvents });
+      }
     },
     onTimerTick: (roomId, remainingSeconds, playerId) => {
       io.to(roomId).emit('game:timer', { remainingSeconds, playerId });
@@ -98,10 +107,17 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
         io.to(result.room.id).emit('room:state', serialized);
 
         // If reconnecting to an ongoing game, send latest GameState
-        if (result.isReconnect && result.room.gameState) {
+        const state = result.room.gameState && gameStateForPlayer(result.room.gameState, result.playerId);
+        if (result.isReconnect && state) {
           socket.emit('game:init', {
-            state: result.room.gameState,
+            state,
           });
+          if (result.room.timer && !state.winnerId) {
+            socket.emit('game:timer', {
+              remainingSeconds: result.room.timer.getRemainingSeconds(),
+              playerId: getTimerPlayerId(state),
+            });
+          }
         }
 
         if (callback) {
@@ -112,7 +128,7 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
             sessionToken: result.sessionToken,
             room: serialized,
             isReconnect: result.isReconnect,
-            gameState: result.room.gameState,
+            gameState: state,
           });
         }
       }
@@ -129,8 +145,11 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
     // 4. Start Game
     socket.on(
       'room:start',
-      (data: { roomId: string; playerId: string }, callback?: (res: any) => void) => {
-        const result = roomManager.startGame(data.roomId, data.playerId);
+      (data: { roomId: string; playerId: string; mode?: GameMode; rivalStyle?: FreightRivalStyle }, callback?: (res: any) => void) => {
+        const seat = typeof data?.roomId === 'string' ? roomManager.getRoom(data.roomId)?.socketToPlayer.get(socket.id) : undefined;
+        const result = seat && seat === data.playerId
+          ? roomManager.startGame(data.roomId, seat, data.mode, data.rivalStyle)
+          : { success: false, error: 'Kết nối này không đại diện cho phòng trưởng.' };
         if (callback) callback(result);
       }
     );
@@ -142,11 +161,7 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
         data: { roomId: string; playerId: string; action: GameAction },
         callback?: (res: any) => void
       ) => {
-        const result = roomManager.dispatchAction(
-          data.roomId,
-          data.playerId,
-          data.action
-        );
+        const result = roomManager.dispatchSocketAction(socket.id, data);
         if (callback) callback(result);
       }
     );
@@ -155,10 +170,10 @@ export function setupSocketServer(httpServer: HttpServer): { io: Server; roomMan
     socket.on(
       'game:reaction',
       (data: { roomId: string; playerId: string; emoji: string }) => {
-        io.to(data.roomId).emit('game:reaction', {
-          playerId: data.playerId,
-          emoji: data.emoji,
-        });
+        const room = typeof data?.roomId === 'string' ? roomManager.getRoom(data.roomId) : undefined;
+        const sender = room?.socketToPlayer.get(socket.id);
+        if (!room || !sender || typeof data.emoji !== 'string') return;
+        io.to(room.id).emit('game:reaction', { playerId: sender, emoji: data.emoji });
       }
     );
 

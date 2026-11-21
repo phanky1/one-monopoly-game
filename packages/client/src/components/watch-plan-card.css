@@ -1,0 +1,64 @@
+.watch-plan-card {
+  min-width: 0;
+  margin-bottom: 8px;
+  padding: 9px 10px;
+  color: #243e42;
+  background: #faf7e9;
+  border: 1px solid #b6b8a4;
+  border-inline-start: 3px solid #6d8982;
+  border-radius: 4px;
+  font: 550 12px/1.35 var(--chart-sans);
+}
+.watch-plan-card[data-status="ready"] { border-inline-start-color: #982a54; }
+.watch-plan-card[data-status="blocked"] { border-inline-start-color: #955129; }
+.watch-plan-card:focus-visible,
+.watch-plan-card button:focus-visible { outline: 2px solid #98315c; outline-offset: 2px; }
+.watch-plan-card h2, .watch-plan-card p { margin: 0; }
+.watch-plan-card h2 { color: #24484b; font: 750 13px/1.2 var(--chart-sans); }
+.watch-plan-card button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-height: 29px; padding: 3px 7px; border-radius: 3px;
+  color: #23585b; background: transparent; border: 1px solid #9aaea0;
+  font: 700 12px/1.2 var(--chart-sans); text-align: left; cursor: pointer;
+}
+.watch-plan-card button:enabled:hover { background: #e9eddf; }
+.watch-plan-card button:disabled { opacity: .6; cursor: default; }
+.watch-plan-card button svg, .watch-plan-card h2 svg { flex: none; }
+.watch-plan-head, .watch-plan-head h2, .watch-plan-invite { display: flex; align-items: center; gap: 6px; }
+.watch-plan-invite { flex-wrap: wrap; padding-block: 5px; }
+.watch-plan-invite > svg { color: #4e7169; }
+.watch-plan-invite button { margin-inline-start: auto; }
+.watch-plan-head { justify-content: space-between; }
+.watch-plan-head > span { color: #596250; font: 700 11px/1.25 var(--chart-mono); }
+.watch-plan-itinerary {
+  display: grid; grid-template-columns: minmax(0, 1fr) clamp(92px, 34%, 145px);
+  gap: 9px; margin: 6px 0; align-items: center;
+}
+.watch-plan-itinerary .watch-route-title {
+  display: flex; flex-wrap: wrap; align-items: center; column-gap: 4px;
+  font: 700 15px/1.2 var(--chart-display); color: #223f43; overflow-wrap: anywhere;
+}
+.watch-route-title svg { flex: none; color: #837c6b; }
+.watch-plan-itinerary .watch-port-codes { margin-top: 2px; color: #596456; font: 650 10px/1.25 var(--chart-mono); letter-spacing: .035em; }
+.watch-plan-itinerary .watch-plan-terms { margin-top: 4px; color: #404e48; font-size: 11px; }
+.watch-plan-terms svg { display: inline-block; margin-inline-end: 2px; vertical-align: -.2em; }
+.watch-plan-terms strong { color: #244d46; white-space: nowrap; }
+.watch-route-figure { min-width: 0; margin: 0; }
+.watch-route-figure figcaption { margin-top: 2px; color: #50625a; font: 600 10px/1.2 var(--chart-sans); text-align: right; }
+.watch-route-chart {
+  display: block; width: 100%; height: auto; border: 1px solid #a2b4a2;
+  border-radius: 2px; background-color: #c6dcd6;
+  background-image: linear-gradient(to right, #88a99b55 1px, transparent 1px), linear-gradient(to bottom, #88a99b55 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.watch-plan-card .watch-plan-status, .watch-plan-card .watch-plan-diversion { margin-top: 3px; color: #4f6055; font-size: 11px; }
+.watch-plan-card[data-status="blocked"] .watch-plan-status { color: #854125; font-weight: 700; }
+.watch-plan-card[data-status="ready"] .watch-plan-status { color: #2c614d; }
+.watch-plan-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; margin-top: 6px; }
+.watch-plan-card .watch-plan-clear { border-color: transparent; padding-inline: 3px; color: #576358; }
+.watch-plan-card .watch-plan-confirm { background: #8f2952; border-color: #8f2952; color: #fffdf1; }
+.watch-plan-card .watch-plan-confirm:enabled:hover { background: #742143; }
+@media (prefers-reduced-motion: no-preference) {
+  .watch-route-chart [data-animate="true"] { animation: watch-trace-route 850ms ease-out both; }
+  @keyframes watch-trace-route { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+}

@@ -1,0 +1,40 @@
+.chart-player-name.fleet-captain {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: visible;
+}
+.fleet-captain-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fleet-reaction-badge {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 24px;
+  border: 1px solid #bd7c9c;
+  border-radius: 8px 8px 8px 2px;
+  background: #fff7e8;
+  box-shadow: 0 2px 3px #14354124;
+  font: 17px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  pointer-events: none;
+  transform-origin: 4px 85%;
+  animation: fleet-reaction-arrive 380ms ease-out both;
+}
+@keyframes fleet-reaction-arrive {
+  0% { opacity: 0; transform: translateY(5px) scale(.78) rotate(-7deg); }
+  55% { opacity: 1; transform: translateY(-3px) scale(1.1) rotate(2deg); }
+  100% { opacity: 1; transform: none; }
+}
+@media (max-width: 900px) and (orientation: portrait) {
+  .chart-player-name.fleet-captain { gap: 3px; }
+  .fleet-reaction-badge { width: 21px; height: 18px; font-size: 13px; border-radius: 5px 5px 5px 1px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fleet-reaction-badge { animation: none; }
+}

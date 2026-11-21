@@ -1,0 +1,104 @@
+.freight-desk {
+  --freight-ink: #173e47;
+  --freight-muted: #4a6668;
+  --freight-rule: #becbbd;
+  --freight-paper: #fcf9ed;
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #91a99e;
+  border-radius: 5px;
+  color: var(--freight-ink);
+  background: var(--freight-paper);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.freight-desk svg:where(.lucide) { width: 16px; height: 16px; flex: 0 0 auto; }
+.freight-desk h2, .freight-desk p, .freight-desk dl, .freight-desk dd { margin: 0; }
+.freight-desk-header, .freight-berth, .freight-ticket-type, .freight-terms, .freight-empty,
+.freight-receipt, .freight-quote, .freight-progress, .freight-link, .freight-ticket-route {
+  display: flex; align-items: center; gap: 6px;
+}
+.freight-desk-header { justify-content: space-between; align-items: start; }
+.freight-desk-header h2 { font: 700 20px/1.05 Spectral, Georgia, serif; color: #123844; }
+.freight-desk-header p, .freight-note, .freight-wait, .freight-own-cargo { color: var(--freight-muted); }
+.freight-desk-header p { margin-top: 3px; font-size: 12px; }
+.freight-progress {
+  border: 1px solid var(--freight-rule); border-radius: 3px; padding: 3px 6px;
+  white-space: nowrap; font-family: var(--chart-mono, ui-monospace, monospace); font-weight: 750;
+}
+.freight-berth { padding-top: 6px; border-top: 1px solid var(--freight-rule); }
+.freight-berth > span:first-of-type { color: var(--freight-muted); }
+.freight-berth strong { color: var(--freight-ink); font-size: 15px; margin-left: 3px; }
+.freight-port-code { margin-left: auto; font: 700 11px/1.3 var(--chart-mono, ui-monospace, monospace); color: #456567; }
+.freight-stock { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-block: 1px solid var(--freight-rule); }
+.freight-stock > div { padding: 5px 4px; border-right: 1px solid var(--freight-rule); }
+.freight-stock > div:first-child { padding-left: 0; }
+.freight-stock > div:last-child { border: 0; padding-right: 0; }
+.freight-stock dt { font-size: 10px; color: var(--freight-muted); }
+.freight-stock dd { font: 700 15px/1.25 var(--chart-mono, ui-monospace, monospace); }
+.freight-empty { color: var(--freight-muted); font-size: 12px; }
+.freight-booking, .freight-sailing, .freight-amend-form { display: grid; gap: 7px; min-width: 0; }
+.freight-kind { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; border: 0; }
+.freight-kind legend, .freight-field-heading label { display: block; margin: 0 0 3px; font-size: 12px; font-weight: 700; }
+.freight-kind label { flex: 1; position: relative; cursor: pointer; min-width: 0; }
+.freight-kind input { position: absolute; opacity: 0; }
+.freight-kind label > span {
+  display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 33px;
+  border: 1px solid #859f98; border-radius: 3px; color: var(--freight-ink);
+  font-size: 12px; font-weight: 650;
+}
+.freight-kind input:checked + span { background: #dbe8de; border-color: #486d62; box-shadow: inset 0 -2px #477464; }
+.freight-field { display: block; min-width: 0; }
+.freight-field-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.freight-field-heading button {
+  display: inline-flex; gap: 4px; align-items: center; padding: 3px 0; border: 0;
+  background: transparent; color: #823457; font: 650 12px/1.35 var(--chart-sans); cursor: pointer;
+}
+.freight-field-heading button:hover { text-decoration: underline; }
+.freight-field-heading button svg { width: 13px; height: 13px; }
+.freight-field select {
+  width: 100%; min-width: 0; min-height: 38px; padding: 4px 5px; border: 1px solid #839b93;
+  border-radius: 3px; background: #fffdf4; color: var(--freight-ink); font: inherit;
+}
+.freight-terms { justify-content: space-between; flex-wrap: wrap; color: var(--freight-muted); font-size: 12px; }
+.freight-quote { flex-wrap: wrap; gap: 4px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.freight-quote svg { width: 13px; height: 13px; }
+.freight-quote strong, .freight-receipt > strong { color: #165443; white-space: nowrap; }
+.freight-desk .chart-button { width: 100%; min-height: 38px; font-size: 13px; }
+.freight-desk .freight-handling { color: #063c36; border-color: #5d8777; background: #e2eee1; }
+.freight-desk .freight-sail { color: #fffbed; border-color: #143e46; background: #184653; }
+.freight-desk .freight-end { color: #fffbed; background: #233d4b; border-color: #193641; }
+.freight-desk .chart-button:disabled { opacity: .6; }
+.freight-ticket { display: grid; gap: 4px; padding: 8px 10px; background: #edf1e4; border: 1px dashed #829c89; border-radius: 3px; }
+.freight-ticket-type { color: #416253; font-size: 11px; font-weight: 700; }
+.freight-ticket-route { color: #123e3c; font: 700 16px/1.2 Spectral, Georgia, serif; flex-wrap: wrap; }
+.freight-ticket-route svg { width: 14px; height: 14px; }
+.freight-amend { min-width: 0; }
+.freight-link, .freight-empty-sailing summary {
+  cursor: pointer; width: fit-content; color: #34596a; background: transparent;
+  border: 0; padding: 3px 0; font-weight: 650; font-size: 12px; line-height: 1.4;
+}
+.freight-link { min-height: 28px; font-size: 12px; font-weight: 650; }
+.freight-link svg { width: 14px; }
+.freight-amend-form { margin-top: 4px; padding: 8px; border-left: 2px solid #72917f; background: #f1f2e7; }
+.freight-empty-sailing { border-top: 1px solid var(--freight-rule); padding-top: 2px; }
+.freight-empty-sailing summary { display: list-item; font-size: 12px; font-weight: 650; }
+.freight-empty-sailing summary svg { display: inline; width: 15px; vertical-align: middle; margin: 0 5px 0 0; }
+.freight-empty-sailing[open] > :not(summary) { margin-top: 7px; }
+.freight-desk :is(button,select,summary):focus-visible, .freight-kind input:focus-visible + span {
+  outline: 2px solid #ae0c60; outline-offset: 2px;
+}
+.freight-receipt, .freight-own-cargo { padding-top: 6px; border-top: 1px solid var(--freight-rule); font-size: 12px; }
+.freight-receipt svg { color: #286449; }
+.freight-desk [data-desk-settlement]:focus-visible { outline: 2px solid #17527b; outline-offset: 2px; }
+.freight-receipt > strong { margin-left: auto; }
+.freight-own-cargo strong { margin-left: 4px; }
+@media (max-width: 430px) {
+  .freight-desk { padding: 10px; gap: 8px; }
+  .freight-desk .chart-button, .freight-field select, .freight-kind label > span { min-height: 42px; }
+}
+
+.freight-stock dd small { margin-left: 4px; color: var(--freight-muted); font: 500 10px/1.2 Inter, sans-serif; }
+.freight-desk .freight-pass { background: transparent; border-color: var(--freight-rule); color: var(--freight-muted); }

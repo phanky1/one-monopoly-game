@@ -1,0 +1,57 @@
+.table-player.freight-captain {
+  display: block;
+  padding: 0;
+}
+.freight-captain details { min-width: 0; }
+.freight-captain summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "token name count arrow" "token port earnings arrow";
+  align-items: center;
+  gap: 2px 7px;
+  min-height: 48px;
+  padding: 6px 1px;
+  cursor: pointer;
+  list-style: none;
+}
+.freight-captain summary::-webkit-details-marker { display: none; }
+.freight-captain summary:hover { background: #e9eee3; }
+.freight-captain summary:focus-visible { outline: 2px solid #087d89; outline-offset: -1px; }
+.freight-captain .chart-token { grid-area: token; }
+.freight-captain .chart-player-name { grid-area: name; }
+.freight-progress { grid-area: count; text-align: right; font: 700 13px/1.15 var(--chart-mono); }
+.freight-captain[aria-current="step"] .freight-progress { color: var(--chart-magenta); }
+.freight-earnings { grid-area: earnings; text-align: right; font: 550 11px var(--chart-mono); color: #365d54; }
+.freight-location {
+  grid-area: port;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  color: #4a6466;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.freight-location svg { flex: none; }
+.freight-disclose { grid-area: arrow; width: 13px; height: 13px; color: #57716e; }
+.freight-captain details[open] .freight-disclose { transform: rotate(90deg); }
+.freight-manifest { margin: 0 0 6px; padding: 6px 9px; border-left: 2px solid #60968b; background: #e6eee5; font-size: 12px; overflow-wrap: anywhere; }
+.freight-manifest strong, .freight-manifest small { display: block; }
+.freight-manifest p { margin: 0; }
+.freight-manifest small { color: #466264; font: 500 10px var(--chart-mono); }
+.freight-standings { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; font-variant-numeric: tabular-nums; }
+.freight-standings caption { text-align: left; padding-bottom: 5px; font-weight: 700; }
+.freight-standings thead th { color: #456a6b; font-size: 11px; }
+.freight-standings th, .freight-standings td { border-bottom: 1px solid #c7d1c5; padding: 7px 4px; }
+.freight-standings th[scope="row"] { max-width: 12em; overflow-wrap: anywhere; }
+.freight-standings th:last-child, .freight-standings td:last-child { text-align: right; white-space: nowrap; }
+.freight-standings td small { display: block; font-size: 10px; line-height: 1.25; color: #456264; white-space: nowrap; }
+.freight-standings tbody tr:first-child { background: #e5eee4; }
+.freight-place { color: #526d69; }
+@media (max-width: 900px) and (orientation: portrait) {
+  .freight-captain summary { gap: 1px 4px; grid-template-areas: "token name name arrow" "token count earnings arrow" "token port port arrow"; min-height: 44px; }
+  .freight-progress { text-align: left; font-size: 11px; }
+  .freight-location, .freight-earnings { font-size: 10px; }
+  .freight-location svg, .freight-disclose { width: 10px; }
+}

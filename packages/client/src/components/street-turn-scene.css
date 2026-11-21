@@ -1,0 +1,30 @@
+.street-turn-scene { margin: 0; min-width: 0; }
+.street-turn-scene > svg, .freight-desk .street-turn-scene > svg {
+  display: block; width: 100%; height: auto; max-width: 100%;
+  border-block: 1px solid #becbbb; background: #e5ede1;
+}
+.street-turn-scene svg text { font: 800 8px var(--chart-sans); letter-spacing: .35px; }
+.street-turn-scene [data-street-seal] text { font-size: 7px; }
+.street-turn-scene figcaption {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 5px; margin-top: 3px;
+  color: #445d54; font: 600 10.5px/1.3 var(--chart-sans);
+}
+.street-turn-scene figcaption strong { color: #783c50; font-weight: 700; }
+.street-turn-scene [data-street-pallet] { opacity: 0; }
+.street-turn-scene .street-rear-door { transform-origin: 192px 54px; }
+@media (prefers-reduced-motion: no-preference) {
+  .street-turn-scene[data-animate="true"] [data-street-truck] { animation: street-back-to-dock 3.4s ease-in-out both; }
+  .street-turn-scene[data-animate="true"] [data-street-forklift] { animation: street-pack-export 3.4s ease-in-out both; }
+  .street-turn-scene[data-animate="true"] [data-street-pallet] { animation: street-stow-pallet 3.4s linear both; }
+  .street-turn-scene[data-animate="true"] .street-rear-door { animation: street-open-doors 3.4s ease-in-out both; }
+  .street-turn-scene[data-animate="true"] [data-street-seal] { animation: street-seal-export 3.4s ease-out both; }
+  @keyframes street-back-to-dock { 0%, 5% { transform: translateX(-70px); } 37%, 100% { transform: translateX(0); } }
+  @keyframes street-pack-export {
+    0%, 35% { transform: translateX(0); }
+    64%, 69% { transform: translateX(-56px); }
+    92%, 100% { transform: translateX(0); }
+  }
+  @keyframes street-stow-pallet { 0%, 62% { opacity: 1; } 65%, 100% { opacity: 0; } }
+  @keyframes street-open-doors { 0%, 33%, 85%, 100% { transform: scaleX(1); } 43%, 77% { transform: scaleX(.12); } }
+  @keyframes street-seal-export { 0%, 85% { opacity: 0; } 92%, 100% { opacity: 1; } }
+}

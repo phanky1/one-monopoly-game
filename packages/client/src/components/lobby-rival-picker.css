@@ -1,0 +1,70 @@
+.chart-lobby-modes:has(+ .lobby-solo-hint) { margin-bottom: 7px; }
+.lobby-solo-hint {
+  margin: 0 0 19px;
+  color: #465e62;
+  font-size: .81rem;
+  line-height: 1.4;
+}
+.lobby-rival-picker {
+  container-type: inline-size;
+  min-width: 0;
+  margin: 19px 0 0;
+  padding: 0;
+  border: 0;
+}
+.lobby-rival-picker legend {
+  margin: 0 0 7px;
+  padding: 0;
+  color: #445962;
+  font: 650 .71rem/1.3 var(--chart-mono, monospace);
+  letter-spacing: .095em;
+  text-transform: uppercase;
+}
+.lobby-rival-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.lobby-rival-option { position: relative; min-width: 0; cursor: pointer; }
+.lobby-rival-option input {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #9d1e56;
+  cursor: pointer;
+}
+.lobby-rival-card {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  height: 100%;
+  padding: 8px 9px 9px;
+  border: 1px solid #b9c1b9;
+  border-radius: 4px;
+  background: #faf9f0;
+  color: var(--lobby-navy);
+}
+.lobby-rival-card strong { font-size: .83rem; line-height: 1.2; }
+.lobby-rival-emoji { font-size: 1.4rem; line-height: 1.15; }
+.lobby-rival-description { color: #435b5e; font-size: .74rem; line-height: 1.4; }
+.lobby-rival-option:hover .lobby-rival-card { border-color: #778e88; }
+.lobby-rival-option input:checked + .lobby-rival-card {
+  border-color: #aa3161;
+  background: #fff2f4;
+  box-shadow: inset 0 0 0 1px #aa3161;
+}
+.chart-lobby .lobby-rival-option input:focus-visible { outline: 0; }
+.lobby-rival-option input:focus-visible + .lobby-rival-card { outline: 2px solid #17527b; outline-offset: 2px; }
+.lobby-rival-picker:disabled :is(label,input) { cursor: progress; }
+.lobby-rival-picker + .chart-lobby-primary { margin-top: 14px; }
+@container (max-width: 23rem) {
+  .lobby-rival-options { grid-template-columns: 1fr; gap: 4px; }
+  .lobby-rival-option input { top: 50%; transform: translateY(-50%); }
+  .lobby-rival-card {
+    grid-template-columns: 24px minmax(0, 1fr);
+    column-gap: 8px;
+    row-gap: 2px;
+    min-height: 44px;
+    padding: 6px 32px 6px 9px;
+  }
+  .lobby-rival-emoji { grid-row: 1 / 3; align-self: center; }
+}

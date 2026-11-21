@@ -1,0 +1,86 @@
+.chart-water:has(> .board-sky) {
+  --water-center: #e9edda;
+  --water-shallow: #c4dfce;
+  --water-deep: #91c0b7;
+  --sky-glow: #ffe5a570;
+  background: radial-gradient(ellipse at 48% 48%, var(--water-center), var(--water-shallow) 51%, var(--water-deep));
+}
+
+.chart-water:has(> .board-sky[data-phase='dawn']) {
+  --water-center: #f1e8cf;
+  --water-shallow: #d6dcc7;
+  --sky-glow: #ffc77796;
+}
+
+.chart-water:has(> .board-sky[data-phase='dusk']) {
+  --water-center: #edddc8;
+  --water-shallow: #d3cfbf;
+  --water-deep: #99aaa7;
+  --sky-glow: #ffa58099;
+}
+
+.chart-water:has(> .board-sky[data-body='moon']) {
+  --water-center: #9fb9bf;
+  --water-shallow: #6d919f;
+  --water-deep: #476578;
+  --sky-glow: #d9eafa65;
+}
+
+.chart-water:has(> .board-sky[data-phase='midnight']) {
+  --water-center: #89a8b1;
+  --water-shallow: #5d7f90;
+  --water-deep: #385569;
+}
+
+.chart-water:has(> .board-sky[data-body='moon']) .pacific-chart {
+  filter: saturate(.65);
+  opacity: .73;
+}
+
+.chart-water:has(> .board-sky[data-weather='storm']) {
+  --water-center: #b8c8c5;
+  --water-shallow: #8da9ad;
+  --water-deep: #587681;
+  --sky-glow: #d3d7c73b;
+}
+
+.chart-water:has(> .board-sky[data-body='moon'][data-weather='storm']) {
+  --water-center: #8fa4ac;
+  --water-shallow: #657e8b;
+  --water-deep: #405767;
+}
+
+.chart-water:has(> .board-sky[data-body='sun'][data-weather='showers']) {
+  --water-center: #d4dfd1;
+  --water-shallow: #adc8bd;
+  --water-deep: #81a6a5;
+  --sky-glow: #f4e9b54a;
+}
+
+.board-sky[data-weather='showers'] .board-sky-showers { opacity: .29; }
+.board-sky[data-weather='showers'] .board-sky-cloud { transform: translate(-11px, 9px) scale(.75); }
+
+.board-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse at var(--sky-x) var(--sky-y), var(--sky-glow), transparent 43%);
+}
+
+.board-sky-sun { color: #945523; }
+@media (prefers-reduced-motion: no-preference) {
+  .board-sky-source { transition: transform .6s ease-in-out; }
+}
+.board-sky[data-phase='dusk'] .board-sky-sun { color: #924e3d; }
+.board-sky-moon { color: #f6edcd; }
+.board-sky-scale { stroke-width: 1.3; opacity: .8; }
+.board-sky-storm { color: #354f62; }
+.board-sky-showers { opacity: .49; }
+.board-sky-fronts { stroke-width: 1.2; opacity: .63; }
+.board-sky[data-weather='storm'] :is(.board-sky-sun, .board-sky-moon) { opacity: .72; }
+.board-sky-cloud { fill: #b7c7c9; stroke: #415b68; stroke-width: 1.6; }
+.board-sky[data-body='moon'] .board-sky-cloud { fill: #95a8b3; stroke: #304c5d; }

@@ -77,13 +77,13 @@ Bàn cờ hình vuông kích thước 11x11 ô, đánh số từ `0` đến `39`
 
 ## 4. Luật Xây Dựng & Thế Chấp
 
-- **Mở khóa nâng cấp:** Người chơi phải sở hữu toàn bộ các cảng trong cùng 1 `LoopGroup` và không có cảng nào trong nhóm đang bị thế chấp.
-- **Quy tắc xây đều (Even Building Rule):**
-  - Không được xây cấp $k+1$ ở một cảng nếu trong cùng nhóm còn có cảng ở cấp $k-1$. Mức chênh lệch container giữa các cảng trong cùng nhóm không được vượt quá 1.
-  - Cấp 5 là **Mega Terminal** (thay thế 4 container bằng 1 siêu bến bãi container).
-- **Hạ cấp / Bán container:** Khi cần tiền trả nợ, người chơi có thể bán container với giá bằng **50% chi phí xây dựng** (`buildCost * 0.5`), cũng phải tuân thủ quy tắc hạ đều.
+- **Mở khóa nâng cấp khi tàu ghé lại cảng (Revisit Upgrade):** Người chơi không cần gom đủ bộ màu `LoopGroup`. Lần đầu ghé chỉ được mua cảng. Những lần ghé sau (đáp lại vào cảng thuộc sở hữu của mình), người chơi được nâng cấp tối đa 1 lần trong lần ghé đó (`BUILD_CONTAINER` hoặc `UPGRADE_GREEN_FLEET`), không được nâng cấp nhiều lần trong một lần ghé. Cảng không được đang bị thế chấp.
+- **Các cấp độ nâng cấp:**
+  - Cấp 1 – 4 là các Lô Container Magenta trên từng cảng độc lập (không bắt buộc xây đều giữa các cảng trong nhóm).
+  - Cấp 5 là **Siêu tàu ONE Innovation / Mega Terminal** (thay thế 4 container bằng 1 siêu tàu 24.000 TEU).
+- **Hạ cấp / Bán container:** Khi cần tiền trả nợ, người chơi có thể bán container ở bất kỳ cảng nào của mình từ xa với giá bằng **50% chi phí xây dựng** (`buildCost * 0.5`).
 - **Thế chấp tài sản (`MORTGAGE`):**
-  - Chỉ được thế chấp khi cảng đó đã bán hết toàn bộ container trong nhóm.
+  - Chỉ được thế chấp khi chính cảng đó đã bán hết container (`containerLevel === 0`).
   - Nhận ngay: `mortgageValue = 50% purchasePrice`.
 - **Chuộc tài sản (`UNMORTGAGE`):**
   - Trả phí: $\lceil \text{mortgageValue} \times 1.1 \rceil$ (gốc + 10% lãi suất ngân hàng).
@@ -128,7 +128,10 @@ Khi đang ở `CUSTOMS_HOLD`, người chơi có 3 cách để thoát:
   - Nếu B đồng ý:
     - A được **giảm 50% cước phí** cho lượt này.
     - Cảng đó được kích hoạt Thỏa thuận Liên minh: Ở lượt kế tiếp khi có **bất kỳ người chơi thứ ba nào** đi vào cảng, A và B sẽ **chia đôi 50/50 doanh thu** cước thu được!
-  - Nếu B từ chối: A phải nộp đủ 100% cước phí bình thường.
+  - Nếu B từ chối hoặc hết thời gian phản hồi, A phải nộp đủ 100% cước phí bình thường.
+  - Nếu A thiếu tiền, số cước sau quyết định của B trở thành khoản nợ theo mục 6. Thỏa thuận mới có hiệu lực khi A thanh toán đủ cước đã giảm.
+  - Thỏa thuận đang có được ưu tiên ở lần ghé cảng của người chơi thứ ba tiếp theo, kể cả khi người đó sở hữu Tuyến Dịch Vụ. Nếu khách thiếu tiền, khoản nợ ghi nhận phần của cả hai bên và được chia khi khách thanh toán. Khi chia số tiền lẻ theo đơn vị triệu USD, chủ cảng nhận phần dư (ví dụ $625M được chia thành $313M cho chủ cảng và $312M cho đối tác).
+  - Nếu khách phá sản trước khi thanh toán, lần chia cước đó kết thúc. Chủ cảng nhận tiền mặt còn lại và tài sản của khách theo quy tắc phá sản ở mục 6.
 
 ### 7.2. Nâng Cấp "Tàu Nhiên Liệu Xanh" (Green Fleet Upgrade – Methanol / Ammonia)
 - Tại bất kỳ cảng nào đã nâng cấp tối đa lên **Siêu tàu ONE Innovation (24.000 TEU)**, chủ sở hữu có thể trả thêm **$150M** để gắn **Huy Hiệu Xanh (Green Fuel Ready)**.
@@ -140,7 +143,7 @@ Khi đang ở `CUSTOMS_HOLD`, người chơi có 3 cách để thoát:
 - Đầu ván, mỗi thuyền trưởng được hệ thống phát ngẫu nhiên **1 thẻ nhiệm vụ bí mật** (giữ kín với đối thủ cho đến khi hoàn thành).
 - Giúp định hướng mục tiêu sớm và tạo bất ngờ lớn:
   - **Hợp đồng 1 – Cầu Nối Việt Nam – Mỹ:** Sở hữu đồng thời Cảng Cái Mép (`VNVUT`), Cảng Los Angeles (`USLAX`) và Tuyến `PS3` $\rightarrow$ Thưởng ngay **$400M**.
-  - **Hợp đồng 2 – Di Sản Nhật – Singapore:** Sở hữu Cụm cảng Tokyo Hub (`JPTYO`), Cảng Busan (`KRPUS`) và 1 Siêu tàu ONE Innovation $\rightarrow$ Thưởng ngay **$500M**.
+  - **Hợp đồng 2 – Di Sản Nhật – Hàn:** Sở hữu Cụm cảng Tokyo Hub (`JPTYO`), Cảng Busan (`KRPUS`) và 1 Siêu tàu ONE Innovation $\rightarrow$ Thưởng ngay **$500M**.
   - **Hợp đồng 3 – Tiên Phong Số & Xanh:** Sở hữu cả 2 nền tảng `ONE QUOTE`, `ONE Eco Calculator` và có ít nhất 1 Huy hiệu Tàu Nhiên Liệu Xanh $\rightarrow$ Thưởng ngay **$350M**.
   - **Hợp đồng 4 – Vua Tuyến Dịch Vụ Huyết Mạch:** Sở hữu ít nhất 3 trong 4 Tuyến Dịch Vụ Toàn Cầu (`VSS`, `MD2`, `FE2`, `PS3`) $\rightarrow$ Thưởng ngay **$450M**.
   - **Hợp đồng 5 – Trục Vận Tải Châu Á Thần Tốc:** Sở hữu trọn bộ Tuyến Intra-Asia (`VNSGN`, `VNVUT`) và Cảng Port Klang (`MYPKG`) $\rightarrow$ Thưởng ngay **$350M**.

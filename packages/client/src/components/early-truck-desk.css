@@ -1,0 +1,55 @@
+.early-truck-desk {
+  min-width: 0;
+  border: 1px solid #adbdad;
+  border-radius: 3px;
+  color: #24494b;
+  background: #f1f3e7;
+}
+.early-truck-desk summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 5px 8px;
+  list-style: none;
+  cursor: pointer;
+}
+.early-truck-desk summary::-webkit-details-marker { display: none; }
+.early-truck-heading { flex: 1; min-width: 0; }
+.early-truck-heading strong, .early-truck-heading small { display: block; }
+.early-truck-heading small { color: #50655a; font-size: 11px; }
+.early-truck-invite { color: #315f51; font-size: 12px; font-weight: 650; }
+.early-truck-desk .early-truck-chevron { width: 13px; }
+.early-truck-desk[open] .early-truck-chevron { transform: rotate(180deg); }
+.early-truck-body {
+  display: grid;
+  gap: 7px;
+  padding: 0 8px 8px;
+  font-size: 12px;
+}
+.early-truck-body p, .early-truck-entry > span { color: #415d56; }
+.early-truck-entry {
+  display: grid;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid #c3cebd;
+}
+.early-truck-entry > span { font-variant-numeric: tabular-nums; }
+.early-truck-entry button {
+  justify-self: start;
+  min-height: 32px;
+  margin-top: 3px;
+  padding: 4px 9px;
+  border: 1px solid #698b77;
+  border-radius: 3px;
+  color: #214e3f;
+  background: #fcf9ed;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.early-truck-entry button:hover:enabled { background: #e2ecdd; }
+.early-truck-entry button:disabled { opacity: .6; cursor: wait; }
+@media (pointer: coarse) {
+  .early-truck-desk summary, .early-truck-entry button { min-height: 44px; }
+}
