@@ -69,3 +69,18 @@
 .trade-offer-card > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 3px 8px; font-size: 14px; line-height: 1.3; }
 .trade-offer-card > div:first-child b { font-family: var(--action-number); color: var(--action-magenta); }
 .trade-desk-empty > button { justify-self: start; }
+.trade-counter-form { min-width: 0; border-top: 1px solid #b9c5b8; padding-top: 3px; }
+.trade-counter-form summary {
+  width: fit-content; padding: 4px 2px; color: #315e63;
+  font-size: 13px; font-weight: 750; cursor: pointer;
+}
+.trade-counter-form summary:focus-visible { outline: 3px solid #087d89; outline-offset: 2px; }
+.trade-counter-form form { display: grid; gap: 5px; margin-top: 3px; }
+.trade-counter-form small { color: #476166; font: 500 12px/1.35 var(--chart-sans, system-ui); }
+.trade-offer-card:is([data-trade-direction=counter-received], [data-trade-direction=counter-sent]) {
+  border-inline-start: 3px solid #97607d; background: #fbf4e9;
+}
+.trade-offer-card [data-counter-withdraw] { justify-self: start; }
+@media (pointer: coarse) {
+  .trade-counter-form summary { min-height: 44px; padding-block: 11px; }
+}

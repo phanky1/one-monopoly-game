@@ -317,6 +317,7 @@ export interface TradeOffer {
   sellerId: string;
   tileId: number;
   price: number;
+  originalPrice?: number;
 }
 
 export interface GameState {
@@ -368,6 +369,7 @@ export type GameAction =
   | BackhaulAccept
   | CargoAction | DestinationChange | SailAction | FeederSailAction | FreightTenderBid | FreightTenderWithdrawal
   | { type: 'OFFER_TRADE'; tileId: number; sellerId: string; price: number }
+  | { type: 'COUNTER_TRADE'; offerId: number; price: number }
   | { type: 'RESPOND_TRADE'; offerId: number; accept: boolean }
   | { type: 'CANCEL_TRADE'; offerId: number }
   | { type: 'AUCTION_BID'; auctionId: number; revision: number; amount: number }
@@ -408,6 +410,7 @@ export type GameEvent =
   | ({ type: 'CARGO_UNLOADED'; playerId: string } & DeliveryReceipt)
   | ({ type: 'CARGO_DESTINATION_CHANGED'; playerId: string; tileId: number; previousDestinationTileId: number } & CargoBooking)
   | { type: 'TRADE_OFFERED'; offer: TradeOffer }
+  | { type: 'TRADE_COUNTERED'; offer: TradeOffer }
   | { type: 'TRADE_CLOSED'; offer: TradeOffer; result: 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN' | 'EXPIRED' }
   | { type: 'AUCTION_STARTED'; tileId: number }
   | { type: 'AUCTION_ENDED'; tileId: number; winnerId: string | null; price: number }

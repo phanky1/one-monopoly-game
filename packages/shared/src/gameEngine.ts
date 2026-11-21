@@ -37,7 +37,7 @@ import {
   STORM_TUG_FEE,
 } from './boardData.js';
 import { createLogisticsState, dispatchLogistics } from './cargo.js';
-import { createHarborFreight, dispatchHarborFreight, recordHarborVisit } from './harborFreight.js';
+import { createHarborFreight, dispatchHarborFreight, getHarborFreightOpportunity, recordHarborVisit } from './harborFreight.js';
 import { dispatchTrade, expireTradeOffers } from './trade.js';
 import { getMissionProgress } from './missionProgress.js';
 import { getMortgageValue, getPropertyCashOption } from './debtRecovery.js';
@@ -49,6 +49,15 @@ function shuffle<T>(array: T[]): T[] {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
+}
+
+function tradeChangesHarborOpportunity(before: GameState, after: GameState): boolean {
+  const captainId = before.players[before.activePlayerIndex].id;
+  const previous = getHarborFreightOpportunity(before, captainId);
+  const current = getHarborFreightOpportunity(after, captainId);
+  if (previous?.kind !== current?.kind) return true;
+  return previous?.kind === 'discharge' && current?.kind === 'discharge' &&
+    (previous.quote.operatorId !== current.quote.operatorId || previous.quote.feePercent !== current.quote.feePercent);
 }
 
 export class OneMonopolyEngine {
@@ -135,7 +144,9 @@ export class OneMonopolyEngine {
         action.type === 'SAIL_TO_PORT' || action.type === 'SAIL_FEEDER' || action.type === 'ACCEPT_BACKHAUL' ||
         action.type === 'CHANGE_DESTINATION' || action.type === 'BID_FREIGHT_TENDER' ||
         action.type === 'WITHDRAW_FREIGHT_TENDER_BID') return { state, events: [] };
-    const result = action.type === 'OFFER_TRADE' || action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE'
+    const isTrade = action.type === 'OFFER_TRADE' || action.type === 'COUNTER_TRADE' ||
+      action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE';
+    const result = isTrade
       ? dispatchTrade(state, action, actorId, OneMonopolyEngine.checkMissionCompletion)
       : OneMonopolyEngine.dispatchTurnAction(state, action);
     if (result.state === state) return result;
@@ -145,11 +156,15 @@ export class OneMonopolyEngine {
       result.state.canUpgradeCurrentPort = result.state.properties[captain.position]?.ownerId === captain.id;
     }
     expireTradeOffers(result.state, result.events);
-    if (result.state.harborFreight && (result.events.length > 0 || result.state.phase !== state.phase ||
-        result.state.activePlayerIndex !== state.activePlayerIndex || result.state.turnCount !== state.turnCount ||
-        result.state.auction?.revision !== state.auction?.revision)) {
-      // A rival can buy the berth or complete its color set between a displayed quote and confirmation.
-      result.state.harborFreight = { ...result.state.harborFreight, revision: result.state.harborFreight.revision + 1 };
+    const harbor = result.state.harborFreight;
+    if (harbor) {
+      const changed = isTrade
+        ? result.events.some(event => event.type === 'TRADE_CLOSED' && event.result === 'ACCEPTED') &&
+          tradeChangesHarborOpportunity(state, result.state)
+        : result.events.length > 0 || result.state.phase !== state.phase ||
+          result.state.activePlayerIndex !== state.activePlayerIndex || result.state.turnCount !== state.turnCount ||
+          result.state.auction?.revision !== state.auction?.revision;
+      if (changed) result.state.harborFreight = { ...harbor, revision: harbor.revision + 1 };
     }
     return result;
   }

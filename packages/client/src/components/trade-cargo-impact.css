@@ -1,0 +1,9 @@
+.trade-cargo-impact { padding: 8px 10px; border-inline-start: 3px solid #51776d; background: #f7f7ed; color: #28464b; }
+.trade-cargo-impact table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; line-height: 1.35; }
+.trade-cargo-impact caption { padding-bottom: 5px; text-align: start; font-size: 13px; font-weight: 750; overflow-wrap: anywhere; }
+.trade-cargo-impact :is(th, td) { padding: 2px 0 2px 5px; text-align: end; vertical-align: top; }
+.trade-cargo-impact tr > :first-child { width: 48%; padding-inline-start: 0; text-align: start; font-weight: 500; }
+.trade-cargo-impact thead { color: #486265; border-bottom: 1px solid #c4cec0; }
+.trade-cargo-impact thead span { display: block; font-weight: 500; overflow-wrap: anywhere; }
+.trade-cargo-impact tbody td { font-family: var(--chart-mono); font-variant-numeric: tabular-nums; }
+.trade-cargo-impact tbody tr:last-child { border-top: 1px solid #c4cec0; }

@@ -1,10 +1,11 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowLeftRight, X } from 'lucide-react';
 import {
-  BOARD_TILES, INFRA_TILES, LOOP_GROUPS_CONFIG, SERVICE_LINES, canSettleTrade, getBotAskingPrice, getTradeRestriction,
+  BOARD_TILES, INFRA_TILES, LOOP_GROUPS_CONFIG, SERVICE_LINES, canSettleTrade, getBotAskingPrice, getTradeCounterAction, getTradeRestriction,
   type GameAction, type GameState, type TradeOffer,
 } from '@one-monopoly/shared';
 import { BoardDialog } from './BoardDialog.js';
+import { TradeCargoImpact } from './TradeCargoImpact.js';
 import './trade-desk.css';
 
 interface Props {
@@ -15,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-type TradeAction = Extract<GameAction, { type: 'OFFER_TRADE' | 'RESPOND_TRADE' | 'CANCEL_TRADE' }>;
+type TradeAction = Extract<GameAction, { type: 'OFFER_TRADE' | 'COUNTER_TRADE' | 'RESPOND_TRADE' | 'CANCEL_TRADE' }>;
 const noOffers: TradeOffer[] = [];
 const serviceGroup = { name: 'Tuyến dịch vụ', color: '#346765', tileIds: SERVICE_LINES };
 const infrastructureGroup = { name: 'Hạ tầng số', color: '#6f7888', tileIds: INFRA_TILES };
@@ -89,6 +90,30 @@ function CashOffer({ balance, listPrice, askingPrice, disabled, send }: {
   );
 }
 
+function CounterPriceForm({ state, offer, balance, disabled, send }: {
+  state: GameState; offer: TradeOffer; balance: number; disabled: boolean; send: (action: TradeAction) => void;
+}) {
+  const id = useId();
+  const [draft, setDraft] = useState('');
+  const minimum = offer.price + 1;
+  if (!getTradeCounterAction(state, offer.sellerId, offer.id, minimum)) return null;
+  const action = getTradeCounterAction(state, offer.sellerId, offer.id, Number(draft));
+  return <details className="trade-counter-form">
+    <summary data-counter-open>Ra giá khác</summary>
+    <form onSubmit={event => { event.preventDefault(); if (action && !disabled) send(action); }}>
+      <label htmlFor={id}>Giá bán mới (triệu USD)</label>
+      <div className="trade-price-entry">
+        <input type="number" id={id} inputMode="numeric" min={minimum} max={balance} step="1" required
+          data-counter-price aria-describedby={id + '-range'} disabled={disabled}
+          value={draft} onChange={event => setDraft(event.target.value)} />
+        <button type="submit" className="chart-button chart-button-primary" data-counter-send
+          disabled={disabled || !action}>Gửi giá mới</button>
+      </div>
+      <small id={id + '-range'}>Chọn số nguyên từ {money(minimum)} đến {money(balance)} theo số dư bên mua. Người mua sẽ quyết định ở mức giá mới.</small>
+    </form>
+  </details>;
+}
+
 export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onClose }: Props) {
   const titleId = useId();
   const selectId = useId();
@@ -105,6 +130,8 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
     ? getBotAskingPrice(gameState, selected.seller.id, selected.tile.id) : null;
   const [notice, setNotice] = useState('');
   const previousOffers = useRef(offers);
+  const offersTab = useRef<HTMLButtonElement>(null);
+  const lastFocus = useRef<HTMLElement | null>(null);
   const inFlight = useRef<TradeAction | null>(null);
   const [pending, setPending] = useState(false);
   const decision = myBoardDecision(gameState, myPlayerId);
@@ -118,12 +145,21 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
     const previous = previousOffers.current;
     previousOffers.current = offers;
     const added = offers.filter(offer => !previous.some(old => old.id === offer.id));
-    const sent = added.find(offer => offer.buyerId === myPlayerId);
+    const counter = added.find(offer => offer.originalPrice !== undefined && (offer.buyerId === myPlayerId || offer.sellerId === myPlayerId));
+    const sent = added.find(offer => offer.buyerId === myPlayerId && offer.originalPrice === undefined);
     const received = added.find(offer => offer.sellerId === myPlayerId);
     const removed = previous.filter(offer => (offer.buyerId === myPlayerId || offer.sellerId === myPlayerId)
       && !offers.some(current => current.id === offer.id));
     const closed = removed.find(offer => gameState.properties[offer.tileId]?.ownerId === offer.buyerId) ?? removed[0];
-    if (sent) {
+    if (counter) {
+      const asset = BOARD_TILES[counter.tileId].name;
+      if (counter.sellerId === myPlayerId) {
+        setNotice(`Bạn đã ra giá ${money(counter.price)} cho ${asset}. Đang chờ người mua trả lời.`);
+      } else {
+        const seller = gameState.players.find(player => player.id === counter.sellerId);
+        setNotice(`${seller?.name ?? 'Chủ sở hữu'} đã ra giá mới ${money(counter.price)} cho ${asset}.`);
+      }
+    } else if (sent) {
       setNotice(`Đã gửi đề nghị mua ${BOARD_TILES[sent.tileId].name}.`);
       setMode('offers');
     } else if (closed) {
@@ -132,17 +168,28 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
       if (settled) {
         setNotice(`Bạn đã ${closed.buyerId === myPlayerId ? 'mua' : 'bán'} ${name} với giá ${money(closed.price)}.`);
       } else {
-        const currentAsk = closed.buyerId === myPlayerId && closed.sellerId.startsWith('ai-')
+        const currentAsk = closed.originalPrice === undefined && closed.buyerId === myPlayerId && closed.sellerId.startsWith('ai-')
           && !getTradeRestriction(gameState, myPlayerId, closed.tileId)
           ? getBotAskingPrice(gameState, closed.sellerId, closed.tileId) : null;
         setNotice(currentAsk !== null && closed.price < currentAsk
           ? `Đề nghị ${money(closed.price)} mua ${name} đã đóng. Giá AI hiện tại là ${money(currentAsk)}.`
-          : `Đề nghị mua ${name} đã đóng.`);
+          : closed.originalPrice !== undefined ? `Đề nghị giá mới ${money(closed.price)} cho ${name} đã đóng.` : `Đề nghị mua ${name} đã đóng.`);
       }
     } else if (received) {
       setNotice(`Bạn có đề nghị mới cho ${BOARD_TILES[received.tileId].name}.`);
     }
   }, [offers, myPlayerId, gameState]);
+
+  useLayoutEffect(() => {
+    const before = lastFocus.current;
+    if (!before || document.hidden || (before.isConnected && !before.closest('[hidden]'))) return;
+    const dialog = offersTab.current?.closest('dialog');
+    const dialogs = document.querySelectorAll('dialog[open]');
+    const active = document.activeElement;
+    if (dialog && dialogs[dialogs.length - 1] === dialog && (active === document.body || active === dialog || active === before)) {
+      offersTab.current?.focus({ preventScroll: true });
+    }
+  }, [gameState, mode]);
 
   function send(action: TradeAction) {
     if (inFlight.current) return;
@@ -161,9 +208,12 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
 
   const settlementOpen = canSettleTrade(gameState);
   const playerName = (id: string) => gameState.players.find(player => player.id === id)?.name;
+  const canAccept = (offer: TradeOffer) => settlementOpen &&
+    (gameState.players.find(player => player.id === offer.buyerId)?.balance ?? 0) >= offer.price &&
+    gameState.properties[offer.tileId]?.ownerId === offer.sellerId && !getTradeRestriction(gameState, offer.buyerId, offer.tileId);
   return (
     <BoardDialog labelledBy={titleId} onClose={onClose}>
-      <div className="chart-dialog-sheet trade-desk">
+      <div className="chart-dialog-sheet trade-desk" onFocusCapture={event => { lastFocus.current = event.target; }}>
         <button type="button" className="chart-dialog-close" aria-label="Đóng giao dịch tài sản" onClick={onClose}><X aria-hidden="true" /></button>
         <header className="trade-desk-heading">
           <ArrowLeftRight size={22} aria-hidden="true" />
@@ -171,7 +221,7 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
         </header>
         <div className="trade-desk-nav" role="group" aria-label="Nội dung giao dịch">
           <button type="button" aria-pressed={mode === 'browse'} onClick={() => setMode('browse')}>Tìm mua</button>
-          <button type="button" aria-pressed={mode === 'offers'} onClick={() => setMode('offers')}>Đề nghị <span>{offerCount}</span></button>
+          <button type="button" ref={offersTab} aria-pressed={mode === 'offers'} onClick={() => setMode('offers')}>Đề nghị <span>{offerCount}</span></button>
         </div>
         {decisionChanged && decision && (
           <div className="trade-board-prompt">
@@ -180,8 +230,8 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
           </div>
         )}
         <div className="trade-desk-notice" role="status">{notice}</div>
-        {!settlementOpen && (mode === 'browse' || incoming.length > 0) && (
-          <p className="trade-desk-guidance">Đề nghị có thể được chấp nhận sau khi đấu giá hoặc quyết định đang chờ trên bàn cờ kết thúc.</p>
+        {!settlementOpen && (mode === 'browse' || offerCount > 0) && (
+          <p className="trade-desk-guidance" data-trade-settlement-wait>Đề nghị vẫn chờ trong lúc bàn cờ xử lý quyết định. Có thể chấp nhận sau khi đấu giá hoặc quyết định đó kết thúc.</p>
         )}
         <section className="trade-desk-browse" hidden={mode !== 'browse'}>
           {options.length === 0 ? (
@@ -213,14 +263,18 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
                     {askingPrice !== null && (
                       <div className="trade-bot-quote">
                         <p>Giá AI yêu cầu <strong>{money(askingPrice)}</strong></p>
-                        <small>AI chỉ bán từ mức này. Giá tăng khi AI có nhiều tài sản cùng nhóm.</small>
+                        <small>{gameState.mode === 'harbor' && selected.tile.type === 'PORT'
+                          ? 'Nếu bạn đề nghị thấp hơn, AI có thể ra giá mới để bạn cân nhắc.'
+                          : 'AI chỉ bán từ mức này. Giá tăng khi AI có nhiều tài sản cùng nhóm.'}</small>
                       </div>
                     )}
+                    {!selected.restriction && <TradeCargoImpact state={gameState} tileId={selected.tile.id} buyerId={myPlayerId} sellerId={selected.seller.id} />}
                   </div>
                   {outgoing ? (
                     <div className="trade-desk-guidance">
-                      <p>Bạn đang chờ phản hồi. Rút đề nghị hiện tại để hỏi mua tài sản khác.</p>
-                      <button type="button" className="chart-button" onClick={() => setMode('offers')}>Xem đề nghị đã gửi</button>
+                      <p>{outgoing.originalPrice !== undefined ? `${playerName(outgoing.sellerId)} đang chờ bạn trả lời giá mới ${money(outgoing.price)}.`
+                        : 'Bạn đang chờ phản hồi. Rút đề nghị hiện tại để hỏi mua tài sản khác.'}</p>
+                      <button type="button" className="chart-button" onClick={() => setMode('offers')}>{outgoing.originalPrice !== undefined ? 'Xem giá mới' : 'Xem đề nghị đã gửi'}</button>
                     </div>
                   ) : selected.restriction ? (
                     <p className="trade-desk-guidance">{selected.restriction}</p>
@@ -236,21 +290,27 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
         <div className="trade-desk-offers" hidden={mode !== 'offers'}>
           {incoming.length > 0 && (
             <section className="trade-desk-incoming">
-              <h3>Đề nghị nhận được</h3>
+              <h3>{incoming.some(offer => offer.originalPrice !== undefined) ? 'Đề nghị cho tài sản của bạn' : 'Đề nghị nhận được'}</h3>
               {incoming.map(offer => {
                 const bidder = gameState.players.find(player => player.id === offer.buyerId);
-                const canAccept = settlementOpen && !!bidder && bidder.balance >= offer.price
-                  && !getTradeRestriction(gameState, offer.buyerId, offer.tileId);
+                const counter = offer.originalPrice !== undefined;
                 return (
-                  <article key={offer.id} className="trade-offer-card">
+                  <article key={offer.id} className="trade-offer-card" data-trade-offer={offer.id} data-trade-direction={counter ? 'counter-sent' : 'offer-received'}>
                     <div><strong>{BOARD_TILES[offer.tileId].name}</strong><b>{money(offer.price)}</b></div>
-                    <p>{bidder?.name} hỏi mua · Giá niêm yết {money(BOARD_TILES[offer.tileId].price!)}</p>
-                    <div className="chart-action-row">
-                      <button type="button" className="chart-button chart-button-primary" disabled={pending || !canAccept}
-                        onClick={() => send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: true })}>Chấp nhận</button>
-                      <button type="button" className="chart-button" disabled={pending}
-                        onClick={() => send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: false })}>Từ chối</button>
-                    </div>
+                    {counter ? <p>{bidder?.name} đề nghị {money(offer.originalPrice!)}. Đang chờ {bidder?.name} trả lời mức giá mới của bạn.</p>
+                      : <p>{bidder?.name} hỏi mua · Giá niêm yết {money(BOARD_TILES[offer.tileId].price!)}</p>}
+                    <TradeCargoImpact state={gameState} tileId={offer.tileId} buyerId={offer.buyerId} sellerId={offer.sellerId} />
+                    {counter ? <button type="button" className="chart-button" data-counter-withdraw disabled={pending}
+                      onClick={() => send({ type: 'CANCEL_TRADE', offerId: offer.id })}>Rút giá mới</button>
+                      : <>
+                        <div className="chart-action-row">
+                          <button type="button" className="chart-button chart-button-primary" disabled={pending || !canAccept(offer)}
+                            onClick={() => send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: true })}>Chấp nhận</button>
+                          <button type="button" className="chart-button" disabled={pending}
+                            onClick={() => send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: false })}>Từ chối</button>
+                        </div>
+                        {bidder && <CounterPriceForm state={gameState} offer={offer} balance={bidder.balance} disabled={pending} send={send} />}
+                      </>}
                   </article>
                 );
               })}
@@ -258,12 +318,21 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
           )}
           {outgoing && (
             <section className="trade-desk-outgoing">
-              <h3>Đề nghị đã gửi</h3>
-              <article className="trade-offer-card">
+              <h3>{outgoing.originalPrice !== undefined ? 'Giá mới từ người bán' : 'Đề nghị đã gửi'}</h3>
+              <article key={outgoing.id} className="trade-offer-card" data-trade-offer={outgoing.id}
+                data-trade-direction={outgoing.originalPrice !== undefined ? 'counter-received' : 'offer-sent'}>
                 <div><strong>{BOARD_TILES[outgoing.tileId].name}</strong><b>{money(outgoing.price)}</b></div>
-                <p>Đang chờ {playerName(outgoing.sellerId)} phản hồi.</p>
-                <button type="button" className="chart-button" disabled={pending}
-                  onClick={() => send({ type: 'CANCEL_TRADE', offerId: outgoing.id })}>Rút đề nghị</button>
+                {outgoing.originalPrice !== undefined
+                  ? <p>Bạn đã đề nghị {money(outgoing.originalPrice)}. {playerName(outgoing.sellerId)} muốn bán với giá <strong>{money(outgoing.price)}</strong>.</p>
+                  : <p>Đang chờ {playerName(outgoing.sellerId)} phản hồi.</p>}
+                <TradeCargoImpact state={gameState} tileId={outgoing.tileId} buyerId={outgoing.buyerId} sellerId={outgoing.sellerId} />
+                {outgoing.originalPrice !== undefined ? <div className="chart-action-row">
+                  <button type="button" className="chart-button chart-button-primary" data-counter-accept disabled={pending || !canAccept(outgoing)}
+                    onClick={() => send({ type: 'RESPOND_TRADE', offerId: outgoing.id, accept: true })}>Chấp nhận giá mới</button>
+                  <button type="button" className="chart-button" data-counter-decline disabled={pending}
+                    onClick={() => send({ type: 'RESPOND_TRADE', offerId: outgoing.id, accept: false })}>Từ chối giá mới</button>
+                </div> : <button type="button" className="chart-button" disabled={pending}
+                  onClick={() => send({ type: 'CANCEL_TRADE', offerId: outgoing.id })}>Rút đề nghị</button>}
               </article>
             </section>
           )}

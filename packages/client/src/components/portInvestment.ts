@@ -12,6 +12,12 @@ export interface PortInvestment {
   arrival: { quote: HarborFreightQuote; carrierName: string } | null;
 }
 
+export function projectPortOwnership(state: GameState, tileId: number, buyerId: string): GameState {
+  return { ...state, properties: { ...state.properties,
+    [tileId]: { ...state.properties[tileId], ownerId: buyerId, slotCharter: null },
+  } };
+}
+
 export function getPortInvestment(state: GameState, tileId: number, buyerId: string | null): PortInvestment | null {
   if (state.mode !== 'harbor' || !buyerId || !Number.isInteger(tileId)) return null;
   const tile = BOARD_TILES[tileId];
@@ -19,7 +25,7 @@ export function getPortInvestment(state: GameState, tileId: number, buyerId: str
   if (tile?.type !== 'PORT' || !tile.group || !deed || deed.ownerId !== null || deed.isMortgaged ||
       !state.players.some(player => player.id === buyerId && !player.isBankrupt)) return null;
 
-  const afterPurchase = { ...state, properties: { ...state.properties, [tileId]: { ...deed, ownerId: buyerId } } };
+  const afterPurchase = projectPortOwnership(state, tileId, buyerId);
   const group = LOOP_GROUPS_CONFIG[tile.group];
   const carrier = state.players[state.activePlayerIndex];
   let arrival: PortInvestment['arrival'] = null;

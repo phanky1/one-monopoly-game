@@ -356,7 +356,8 @@ export class RoomManager {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
     const isAuctionAction = action.type === 'AUCTION_BID' || action.type === 'AUCTION_PASS';
-    const isTradeAction = action.type === 'OFFER_TRADE' || action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE';
+    const isTradeAction = action.type === 'OFFER_TRADE' || action.type === 'COUNTER_TRADE' ||
+      action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE';
     const inAuction = room.gameState.phase === 'AWAITING_AUCTION';
     if (isAuctionAction && (!inAuction || room.gameState.auction?.bidderId !== playerId)) {
       return { success: false, error: 'Chưa đến lượt đấu giá của bạn.' };

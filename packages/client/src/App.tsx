@@ -200,6 +200,10 @@ export const App: React.FC = () => {
         const buyer = state.players.find(player => player.id === evt.offer.buyerId);
         logMsg = `${buyer?.name ?? 'Một thuyền trưởng'} đề nghị mua ${BOARD_TILES[evt.offer.tileId].name} với giá $${evt.offer.price}M.`;
         setBoardNotice({ type: 'trade', text: logMsg });
+      } else if (evt.type === 'TRADE_COUNTERED' && evt.offer.buyerId === myPlayerId) {
+        const seller = state.players.find(player => player.id === evt.offer.sellerId);
+        logMsg = `${seller?.name ?? 'Chủ cảng'} ra giá $${evt.offer.price}M cho ${BOARD_TILES[evt.offer.tileId].name}. Mở Giao dịch để trả lời.`;
+        setBoardNotice({ type: 'trade', text: logMsg });
       } else if (evt.type === 'TRADE_CLOSED') {
         const { buyerId, sellerId, price, tileId } = evt.offer;
         const property = BOARD_TILES[tileId].name;
@@ -271,7 +275,8 @@ export const App: React.FC = () => {
   const missionTargetIds = showMissionTargets && mission && !captain?.secretMission?.isCompleted && !captain?.isBankrupt
     ? mission.objectives.flatMap(objective => !objective.achieved && objective.tileId !== undefined ? [objective.tileId] : [])
     : [];
-  const incoming = gameState?.tradeOffers?.filter(offer => offer.sellerId === myPlayerId).length ?? 0;
+  const incoming = gameState?.tradeOffers?.filter(offer =>
+    (offer.originalPrice === undefined ? offer.sellerId : offer.buyerId) === myPlayerId).length ?? 0;
   const sky = gameState && getBoardLighting({
     turnCount: gameState.turnCount,
     activePlayerIndex: gameState.activePlayerIndex,

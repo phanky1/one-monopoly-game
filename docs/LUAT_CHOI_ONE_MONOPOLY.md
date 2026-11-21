@@ -18,6 +18,8 @@ Ví dụ, Linh xếp hàng ở Singapore rồi gieo được 3, cập Cái Mép.
 
 Nếu Linh đến Cái Mép khi cảng **chưa có chủ**, cô có thể mua hoặc mở đấu giá. Mỗi người xem được tiền thuê cho những lượt ghé sau, phần cước và số cảng cùng màu mình sẽ có nếu mua thành công. Nếu Minh thắng đấu giá, Linh chỉ trả phí khai thác khi chọn dỡ hàng. Lần cập bến trước phiên đấu giá không phát sinh tiền thuê.
 
+Bạn cũng có thể mua cảng của đối thủ qua **Giao dịch**. Chẳng hạn Linh đã có Laem Chabang và hỏi mua Jebel Ali của Minh với giá **$120M**. Minh có thể chọn **Ra giá khác** rồi gửi một giá cao hơn, trong giới hạn tiền mặt của Linh. Nếu Linh chấp nhận **$140M**, hai bên mới đổi tiền và quyền sở hữu. Nếu Minh đang chở hàng từ Singapore, trước khi bán anh có thể dỡ tại cảng của mình để nhận đủ **$18M**. Nếu anh dỡ sau khi bán, Linh sở hữu trọn tuyến và mỗi người nhận **$9M**. Tiền thuê Jebel Ali cho lần ghé sau tăng từ **$8M** lên **$16M**.
+
 ### Empty Reposition
 
 Đến lượt mình, chọn loại hàng và cảng đích, xếp lên tàu, chọn cảng để chạy đến rồi dỡ. Với hàng xuất, hãy tìm bến còn xe nhận. Với **Container rỗng**, hãy lấy vỏ ở bến đang dư và chọn bến còn thiếu. Bạn được đi một chặng thông thường mỗi lượt.

@@ -39,7 +39,7 @@ const guides: Record<GameMode, Step[]> = {
     {
       title: 'Kết thúc lượt và giữ khả năng thanh toán',
       copy: [
-        'Cảng chưa có chủ sẽ hiện “Mua ngay” hoặc “Mở đấu giá”. Nếu một người sở hữu cả Cát Lái và Cái Mép, họ nhận 50% cước khi đối thủ dỡ tại một trong hai bến đang hoạt động.',
+        'Muốn gom đủ bộ màu, mở “Giao dịch” để hỏi mua cảng của đối thủ. Chủ cảng có thể ra giá cao hơn một lần. Nếu bạn đồng ý, chọn “Chấp nhận giá mới”. Sở hữu cả Cát Lái và Cái Mép giúp bạn nhận 50% cước khi đối thủ dỡ tại hai bến này.',
         'Xử lý xong việc ở cảng, chọn “Kết thúc lượt”. Giữ tiền để trả các khoản đến hạn. Khi chỉ còn một người chưa phá sản, người đó thắng.',
       ],
       figures: [['Cước ví dụ', '$12M'], ['Chủ trọn tuyến', '$6M'], ['Hãng vận chuyển', '$6M']],
