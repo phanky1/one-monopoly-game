@@ -2,7 +2,10 @@ export * from './types.js';
 export * from './freightRivals.js';
 export * from './boardData.js';
 export * from './gameEngine.js';
-export { getHarborFreightOpportunity, getHarborFreightQuote, getHarborRedemption, getHarborRentRelief, getHarborTerminalShare } from './harborFreight.js';
+export {
+  getHarborExportBooking, getHarborExportFee, getHarborFreightOpportunity, getHarborFreightQuote,
+  getHarborRedemption, getHarborRentRelief, getHarborTerminalShare,
+} from './harborFreight.js';
 export { canSettleTrade, getPortSwapOptions, getTradeCounterAction, getTradeRestriction, isTradeAction, isValidTradeOffer, projectTradeProperties } from './trade.js';
 export { getBotAskingPrice, getBotPortSwapTerms } from './botAskingPrice.js';
 export * from './missionProgress.js';

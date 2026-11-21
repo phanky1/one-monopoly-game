@@ -25,7 +25,9 @@
 .harbor-freight-receipt dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; padding: 2px 0; }
 .harbor-freight-receipt dt { overflow-wrap: anywhere; }
 .harbor-freight-receipt dd { margin: 0; text-align: end; white-space: nowrap; font: 650 12px/1.35 var(--chart-mono); }
-.harbor-receipt-fee dt > small { display: block; color: #4e6663; font-size: 11px; }
+.harbor-receipt-fee dt > small, .harbor-voyage-result small { display: block; color: #4e6663; font-size: 11px; font-weight: 500; }
+.harbor-freight-receipt .harbor-voyage-result { margin-top: 6px; padding-top: 4px; border-top: 1px dashed #b6baaa; }
+.harbor-voyage-result > div:last-child { color: #783754; font-weight: 750; }
 .harbor-receipt-group i { display: inline-block; width: 7px; height: 7px; margin-inline-end: 4px; border: 1px solid #0003; border-radius: 50%; }
 .harbor-freight-receipt .harbor-receipt-net {
   margin-top: 3px; padding-top: 5px; border-top: 1px dashed #a9b5a9;

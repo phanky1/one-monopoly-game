@@ -71,6 +71,25 @@ export interface SecretMissionCard {
 
 export type GameMode = 'classic' | 'logistics' | 'harbor';
 export interface HarborLoadAction { type: 'HARBOR_LOAD'; tileId: number; revision: number }
+export interface HarborExportTerms {
+  readonly operatorId: string;
+  readonly operatorName: string;
+  readonly fee: 3 | 6;
+}
+export interface HarborBookExportAction extends Pick<HarborExportTerms, 'operatorId' | 'fee'> {
+  type: 'HARBOR_BOOK_EXPORT';
+  tileId: number;
+  revision: number;
+}
+export interface HarborExportBooking {
+  action: HarborBookExportAction;
+  operatorName: string;
+  shortfall: number;
+}
+export interface HarborManifest {
+  originTileId: number;
+  exportBooking?: HarborExportTerms;
+}
 export interface HarborDischargeAction { type: 'HARBOR_DISCHARGE'; tileId: number; revision: number }
 export interface HarborRedeemAction { type: 'HARBOR_REDEEM_AND_DISCHARGE'; tileId: number; revision: number }
 export interface HarborRentReliefAction { type: 'HARBOR_DISCHARGE_FOR_RENT'; tileId: number; revision: number }
@@ -89,6 +108,7 @@ export interface HarborFreightQuote {
 export interface HarborFreightReceipt extends HarborFreightQuote {
   round: number;
   revision: number;
+  exportBooking?: HarborExportTerms;
   redemptionCost?: number;
   rentRelief?: Pick<HarborRentRelief, 'rentDue' | 'shortfallAfter'>;
 }
@@ -110,7 +130,7 @@ export type HarborFreightOpportunity =
   | { kind: 'discharge'; action: HarborDischargeAction; quote: HarborFreightQuote };
 export interface HarborFreightState {
   revision: number;
-  manifests: Record<string, { originTileId: number } | null>;
+  manifests: Record<string, HarborManifest | null>;
   visits: Record<string, { tileId: number; handled: boolean } | null>;
   lastDelivery: HarborFreightReceipt | null;
 }
@@ -346,6 +366,7 @@ export interface GameState {
   mode?: GameMode; // Snapshots without a mode use the original board rules.
   /** Advertised by the connected server in live Monopoly room views. */
   supportsPortSwaps?: true;
+  supportsHarborExportBooking?: true;
   harborFreight?: HarborFreightState;
   logistics?: LogisticsState;
   cargoRevision?: number;
@@ -386,7 +407,7 @@ export type SailAction = { type: 'SAIL_TO_PORT'; tileId: number; revision: numbe
 export type FeederSailAction = { type: 'SAIL_FEEDER'; tileId: number; revision: number };
 
 export type GameAction =
-  | HarborLoadAction | HarborDischargeAction | HarborRedeemAction | HarborRentReliefAction
+  | HarborLoadAction | HarborBookExportAction | HarborDischargeAction | HarborRedeemAction | HarborRentReliefAction
   | ReserveImportTruckAction
   | ReturnCargoToYardAction
   | PortTruckCall
@@ -418,7 +439,7 @@ export type GameAction =
   | { type: 'END_TURN' };
 
 export type GameEvent =
-  | { type: 'HARBOR_LOADED'; playerId: string; tileId: number }
+  | { type: 'HARBOR_LOADED'; playerId: string; tileId: number; exportBooking?: HarborExportTerms }
   | { type: 'HARBOR_DISCHARGED'; receipt: HarborFreightReceipt }
   | ({ type: 'IMPORT_TRUCK_RESERVED'; playerId: string } & ImportTruckReservation)
   | { type: 'PORT_TRUCK_CALLED'; operation: TruckOperation; tileId: number; playerId: string; scheduledRound: number }

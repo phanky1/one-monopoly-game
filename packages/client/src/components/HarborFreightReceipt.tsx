@@ -6,6 +6,7 @@ import './harbor-freight-receipt.css';
 
 const number = new Intl.NumberFormat('vi-VN');
 const money = (amount: number) => `$${number.format(amount)}M`;
+const signedMoney = (amount: number) => `${amount < 0 ? '−' : amount > 0 ? '+' : ''}${money(Math.abs(amount))}`;
 
 export function HarborFreightReceipt({ state, receipt }: { state: GameState; receipt: FreightRecord | null }) {
   const title = useId();
@@ -17,9 +18,11 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
   const group = receipt.feePercent === 50 && destinationTile.group ? LOOP_GROUPS_CONFIG[destinationTile.group] : null;
   const bankPayment = receipt.redemptionCost;
   const rent = receipt.rentRelief;
+  const booking = receipt.exportBooking;
   const rentPaid = rent && rent.shortfallAfter === 0 ? rent.rentDue : 0;
   const cashChange = receipt.carrierNet - (bankPayment ?? 0) - rentPaid;
   const hasPayment = bankPayment !== undefined || !!rent;
+  const cashLabel = hasPayment ? `Thay đổi số dư của ${carrier}` : `${carrier} thực nhận`;
   const heading = rent ? 'Biên lai dỡ hàng khi nợ tiền thuê'
     : bankPayment !== undefined ? 'Biên lai chuộc cảng và dỡ hàng' : 'Biên lai dỡ hàng';
   return <section className="harbor-freight-receipt" data-harbor-receipt={receipt.revision}
@@ -50,10 +53,16 @@ export function HarborFreightReceipt({ state, receipt }: { state: GameState; rec
       {rent && <div><dt>Tiền thuê đã trả khi dỡ hàng</dt>
         <dd data-harbor-receipt-rent-paid={rentPaid}>{rentPaid > 0 ? '−' : ''}{money(rentPaid)}</dd>
       </div>}
-      <div className="harbor-receipt-net"><dt>{hasPayment ? `Thay đổi số dư của ${carrier}` : `${carrier} thực nhận`}</dt>
+      <div className="harbor-receipt-net"><dt>{cashLabel}{booking && ' tại bến này'}</dt>
         <dd data-harbor-receipt-net={cashChange} data-harbor-receipt-cash-change={hasPayment ? cashChange : undefined}>
-          {cashChange < 0 ? '−' : cashChange > 0 ? '+' : ''}{money(Math.abs(cashChange))}</dd></div>
+          {signedMoney(cashChange)}</dd></div>
     </dl>
+    {booking && <dl className="harbor-voyage-result" aria-label="Cước cả chuyến sau phí xếp dỡ">
+      <div><dt>Phí xếp tại {origin}<small>Đã trả cho <b>{booking.operatorName}</b> khi xếp hàng</small></dt>
+        <dd data-harbor-export-cost={booking.fee}>−{money(booking.fee)}</dd></div>
+      <div><dt>Cước ròng cả chuyến<small>Sau phí xếp dỡ, chưa tính tiền thuê hoặc chuộc cảng</small></dt>
+        <dd data-harbor-voyage-net={receipt.carrierNet - booking.fee}>{signedMoney(receipt.carrierNet - booking.fee)}</dd></div>
+    </dl>}
     {rent && rent.shortfallAfter > 0 && <p className="harbor-receipt-rent-note" data-harbor-receipt-shortfall={rent.shortfallAfter}>
       Ngay sau khi dỡ hàng, tàu còn thiếu {money(rent.shortfallAfter)} để trả đủ {money(rent.rentDue)} tiền thuê.</p>}
     {!rent && receipt.handlingFee > 0 && <p className="harbor-receipt-rent-note">Tiền thuê khi tàu cập bến được tính riêng.</p>}

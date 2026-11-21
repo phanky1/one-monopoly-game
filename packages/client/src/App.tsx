@@ -138,7 +138,10 @@ export const App: React.FC = () => {
       let logMsg = '';
       if (evt.type === 'HARBOR_LOADED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Thuyền trưởng';
-        logMsg = `${who} xếp một lô hàng xuất tại ${portGuide[BOARD_TILES[evt.tileId].code].name}.`;
+        const port = portGuide[BOARD_TILES[evt.tileId].code].name;
+        logMsg = evt.exportBooking
+          ? `${who} xếp một container tại ${port}, trả ${evt.exportBooking.operatorName} $${evt.exportBooking.fee}M phí xếp hàng.`
+          : `${who} xếp một lô hàng xuất tại ${port}.`;
       } else if (evt.type === 'HARBOR_DISCHARGED') {
         const { playerId, tileId, carrierNet, operatorName, handlingFee } = evt.receipt;
         const who = state.players.find(player => player.id === playerId)?.name ?? 'Thuyền trưởng';
@@ -468,6 +471,7 @@ export const App: React.FC = () => {
         </main>
       )}
       {guideMode && <BeginnerGuide mode={guideMode} live={!!gameState?.gameStarted && !gameState.winnerId}
+        supportsBooking={gameState?.mode !== 'harbor' || !gameState.gameStarted || gameState.supportsHarborExportBooking === true}
         onClose={() => setGuideMode(null)} />}
     </div>
   );

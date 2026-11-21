@@ -9,6 +9,7 @@ import {
   GameEvent,
   GameState,
   getDebtRecovery,
+  getHarborExportBooking,
   getHarborFreightOpportunity,
   getHarborRedemption,
   getHarborRentRelief,
@@ -41,6 +42,8 @@ function getBotHarborAction(state: GameState, captainId: string): GameAction | n
   if (reopening && !reopening.shortfall && captain.balance + reopening.cashChange >= BOT_PURCHASE_RESERVE) {
     return reopening.action;
   }
+  const booking = getHarborExportBooking(state, captainId);
+  if (booking && captain.balance - booking.action.fee >= BOT_PURCHASE_RESERVE) return booking.action;
   return null;
 }
 
@@ -56,8 +59,13 @@ export function gameStateForPlayer(state: GameState, viewerId: string | undefine
       return publicPlayer;
     }),
   };
-  if (state.mode === 'harbor' && state.gameStarted && state.winnerId === null) view.supportsPortSwaps = true;
-  else delete view.supportsPortSwaps;
+  if (state.mode === 'harbor' && state.gameStarted && state.winnerId === null) {
+    view.supportsPortSwaps = true;
+    view.supportsHarborExportBooking = true;
+  } else {
+    delete view.supportsPortSwaps;
+    delete view.supportsHarborExportBooking;
+  }
   if (logistics && market && tender) {
     const bidderIds = tender.bidderIds ?? Object.keys(tender.bids);
     const bidCount = tender.bidCount ?? bidderIds.length;
@@ -368,7 +376,7 @@ export class RoomManager {
     )) return { success: false, error: 'Yêu cầu giữ xe nhận hàng không hợp lệ.' };
 
     const activePlayer = room.gameState.players[room.gameState.activePlayerIndex];
-    const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' ||
+    const harborAction = action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_DISCHARGE' ||
       action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT';
     if ((room.gameState.mode === 'logistics' || harborAction) && activePlayer.id !== playerId) {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
@@ -562,7 +570,8 @@ export class RoomManager {
     }
 
     const docksideDelay = (defaultDelay: number) => {
-      if (lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE' || lastActionType === 'HARBOR_DISCHARGE_FOR_RENT') {
+      if (lastActionType === 'HARBOR_BOOK_EXPORT' || lastActionType === 'HARBOR_REDEEM_AND_DISCHARGE' ||
+          lastActionType === 'HARBOR_DISCHARGE_FOR_RENT') {
         return CARGO_HANDLING_DELAY_MS;
       }
       if (lastActionType !== 'ROLL_DICE') return defaultDelay;

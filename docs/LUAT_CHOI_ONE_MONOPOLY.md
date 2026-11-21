@@ -12,9 +12,11 @@ Chọn **Tạo phòng mới**, nhập tên, chọn quân cờ rồi nhấn **Kh�
 
 ### Monopoly
 
-Ở Singapore, bạn có thể xếp một container hàng khô trước khi gieo xúc xắc. Khi đến cảng chưa có chủ, hãy quyết định mua hoặc mở đấu giá. Tại một cảng khác nơi xếp, bạn có thể dỡ hoặc giữ hàng trên tàu. Nếu cập cảng đối thủ mà thiếu tiền thuê, mục **Xử lý công nợ** cho phép dùng cước của lô hàng đang chở để trả thuê. Mỗi lần ghé chỉ được xếp hoặc dỡ một lần. Để nhận chuyến mới, hãy ghé Singapore hoặc một cảng của mình đang hoạt động. **Thắng khi bạn là thuyền trưởng cuối cùng còn khả năng thanh toán.**
+Ở Singapore, bạn có thể xếp một container hàng khô trước khi gieo xúc xắc. Khi đến cảng chưa có chủ, hãy quyết định mua hoặc mở đấu giá. Tại một cảng khác nơi xếp, bạn có thể dỡ hoặc giữ hàng trên tàu. Nếu cập cảng đối thủ mà thiếu tiền thuê, mục **Xử lý công nợ** cho phép dùng cước của lô hàng đang chở để trả thuê. Mỗi lần ghé chỉ được xếp hoặc dỡ một lần. Bạn xếp miễn phí ở Singapore và ở cảng đang hoạt động của mình. Tại cảng đối thủ đã xây ít nhất một cấp, tàu có khoang trống có thể trả phí cho chủ cảng để xếp hàng. **Thắng khi bạn là thuyền trưởng cuối cùng còn khả năng thanh toán.**
 
 Ví dụ, Linh xếp hàng ở Singapore rồi gieo được 3, cập Cái Mép. Minh sở hữu riêng cảng này, chưa xây và chưa thế chấp, nên Linh trả Minh **$4M tiền thuê**. Nếu Linh dỡ hàng, ngân hàng trả thêm **$12M cước**, gồm **$9M cho Linh** và **$3M phí bốc dỡ cho Minh** (25%). Nếu Minh sở hữu cả Cái Mép và Cát Lái, tiền thuê ở Cái Mép chưa xây là **$8M** và cước chia **$6M mỗi người** (50%). Cảng đang thế chấp tạm dừng xếp dỡ.
+
+Nếu Minh xây cấp 1 ở Cái Mép, tiền thuê tăng lên **$20M**. Lần sau, nếu Linh cập bến với khoang trống, cô trả tiền thuê rồi có thể rời bến hoặc trả thêm **$3M** cho Minh để xếp hàng. Nếu Minh sở hữu cả nhóm màu, phí xếp là **$6M**. Các cấp xây tiếp theo chỉ tăng tiền thuê. Với mức phí xếp $3M, nếu Linh đem lô hàng về dỡ ở Singapore, cô nhận **$12M** khi dỡ. Trừ phí xếp đã trả ở Cái Mép, chuyến hàng mang về **$9M** trước tiền thuê và thưởng qua ô xuất phát.
 
 Khi đang chở hàng, bấm một ô cảng khác hoặc chọn **Sổ cảng** trên hải đồ để dự tính chuyến đi cho chính tàu của bạn. Chẳng hạn, nếu bạn đang ở Cái Mép của mình với hàng xếp từ Singapore, dỡ ngay sẽ thu **$12M**. Nếu giữ hàng và sau đó gieo đến Piraeus của đối thủ, chuyến hàng có cước **$20M**. Với phí bến **$5M** và tiền thuê **$10M**, số dư của bạn chỉ tăng **$5M** ở Piraeus. Dự tính dùng quyền sở hữu và mức thuê hiện tại. Bạn vẫn di chuyển theo xúc xắc.
 

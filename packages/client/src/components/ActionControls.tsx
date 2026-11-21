@@ -5,6 +5,7 @@ import { DebtRescuePanel } from './DebtRescuePanel.js';
 import { StormDecision } from './StormDecision.js';
 import { PropertyAuctionPanel } from './PropertyAuctionPanel.js';
 import { PortInvestmentPreview } from './PortInvestmentPreview.js';
+import { HarborUpgradeTerms } from './HarborUpgradeTerms.js';
 import './chart-actions.css';
 
 interface Props {
@@ -277,6 +278,7 @@ export const ActionControls: React.FC<Props> = ({
         </div>
       </div>
 
+      <HarborUpgradeTerms state={gameState} tileId={currentTile.id} />
       {currentProp.containerLevel < 5 ? (
         <button
           onClick={() => onAction({ type: 'BUILD_CONTAINER', tileId: activePlayer.position })}
@@ -285,8 +287,8 @@ export const ActionControls: React.FC<Props> = ({
         >
           <Building2 size={18} aria-hidden="true" />{' '}
           {currentProp.containerLevel === 4
-            ? `LÊN SIÊU TÀU ONE INNOVATION (+$${buildCost}M)`
-            : `ĐẶT LÔ CONTAINER CẤP ${currentProp.containerLevel + 1} (+$${buildCost}M)`}
+            ? `LÊN SIÊU TÀU ONE INNOVATION (chi $${buildCost}M)`
+            : `ĐẶT LÔ CONTAINER CẤP ${currentProp.containerLevel + 1} (chi $${buildCost}M)`}
         </button>
       ) : (
         !currentProp.hasGreenFleet && (
@@ -295,7 +297,7 @@ export const ActionControls: React.FC<Props> = ({
             disabled={!canUpgradeDockedGreen}
             className="chart-button chart-button-primary chart-button-wide"
           >
-            <Leaf size={18} aria-hidden="true" /> GẮN HUY HIỆU TÀU XANH (+${GREEN_FLEET_COST}M)
+            <Leaf size={18} aria-hidden="true" /> GẮN HUY HIỆU TÀU XANH (chi ${GREEN_FLEET_COST}M)
           </button>
         )
       )}

@@ -15,12 +15,12 @@ interface Step {
   practice?: { question: string; choices: Choice[] };
 }
 
-const guides: Record<GameMode, Step[]> = {
-  harbor: [
+function harborGuide(supportsBooking: boolean): Step[] {
+  return [
     {
       title: 'Xếp hàng trước khi lắc xúc xắc',
       copy: [
-        'Bạn bắt đầu ở Singapore. Trong mục “Vận tải cảng”, chọn “Xếp 1 container”. Xếp hàng miễn phí và tàu giữ lô hàng cho đến khi bạn dỡ ở một cảng khác.',
+        'Ở Singapore, mở “Vận tải cảng” và chọn “Xếp 1 container”. Bạn xếp miễn phí ở đây và ở cảng đang hoạt động của mình. Tàu giữ hàng cho đến khi bạn chọn dỡ tại một cảng khác.',
         'Khi tàu có hàng, bấm vào một cảng khác trên bàn cờ. Bạn sẽ thấy số dư dự kiến tăng hay giảm bao nhiêu nếu ghé và dỡ ở đó, sau phí bến và tiền thuê. Trên hải đồ, chọn “Sổ cảng” để xem cùng dự tính.',
         'Chọn “Lắc xúc xắc!” để di chuyển. Ở cảng chưa có chủ, xem tiền thuê, phần cước và số cảng cùng màu bạn sẽ có trước khi mua hoặc trả giá. Sau đó bạn mới chọn dỡ hàng.',
       ],
@@ -39,15 +39,23 @@ const guides: Record<GameMode, Step[]> = {
       ] },
     },
     {
-      title: 'Kết thúc lượt và giữ khả năng thanh toán',
+      title: supportsBooking ? 'Đổi cảng, xây bãi và kết thúc lượt' : 'Đổi cảng và kết thúc lượt',
       copy: [
-        'Mở “Giao dịch” và chọn cảng muốn mua. Bạn có thể trả tiền hoặc chọn “Cảng của bạn muốn đem đổi”. Nhập 0 để đổi ngang, hoặc thêm tiền bù. Xem cảng mỗi bên sẽ nhận và bấm vào tên tuyến để so sánh tiền thuê và phần cước.',
-        'Chủ cảng có thể ra giá cao hơn một lần. Nếu đồng ý, chọn “Chấp nhận giá mới”. Sở hữu cả Cát Lái và Cái Mép giúp bạn nhận 50% cước khi đối thủ dỡ hàng ở hai bến này.',
+        'Mở “Giao dịch” và chọn cảng muốn mua. Bạn có thể trả tiền hoặc chọn “Cảng của bạn muốn đem đổi”. Nhập 0 để đổi ngang, hoặc thêm tiền bù. Bấm tên tuyến để so sánh tiền thuê và phần cước. Chủ cảng có thể ra giá khác một lần.',
+        supportsBooking
+          ? 'Xây cấp 1 để mở bãi xuất hàng. Khi tàu đối thủ tới với khoang trống, họ có thể trả bạn $3M để xếp một container hoặc rời bến với khoang trống. Nếu bạn sở hữu trọn nhóm màu, phí xếp là $6M. Tiền thuê tính riêng khi tàu cập bến.'
+          : 'Sở hữu cả Cát Lái và Cái Mép giúp bạn nhận 50% cước khi đối thủ dỡ hàng ở hai bến này.',
         'Nếu tàu có hàng ở cảng đang thế chấp của mình, bạn có thể dùng tiền cước để chuộc cảng và dỡ hàng, rồi trả phần còn lại bằng tiền mặt. Xử lý xong, chọn “Kết thúc lượt”. Người cuối cùng chưa phá sản sẽ thắng.',
       ],
-      figures: [['Cước ví dụ', '$12M'], ['Chủ trọn tuyến', '$6M'], ['Hãng vận chuyển', '$6M']],
+      figures: supportsBooking
+        ? [['Cái Mép cấp 1', '$20M tiền thuê'], ['Phí xếp một lô', '$3M'], ['Có trọn nhóm màu', '$6M phí xếp']]
+        : [['Cước ví dụ', '$12M'], ['Chủ trọn tuyến', '$6M'], ['Hãng vận chuyển', '$6M']],
     },
-  ],
+  ];
+}
+
+const guides = {
+  harbor: harborGuide(true),
   logistics: [
     {
       title: 'Tìm vỏ dư ở cảng xuất phát',
@@ -103,16 +111,18 @@ const guides: Record<GameMode, Step[]> = {
       ],
     },
   ],
-};
+} satisfies Record<GameMode, Step[]>;
+const legacyHarborGuide = harborGuide(false);
 
-interface Props { mode: GameMode; onClose: () => void; live?: boolean }
+interface Props { mode: GameMode; onClose: () => void; live?: boolean; supportsBooking?: boolean }
 
-export function BeginnerGuide({ mode, onClose, live = false }: Props) {
+export function BeginnerGuide({ mode, onClose, live = false, supportsBooking = true }: Props) {
   const [selected, setSelected] = useState(mode);
   const [page, setPage] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const id = useId(), heading = useRef<HTMLHeadingElement>(null), moveFocus = useRef(false);
-  const steps = guides[selected], step = steps[page];
+  const steps: Step[] = selected === 'harbor' && !supportsBooking ? legacyHarborGuide : guides[selected];
+  const step = steps[page];
   const response = answer !== null ? step.practice?.choices[answer] : null;
 
   useLayoutEffect(() => {

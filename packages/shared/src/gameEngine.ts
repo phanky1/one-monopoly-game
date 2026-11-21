@@ -37,7 +37,9 @@ import {
   STORM_TUG_FEE,
 } from './boardData.js';
 import { createLogisticsState, dispatchLogistics } from './cargo.js';
-import { createHarborFreight, dispatchHarborFreight, getHarborFreightOpportunity, recordHarborVisit } from './harborFreight.js';
+import {
+  createHarborFreight, dispatchHarborFreight, getHarborExportBooking, getHarborFreightOpportunity, recordHarborVisit,
+} from './harborFreight.js';
 import { dispatchTrade, expireTradeOffers, isTradeAction } from './trade.js';
 import { getMissionProgress } from './missionProgress.js';
 import { getPropertyCashOption, getRedemptionCost } from './debtRecovery.js';
@@ -56,8 +58,13 @@ function tradeChangesHarborOpportunity(before: GameState, after: GameState): boo
   const previous = getHarborFreightOpportunity(before, captainId);
   const current = getHarborFreightOpportunity(after, captainId);
   if (previous?.kind !== current?.kind) return true;
-  return previous?.kind === 'discharge' && current?.kind === 'discharge' &&
-    (previous.quote.operatorId !== current.quote.operatorId || previous.quote.feePercent !== current.quote.feePercent);
+  if (previous?.kind === 'discharge' && current?.kind === 'discharge') {
+    return previous.quote.operatorId !== current.quote.operatorId || previous.quote.feePercent !== current.quote.feePercent;
+  }
+  const previousBooking = getHarborExportBooking(before, captainId);
+  const currentBooking = getHarborExportBooking(after, captainId);
+  return previousBooking?.action.operatorId !== currentBooking?.action.operatorId ||
+    previousBooking?.action.fee !== currentBooking?.action.fee || previousBooking?.shortfall !== currentBooking?.shortfall;
 }
 
 export class OneMonopolyEngine {
@@ -133,7 +140,7 @@ export class OneMonopolyEngine {
 
   public static dispatch(state: GameState, action: GameAction, actorId?: string): EngineResult {
     if (!action || state.winnerId !== null) return { state, events: [] };
-    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_DISCHARGE' ||
+    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_DISCHARGE' ||
         action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
       const result = dispatchHarborFreight(state, action, actorId);
       if (result.state === state) return result;
@@ -142,7 +149,7 @@ export class OneMonopolyEngine {
         result.state = settled.state;
         result.events.push(...settled.events);
       }
-      if (action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
+      if (action.type === 'HARBOR_BOOK_EXPORT' || action.type === 'HARBOR_REDEEM_AND_DISCHARGE' || action.type === 'HARBOR_DISCHARGE_FOR_RENT') {
         expireTradeOffers(result.state, result.events);
       }
       return result;

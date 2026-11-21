@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Anchor, Container, PackageCheck, Ship } from 'lucide-react';
 import {
-  BOARD_TILES, getHarborFreightOpportunity, getHarborRedemption, getHarborRentRelief, type GameAction, type GameState, type HarborFreightQuote,
+  BOARD_TILES, getHarborExportBooking, getHarborFreightOpportunity, getHarborRedemption, getHarborRentRelief,
+  type GameAction, type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 import { HarborFreightReceipt } from './HarborFreightReceipt.js';
 import { portGuide } from './ports/portGuide.js';
@@ -53,14 +54,43 @@ function BerthStatus({ state, loaded }: { state: GameState; loaded: boolean }) {
     if (loaded && harbor.manifests[captain.id]?.originTileId === tile.id) return <>Dỡ container tại một cảng khác đang hoạt động.</>;
     if (harbor.visits[captain.id]?.handled) return <>Lượt ghé bến này đã làm hàng.</>;
   }
-  return loaded ? <>Giữ container trên tàu đến khi ghé một cảng khác đang hoạt động.</>
-    : <>Có thể xếp một container ở Singapore hoặc cảng đang hoạt động do {captain.name} sở hữu.</>;
+  if (loaded) return <>Giữ container trên tàu đến khi ghé một cảng khác đang hoạt động.</>;
+  if (state.supportsHarborExportBooking === true) return <>Xếp miễn phí ở Singapore hoặc cảng của mình. Tại cảng đối thủ đã nâng cấp, tàu có thể trả phí để xếp hàng.</>;
+  return <>Có thể xếp một container ở Singapore hoặc cảng đang hoạt động do {captain.name} sở hữu.</>;
 }
 
 type HarborOffer = NonNullable<ReturnType<typeof getHarborFreightOpportunity>>;
 type Redemption = NonNullable<ReturnType<typeof getHarborRedemption>>;
-type CargoCommand = HarborOffer['action'] | Redemption['action'];
+type ExportBooking = NonNullable<ReturnType<typeof getHarborExportBooking>>;
+type CargoCommand = HarborOffer['action'] | Redemption['action'] | ExportBooking['action'];
 interface Submission { action: CargoCommand; keyboard: boolean }
+
+function ExportBookingOffer({ booking, mine, disabled, endTurn, submit }: {
+  booking: ExportBooking; mine: boolean; disabled: boolean; endTurn: boolean;
+  submit: (action: CargoCommand, keyboard: boolean) => void;
+}) {
+  const { action, operatorName, shortfall } = booking;
+  const terms = JSON.stringify([action.operatorId, action.fee]);
+  const [reviewed, setReviewed] = useState(terms);
+  const changed = terms !== reviewed;
+  return <section className="harbor-export-quote" data-harbor-export-quote={action.fee}
+    aria-label="Đặt lô hàng xuất">
+    <h4><Container size={16} aria-hidden="true" />Đặt lô hàng xuất</h4>
+    <p>Trả <strong>{money(action.fee)}</strong> cho <strong>{operatorName}</strong> để xếp 1 container.
+      {' '}Dỡ hàng khi ghé cảng khác để nhận cước.</p>
+    <p className="harbor-export-skip">Tàu có thể {endTurn ? 'kết thúc lượt' : 'gieo xúc xắc'} với khoang trống.</p>
+    {shortfall > 0 && <p className="harbor-adjustment" data-harbor-export-shortfall={shortfall}>
+      Tàu còn thiếu <strong>{money(shortfall)}</strong> để xếp hàng.</p>}
+    {mine && <>
+      {changed && <p className="harbor-adjustment" role="status">Chủ cảng hoặc phí xếp hàng vừa thay đổi.</p>}
+      <button type="button" className="harbor-action" data-harbor-book-export={changed ? undefined : action.fee}
+        disabled={disabled || shortfall > 0}
+        onClick={event => changed ? setReviewed(terms) : submit(action, event.detail === 0)}>
+        {changed ? 'Xem lại phí xếp hàng' : `Trả ${money(action.fee)} và xếp hàng`}
+      </button>
+    </>}
+  </section>;
+}
 
 function RedemptionPrice({ redemption }: { redemption: Redemption }) {
   const { quote, redemptionCost, cashChange, shortfall } = redemption;
@@ -106,6 +136,7 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
   const visit = harbor.visits[captain.id];
   const offer = getHarborFreightOpportunity(state, captain.id);
   const redemption = getHarborRedemption(state, captain.id);
+  const booking = state.supportsHarborExportBooking === true ? getHarborExportBooking(state, captain.id) : null;
   const mine = captain.id === myPlayerId;
   const at = place(captain.position);
   const last = harbor.lastDelivery;
@@ -117,7 +148,7 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
   const proof = useRef<HTMLDivElement>(null);
   const [pending, setPending] = useState(false);
   const [accepted, setAccepted] = useState<Submission | null>(null);
-  const [failedRevision, setFailedRevision] = useState<number | null>(null);
+  const [failedAction, setFailedAction] = useState<CargoCommand | null>(null);
 
   useLayoutEffect(() => {
     if (!accepted || inFlight.current !== accepted || harbor.revision === accepted.action.revision) return;
@@ -125,9 +156,14 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
     setPending(false);
     setAccepted(null);
     if (!accepted.keyboard || document.hidden || document.querySelector('dialog[open]')) return;
-    const target = accepted.action.type === 'HARBOR_LOAD'
-      ? manifest?.originTileId === accepted.action.tileId && summary.current
-      : receipt && proof.current;
+    const { action } = accepted;
+    let target: HTMLElement | null = null;
+    if (action.type === 'HARBOR_LOAD' || action.type === 'HARBOR_BOOK_EXPORT') {
+      if (manifest?.originTileId === action.tileId && (action.type === 'HARBOR_LOAD' ||
+          (manifest.exportBooking?.operatorId === action.operatorId && manifest.exportBooking.fee === action.fee))) {
+        target = summary.current;
+      }
+    } else if (receipt) target = proof.current;
     if (target && (document.activeElement === document.body || card.current?.contains(document.activeElement))) {
       target.focus({ preventScroll: true });
     }
@@ -135,15 +171,16 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
 
   function submit(action: CargoCommand, keyboard: boolean) {
     if (!mine || busy || inFlight.current || action.revision !== harbor.revision) return;
+    if (action.type === 'HARBOR_BOOK_EXPORT' && (!booking || booking.shortfall > 0)) return;
     const request = { action, keyboard };
     inFlight.current = request;
     setPending(true);
-    setFailedRevision(null);
+    setFailedAction(null);
     onAction(action, () => {
       if (inFlight.current !== request) return;
       inFlight.current = null;
       setPending(false);
-      setFailedRevision(action.revision);
+      setFailedAction(action);
     }, () => {
       if (inFlight.current === request) setAccepted(request);
     });
@@ -155,6 +192,9 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
       <span>{captain.name} · {at}</span></header>
     <p className="harbor-manifest" ref={summary} tabIndex={-1} data-harbor-manifest={manifest ? 'laden' : 'empty'}>
       <Ship aria-hidden="true" />{manifest ? <>1 container từ <strong>{place(manifest.originTileId)}</strong></> : 'Khoang tàu trống'}
+      {manifest?.exportBooking && <small className="harbor-prepaid-fee" data-harbor-prepaid-fee={manifest.exportBooking.fee}>
+        Đã trả {money(manifest.exportBooking.fee)} phí xếp hàng cho <strong>{manifest.exportBooking.operatorName}</strong>.
+      </small>}
     </p>
     {mine && manifest && (state.phase === 'WAIT_FOR_ROLL' || state.phase === 'END_OF_TURN') &&
       <p className="harbor-instruction">Bấm một cảng khác trên bàn cờ để so sánh tiền cước và tiền thuê.</p>}
@@ -168,6 +208,8 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
         {' '}Có thể dỡ tại đây hoặc giữ hàng cho chuyến sau.</p>
       <FreightPrice quote={offer.quote} />
     </> : offer?.kind === 'load' ? <p className="harbor-instruction">Xếp tại {at}, rồi dỡ khi ghé một cảng khác.</p>
+      : booking ? <ExportBookingOffer booking={booking} mine={mine} disabled={busy || pending}
+        endTurn={state.phase === 'END_OF_TURN'} submit={submit} />
       : !receipt && <p className="harbor-instruction"><BerthStatus state={state} loaded={!!manifest} /></p>}
     {mine && offer && <HarborAction key={`${offer.kind}/${manifest?.originTileId ?? ''}`} offer={offer}
       disabled={busy || pending} submit={submit} />}
@@ -176,7 +218,8 @@ function BerthCard({ state, myPlayerId, onAction, is3D, busy = false }: Props) {
       onClick={event => submit(redemption.action, event.detail === 0)}>
       <PackageCheck aria-hidden="true" />Chuộc cảng và dỡ hàng
     </button>}
-    {failedRevision === harbor.revision && <p className="harbor-adjustment" role="alert">Lệnh làm hàng chưa được xác nhận. Kiểm tra lại vận đơn rồi thử lại.</p>}
+    {(failedAction?.revision === harbor.revision || (failedAction?.type === 'HARBOR_BOOK_EXPORT' && !manifest)) &&
+      <p className="harbor-adjustment" role="alert">Lệnh làm hàng chưa được xác nhận. Kiểm tra lại vận đơn rồi thử lại.</p>}
   </section>;
 }
 

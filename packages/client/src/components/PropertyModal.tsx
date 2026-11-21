@@ -8,6 +8,7 @@ import {
   GREEN_FLEET_ESG_BONUS,
   getTradeRestriction,
   getEmptyNeed,
+  getHarborExportFee,
   getHarborTerminalShare,
   getMortgageValue,
   getRedemptionCost,
@@ -33,6 +34,7 @@ import type { PortDischarge, PortLoad } from './ports/portArrival.js';
 import { ScheduledOperations } from './TruckTimetable.js';
 import { BoardDialog } from './BoardDialog.js';
 import { HarborCallPreview } from './HarborCallPreview.js';
+import { HarborUpgradeTerms } from './HarborUpgradeTerms.js';
 import { HarborMortgageTerms } from './HarborMortgageTerms.js';
 import { PortMiniature } from './ports/PortMiniature.js';
 import { portGuide, type PortGuide } from './ports/portGuide.js';
@@ -254,6 +256,8 @@ export const PropertyModal: React.FC<Props> = ({
     ? gameState.players.find((player) => player.id === prop.slotCharter?.partnerId)
     : null;
   const isMine = !!myPlayerId && prop?.ownerId === myPlayerId;
+  const exportFee = gameState.mode === 'harbor' && gameState.supportsHarborExportBooking === true
+    ? getHarborExportFee(gameState, tileId) : 0;
   const groupConfig = tile.group ? LOOP_GROUPS_CONFIG[tile.group] : null;
 
   const buildCost = tile.buildCost || groupConfig?.buildCost || 50;
@@ -343,6 +347,10 @@ export const PropertyModal: React.FC<Props> = ({
                 ? `${getHarborTerminalShare(gameState, tileId)}% cho ${owner.name}`
                 : '25% cho chủ cảng · 50% nếu sở hữu trọn nhóm màu'}</dd>
             </div>}
+            {owner && exportFee > 0 && <div data-deed-export-fee={exportFee}>
+              <dt>Phí xếp hàng khi đối thủ nhận lô xuất</dt>
+              <dd>{owner.name} thu ${exportFee}M mỗi lô</dd>
+            </div>}
             {owner && (tile.type !== 'INFRA' || gameState.hasRolled) && (
               <div>
                 <dt>{tile.type === 'INFRA' ? 'Cước theo lần gieo' : gameState.mode === 'harbor' ? 'Tiền thuê khi ghé bến' : 'Cước niêm yết'}</dt>
@@ -394,6 +402,7 @@ export const PropertyModal: React.FC<Props> = ({
           <div className="chart-manifest-actions">
             {tile.type === 'PORT' && (
               <>
+                {(canUpgradeThisVisit || prop.containerLevel === 0) && <HarborUpgradeTerms state={gameState} tileId={tileId} />}
                 <div className="chart-action-row">
                   <button
                     onClick={() => onAction({ type: 'BUILD_CONTAINER', tileId })}
@@ -402,8 +411,8 @@ export const PropertyModal: React.FC<Props> = ({
                   >
                     <Building2 aria-hidden="true" />{' '}
                     {prop.containerLevel === 4
-                      ? 'Lên ONE Innovation'
-                      : `Đặt Lô (+${buildCost}M)`}
+                      ? `Lên ONE Innovation (chi $${buildCost}M)`
+                      : `Đặt Lô (chi $${buildCost}M)`}
                   </button>
 
                   <button
@@ -422,7 +431,7 @@ export const PropertyModal: React.FC<Props> = ({
                     disabled={!canUpgradeGreen}
                     className="chart-button chart-button-primary"
                   >
-                    <Leaf aria-hidden="true" /> Gắn Huy Hiệu Xanh (+${GREEN_FLEET_COST}M)
+                    <Leaf aria-hidden="true" /> Gắn Huy Hiệu Xanh (chi ${GREEN_FLEET_COST}M)
                   </button>
                 )}
 
