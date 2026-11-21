@@ -22,6 +22,10 @@ Nếu Linh đến Cái Mép khi cảng **chưa có chủ**, cô có thể mua ho
 
 Bạn cũng có thể mua cảng của đối thủ qua **Giao dịch**. Chẳng hạn Linh đã có Laem Chabang và hỏi mua Jebel Ali của Minh với giá **$120M**. Minh có thể chọn **Ra giá khác** rồi gửi một giá cao hơn, trong giới hạn tiền mặt của Linh. Nếu Linh chấp nhận **$140M**, hai bên mới đổi tiền và quyền sở hữu. Nếu Minh đang chở hàng từ Singapore, trước khi bán anh có thể dỡ tại cảng của mình để nhận đủ **$18M**. Nếu anh dỡ sau khi bán, Linh sở hữu trọn tuyến và mỗi người nhận **$9M**. Tiền thuê Jebel Ali cho lần ghé sau tăng từ **$8M** lên **$16M**.
 
+Trong **Monopoly**, bạn có thể trao đổi hai giấy sở hữu. Chọn cảng muốn nhận rồi chọn **Cảng của bạn muốn đem đổi**. Để tiền bù ở **0** nếu đổi ngang. Nếu thêm tiền, người gửi đề nghị trả người nhận. Hai bên xem được tiền thuê và phần cước của từng bến ở các tuyến sắp hoàn thành hoặc bị tách. Người nhận có thể chấp nhận, từ chối hoặc đề nghị tăng tiền bù một lần. Hai cảng và khoản tiền được chuyển cùng lúc khi có người chấp nhận. Tàu vẫn giữ container đang chở. Chỉ có thể trao đổi cảng chưa thế chấp, không có thỏa thuận chia chỗ đang hiệu lực và thuộc nhóm chưa xây công trình.
+
+Ví dụ, Linh giữ Hamburg và Busan. Minh giữ Rotterdam và Yantian. Linh đưa Busan để lấy Rotterdam. Sau khi đổi ngang, Linh có trọn tuyến Bắc Âu, còn Minh có trọn tuyến Tây Thái Bình Dương. Tại Yantian chưa xây, lần tới Linh ghé bến, tiền thuê tăng từ **$20M** lên **$40M**. Nếu Linh dỡ một lô hàng Singapore có cước **$14M**, Minh nhận **$7M** phí bến và Linh nhận **$7M** cước.
+
 ### Empty Reposition
 
 Đến lượt mình, chọn loại hàng và cảng đích, xếp lên tàu, chọn cảng để chạy đến rồi dỡ. Với hàng xuất, hãy tìm bến còn xe nhận. Với **Container rỗng**, hãy lấy vỏ ở bến đang dư và chọn bến còn thiếu. Bạn được đi một chặng thông thường mỗi lượt.

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  getHarborFreightOpportunity, OneMonopolyEngine, type GameAction, type GameState,
+  getHarborFreightOpportunity, getHarborTerminalShare, OneMonopolyEngine, type GameAction, type GameState,
 } from '@one-monopoly/shared';
-import { getPortInvestment } from '../src/components/portInvestment.js';
+import { getPortInvestment, projectPortTrade } from '../src/components/portInvestment.js';
 
 const { createGame, dispatch } = OneMonopolyEngine;
 const seats = [
@@ -101,4 +101,24 @@ test('only available Harbor port deeds and seated solvent buyers receive project
   state.properties[11].ownerId = 'a';
   assert.equal(getPortInvestment(state, 11, 'a'), null);
   assert.equal(getPortInvestment(state, 11, 'b'), null);
+});
+
+test('a swap previews both completed routes together, including a mortgaged sister port', () => {
+  const state = createGame('swap-rates', seats, 'harbor');
+  for (const id of [1, 5]) state.properties[id].ownerId = 'a';
+  for (const id of [3, 7]) state.properties[id].ownerId = 'b';
+  state.properties[7].isMortgaged = true;
+  const original = structuredClone(state);
+  const rates = (game: GameState, id: number) => [
+    OneMonopolyEngine.calculateRent(game, id, game.dice), getHarborTerminalShare(game, id),
+  ];
+  const swapped = projectPortTrade(state, 3, 'a', 'b', 5);
+  assert.deepEqual([1, 3, 5, 7].map(id => rates(swapped, id)), [[4, 50], [8, 50], [12, 50], [0, 0]]);
+  assert.deepEqual(state, original);
+  const offer = apply(state, { type: 'OFFER_PORT_SWAP', tileId: 3, sellerId: 'b', offeredTileId: 5, price: 0 });
+  const settled = apply(offer, { type: 'RESPOND_TRADE', offerId: offer.tradeOffers![0].id, offeredTileId: 5, accept: true }, 'b');
+  assert.deepEqual(swapped.properties, settled.properties);
+
+  const sameGroup = projectPortTrade(state, 3, 'a', 'b', 1);
+  assert.deepEqual([1, 3].map(id => rates(sameGroup, id)), [[2, 25], [4, 25]]);
 });

@@ -1,7 +1,12 @@
 import { BOARD_TILES, LOOP_GROUPS_CONFIG } from './boardData.js';
 import type { EngineResult, GameAction, GameEvent, GameState, Player, TradeOffer } from './types.js';
 
-type TradeAction = Extract<GameAction, { type: 'OFFER_TRADE' | 'COUNTER_TRADE' | 'RESPOND_TRADE' | 'CANCEL_TRADE' }>;
+type TradeAction = Extract<GameAction, { type: 'OFFER_TRADE' | 'OFFER_PORT_SWAP' | 'COUNTER_TRADE' | 'RESPOND_TRADE' | 'CANCEL_TRADE' }>;
+
+export function isTradeAction(action: GameAction): action is TradeAction {
+  return action.type === 'OFFER_TRADE' || action.type === 'OFFER_PORT_SWAP' || action.type === 'COUNTER_TRADE' ||
+    action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE';
+}
 
 export function canSettleTrade(state: GameState): boolean {
   return state.gameStarted && state.winnerId === null && (
@@ -9,11 +14,10 @@ export function canSettleTrade(state: GameState): boolean {
   );
 }
 
-export function getTradeRestriction(state: GameState, buyerId: string, tileId: number): string | null {
+function getTradeAssetRestriction(state: GameState, buyerId: string, tileId: number): string | null {
   if (!state.gameStarted || state.winnerId !== null) return 'Ván chơi không còn nhận giao dịch.';
   const buyer = state.players.find(player => player.id === buyerId);
   if (!buyer || buyer.isBankrupt) return 'Bạn không thể giao dịch trong ván này.';
-  if (buyer.balance < 1) return 'Bạn cần ít nhất $1M để đề nghị mua.';
 
   if (!Number.isSafeInteger(tileId)) return 'Tài sản không hợp lệ.';
   const tile = BOARD_TILES[tileId];
@@ -37,13 +41,46 @@ export function getTradeRestriction(state: GameState, buyerId: string, tileId: n
   return null;
 }
 
-function hasValidTerms(state: GameState, offer: TradeOffer): boolean {
-  const { buyerId, sellerId, tileId, price } = offer;
-  if (getTradeRestriction(state, buyerId, tileId) !== null || state.properties[tileId].ownerId !== sellerId) {
-    return false;
-  }
+/** Deeds the buyer can give the seller in the same transaction. */
+export function getPortSwapOptions(state: GameState, buyerId: string, targetTileId: number): number[] {
+  if (state.mode !== 'harbor' || BOARD_TILES[targetTileId]?.type !== 'PORT' ||
+      getTradeAssetRestriction(state, buyerId, targetTileId)) return [];
+  const sellerId = state.properties[targetTileId].ownerId!;
+  return BOARD_TILES.filter(tile => tile.type === 'PORT' && state.properties[tile.id]?.ownerId === buyerId &&
+    !getTradeAssetRestriction(state, sellerId, tile.id)).map(tile => tile.id);
+}
+
+export function getTradeRestriction(state: GameState, buyerId: string, tileId: number): string | null {
+  const restriction = getTradeAssetRestriction(state, buyerId, tileId);
+  if (restriction) return restriction;
   const buyer = state.players.find(player => player.id === buyerId)!;
-  return Number.isSafeInteger(price) && price > 0 && price <= buyer.balance;
+  if (buyer.balance < 1 && (buyer.balance < 0 || !getPortSwapOptions(state, buyerId, tileId).length)) {
+    return 'Bạn cần ít nhất $1M để đề nghị mua.';
+  }
+  return null;
+}
+
+export function isValidTradeOffer(state: GameState, offer: TradeOffer): boolean {
+  const { buyerId, sellerId, tileId, offeredTileId, price } = offer;
+  if (getTradeAssetRestriction(state, buyerId, tileId) || state.properties[tileId].ownerId !== sellerId) return false;
+  const buyer = state.players.find(player => player.id === buyerId)!;
+  if (!Number.isSafeInteger(price) || price < 0 || price > buyer.balance) return false;
+  if (offeredTileId === undefined) return price > 0;
+  return getPortSwapOptions(state, buyerId, tileId).includes(offeredTileId);
+}
+
+/** Ownership and charter terms once both parties agree to the transfer. */
+export function projectTradeProperties(
+  state: GameState,
+  { tileId, offeredTileId, buyerId, sellerId }: Pick<TradeOffer, 'tileId' | 'offeredTileId' | 'buyerId' | 'sellerId'>,
+): GameState['properties'] {
+  const properties = { ...state.properties,
+    [tileId]: { ...state.properties[tileId], ownerId: buyerId, slotCharter: null },
+  };
+  if (offeredTileId !== undefined) {
+    properties[offeredTileId] = { ...state.properties[offeredTileId], ownerId: sellerId, slotCharter: null };
+  }
+  return properties;
 }
 
 function nextTradeId(state: GameState): number {
@@ -54,19 +91,21 @@ function makeCounterOffer(state: GameState, sellerId: string, offer: TradeOffer 
   if (state.mode !== 'harbor' || !offer || offer.sellerId !== sellerId || offer.originalPrice !== undefined ||
       BOARD_TILES[offer.tileId]?.type !== 'PORT' || price <= offer.price) return null;
   const counter = { ...offer, id: nextTradeId(state), originalPrice: offer.price, price };
-  return Number.isSafeInteger(counter.id) && hasValidTerms(state, counter) ? counter : null;
+  return Number.isSafeInteger(counter.id) && isValidTradeOffer(state, counter) ? counter : null;
 }
 
 export function getTradeCounterAction(state: GameState, sellerId: string, offerId: number, price: number):
   Extract<GameAction, { type: 'COUNTER_TRADE' }> | null {
   const offer = state.tradeOffers?.find(candidate => candidate.id === offerId);
-  return makeCounterOffer(state, sellerId, offer, price) ? { type: 'COUNTER_TRADE', offerId, price } : null;
+  const counter = makeCounterOffer(state, sellerId, offer, price);
+  return counter ? { type: 'COUNTER_TRADE', offerId, price,
+    ...(counter.offeredTileId !== undefined && { offeredTileId: counter.offeredTileId }) } : null;
 }
 
 export function expireTradeOffers(state: GameState, events: GameEvent[]): void {
   if (!state.tradeOffers?.length) return;
   state.tradeOffers = state.tradeOffers.filter(offer => {
-    if (hasValidTerms(state, offer)) return true;
+    if (isValidTradeOffer(state, offer)) return true;
     events.push({ type: 'TRADE_CLOSED', offer, result: 'EXPIRED' });
     return false;
   });
@@ -79,11 +118,13 @@ export function dispatchTrade(
   const unchanged: EngineResult = { state, events: [] };
   if (!actorId || !state.gameStarted || state.winnerId !== null) return unchanged;
   const offers = state.tradeOffers ?? [];
-  if (action.type === 'OFFER_TRADE') {
+  if (action.type === 'OFFER_TRADE' || action.type === 'OFFER_PORT_SWAP') {
+    if (action.type === 'OFFER_TRADE' ? 'offeredTileId' in action : !Number.isSafeInteger(action.offeredTileId)) return unchanged;
     if (offers.some(offer => offer.buyerId === actorId)) return unchanged;
     const id = nextTradeId(state);
-    const offer: TradeOffer = { id, buyerId: actorId, sellerId: action.sellerId, tileId: action.tileId, price: action.price };
-    if (!Number.isSafeInteger(id) || !hasValidTerms(state, offer)) return unchanged;
+    const offer: TradeOffer = { id, buyerId: actorId, sellerId: action.sellerId, tileId: action.tileId, price: action.price,
+      ...(action.type === 'OFFER_PORT_SWAP' && { offeredTileId: action.offeredTileId }) };
+    if (!Number.isSafeInteger(id) || !isValidTradeOffer(state, offer)) return unchanged;
     return {
       state: { ...state, tradeOffers: [...offers, offer], tradeSequence: id },
       events: [{ type: 'TRADE_OFFERED', offer }],
@@ -92,6 +133,9 @@ export function dispatchTrade(
 
   const offer = offers.find(candidate => candidate.id === action.offerId);
   if (!offer) return unchanged;
+  // A client must acknowledge both deeds before committing to an exchange.
+  if ((action.type === 'COUNTER_TRADE' || (action.type === 'RESPOND_TRADE' && action.accept)) &&
+      action.offeredTileId !== offer.offeredTileId) return unchanged;
   if (action.type === 'COUNTER_TRADE') {
     const counter = makeCounterOffer(state, actorId, offer, action.price);
     if (!counter) return unchanged;
@@ -116,24 +160,27 @@ export function dispatchTrade(
     return { state: next, events: [{ type: 'TRADE_CLOSED', offer, result }] };
   }
   if (!action.accept) return { state: next, events: [{ type: 'TRADE_CLOSED', offer, result: 'DECLINED' }] };
-  if (!hasValidTerms(state, offer)) return { state: next, events: [{ type: 'TRADE_CLOSED', offer, result: 'EXPIRED' }] };
+  if (!isValidTradeOffer(state, offer)) return { state: next, events: [{ type: 'TRADE_CLOSED', offer, result: 'EXPIRED' }] };
 
-  // The mission check can update the buyer's mission as well as their balance.
+  // Either captain can receive a mission reward when acquiring a new deed.
   next.players = structuredClone(state.players);
   const buyer = next.players.find(player => player.id === offer.buyerId)!;
   const seller = next.players.find(player => player.id === offer.sellerId)!;
   buyer.balance -= offer.price;
   seller.balance += offer.price;
-  next.properties = {
-    ...state.properties,
-    [offer.tileId]: { ...state.properties[offer.tileId], ownerId: buyer.id, slotCharter: null },
-  };
-  const tileName = BOARD_TILES[offer.tileId].name;
-  const events: GameEvent[] = [
-    { type: 'TRADE_CLOSED', offer, result: 'ACCEPTED' },
-    { type: 'BALANCE_CHANGED', playerId: buyer.id, delta: -offer.price, newBalance: buyer.balance, reason: `Mua ${tileName} từ ${seller.name}` },
-    { type: 'BALANCE_CHANGED', playerId: seller.id, delta: offer.price, newBalance: seller.balance, reason: `Bán ${tileName} cho ${buyer.name}` },
-  ];
+  next.properties = projectTradeProperties(state, offer);
+  const events: GameEvent[] = [{ type: 'TRADE_CLOSED', offer, result: 'ACCEPTED' }];
+  if (offer.price > 0) {
+    const tileName = BOARD_TILES[offer.tileId].name;
+    const exchange = offer.offeredTileId !== undefined;
+    events.push(
+      { type: 'BALANCE_CHANGED', playerId: buyer.id, delta: -offer.price, newBalance: buyer.balance,
+        reason: exchange ? `Trả tiền bù để đổi lấy ${tileName}` : `Mua ${tileName} từ ${seller.name}` },
+      { type: 'BALANCE_CHANGED', playerId: seller.id, delta: offer.price, newBalance: seller.balance,
+        reason: exchange ? `Nhận tiền bù khi đổi ${tileName}` : `Bán ${tileName} cho ${buyer.name}` },
+    );
+  }
   checkMission(next, events, buyer);
+  if (offer.offeredTileId !== undefined) checkMission(next, events, seller);
   return { state: next, events };
 }

@@ -1,0 +1,23 @@
+.trade-route-impact { display: grid; gap: 4px; min-width: 0; }
+.trade-route-change {
+  border: 1px solid #aebfb2; border-radius: 3px;
+  background: #fcf8e9; color: #25434c;
+}
+.trade-route-change summary {
+  padding: 5px 8px; font-size: .78rem; line-height: 1.45;
+  cursor: pointer; overflow-wrap: anywhere;
+}
+.trade-route-change summary::marker { color: #7e2853; }
+.trade-route-change summary:focus-visible { outline: 2px solid #087d89; outline-offset: 1px; }
+.trade-route-change summary i {
+  display: inline-block; width: 8px; height: 8px; margin-inline-end: 4px;
+  border: 1px solid #14343b55; border-radius: 2px;
+}
+.trade-route-change table { width: calc(100% - 16px); margin: 0 8px 5px; border-collapse: collapse; table-layout: fixed; font-size: .74rem; }
+.trade-route-change caption { padding: 4px 0 3px; color: #466267; text-align: start; }
+.trade-route-change th, .trade-route-change td { padding: 3px 2px; text-align: end; vertical-align: top; }
+.trade-route-change tr > :first-child { width: 40%; text-align: start; }
+.trade-route-change th { overflow-wrap: anywhere; }
+.trade-route-change thead th { border-bottom: 1px solid #bbc8b8; color: #39565b; font-weight: 600; }
+.trade-route-change tbody th small { display: block; color: #426168; font-size: .71rem; font-weight: 500; }
+.trade-route-change td { font-family: var(--action-number); font-variant-numeric: tabular-nums; }

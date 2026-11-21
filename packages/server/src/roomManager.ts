@@ -13,6 +13,7 @@ import {
   getHarborRedemption,
   getHarborRentRelief,
   isFreightRivalStyle,
+  isTradeAction,
   LOOP_GROUPS_CONFIG,
   OneMonopolyEngine,
   VesselToken,
@@ -55,6 +56,8 @@ export function gameStateForPlayer(state: GameState, viewerId: string | undefine
       return publicPlayer;
     }),
   };
+  if (state.mode === 'harbor' && state.gameStarted && state.winnerId === null) view.supportsPortSwaps = true;
+  else delete view.supportsPortSwaps;
   if (logistics && market && tender) {
     const bidderIds = tender.bidderIds ?? Object.keys(tender.bids);
     const bidCount = tender.bidCount ?? bidderIds.length;
@@ -371,13 +374,12 @@ export class RoomManager {
       return { success: false, error: 'Chưa đến lượt điều độ của bạn.' };
     }
     const isAuctionAction = action.type === 'AUCTION_BID' || action.type === 'AUCTION_PASS';
-    const isTradeAction = action.type === 'OFFER_TRADE' || action.type === 'COUNTER_TRADE' ||
-      action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE';
+    const tradeAction = isTradeAction(action);
     const inAuction = room.gameState.phase === 'AWAITING_AUCTION';
     if (isAuctionAction && (!inAuction || room.gameState.auction?.bidderId !== playerId)) {
       return { success: false, error: 'Chưa đến lượt đấu giá của bạn.' };
     }
-    if (inAuction && !isAuctionAction && !isTradeAction) return { success: false, error: 'Hãy hoàn tất phiên đấu giá trước.' };
+    if (inAuction && !isAuctionAction && !tradeAction) return { success: false, error: 'Hãy hoàn tất phiên đấu giá trước.' };
 
     // Some actions can only be triggered by the active player
     // Slot Charter response can only be answered by the property owner
@@ -429,13 +431,13 @@ export class RoomManager {
         (action.type === 'SETTLE_DEBT' && !events.some(e => e.type === 'DEBT_SETTLED'))) {
       return { success: false, error: 'Không thể thực hiện thao tác này với số dư và tài sản hiện tại.' };
     }
-    if (isTradeAction && nextState === room.gameState) {
+    if (tradeAction && nextState === room.gameState) {
       return { success: false, error: 'Đề nghị giao dịch đã thay đổi hoặc thao tác không hợp lệ.' };
     }
     if (isAuctionAction && nextState.phase === prevPhase && nextState.auction?.revision === room.gameState.auction?.revision) {
       return { success: false, error: 'Lượt đấu giá đã thay đổi hoặc giá đặt không hợp lệ.' };
     }
-    if (!isTradeAction && (prevPhase === 'AWAITING_STORM_DECISION' || action.type === 'RESOLVE_STORM') &&
+    if (!tradeAction && (prevPhase === 'AWAITING_STORM_DECISION' || action.type === 'RESOLVE_STORM') &&
         !events.some((event) => event.type === 'STORM_RESOLVED')) {
       return { success: false, error: 'Không thể thực hiện lựa chọn ứng phó bão này.' };
     }
@@ -454,7 +456,7 @@ export class RoomManager {
       this.onBroadcastUpdate(room.id, nextState, events);
     }
 
-    if (!isTradeAction) this.triggerBotIfNeeded(room, action.type);
+    if (!tradeAction) this.triggerBotIfNeeded(room, action.type);
     this.scheduleBotTradeReply(room);
 
     return { success: true, state: nextState, events };

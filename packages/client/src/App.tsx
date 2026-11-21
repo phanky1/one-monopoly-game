@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BOARD_TILES, GameCard, getMissionProgress, getVoyagePayment, STORM_DRIFT_STEPS, STORM_TUG_FEE, type GameMode, type PortStock } from '@one-monopoly/shared';
+import { BOARD_TILES, GameCard, getMissionProgress, getVoyagePayment, STORM_DRIFT_STEPS, STORM_TUG_FEE, type GameMode, type PortStock, type TradeOffer } from '@one-monopoly/shared';
 import { useSocket } from './hooks/useSocket.js';
 import { Lobby } from './components/Lobby.js';
 import { BeginnerGuide } from './components/BeginnerGuide.js';
@@ -34,6 +34,12 @@ const weatherReadouts = {
   showers: { Icon: CloudRain, label: 'Mưa rào' },
   storm: { Icon: CloudLightning, label: 'Bão' },
 };
+
+function tradePayment(offer: TradeOffer) {
+  if (offer.offeredTileId === undefined) return `$${offer.price}M`;
+  const deed = BOARD_TILES[offer.offeredTileId].name;
+  return offer.price ? `${deed} và $${offer.price}M tiền bù` : deed;
+}
 
 export const App: React.FC = () => {
   const {
@@ -72,6 +78,7 @@ export const App: React.FC = () => {
   const [eventLogs, setEventLogs] = useState<string[]>([]);
   const [boardNotice, setBoardNotice] = useState<BoardNotice | null>(null);
   const [tradeDesk, setTradeDesk] = useState<{ tileId: number | null } | null>(null);
+  const [settledSwap, setSettledSwap] = useState<TradeOffer>();
   const [freightTool, setFreightTool] = useState<'market' | 'voyages' | { captainId: string; originTileId: number; initialTileId?: number } | null>(null);
   const [feederFocus, setFeederFocus] = useState<{ room: string; round: number; captainId: string; tileId: number } | null>(null);
   function openFeederChart(captainId: string, originTileId: number, initialTileId?: number) {
@@ -103,6 +110,7 @@ export const App: React.FC = () => {
       pendingCardRef.current = null;
       setActiveCard(null);
       setBoardNotice(null);
+      setSettledSwap(undefined);
       return;
     }
     const sale = events.find(event => event.type === 'AUCTION_ENDED');
@@ -124,6 +132,9 @@ export const App: React.FC = () => {
       }
 
       // Add to event logs
+      if (evt.type === 'TRADE_OFFERED' && (evt.offer.buyerId === myPlayerId || evt.offer.sellerId === myPlayerId)) {
+        setSettledSwap(undefined);
+      }
       let logMsg = '';
       if (evt.type === 'HARBOR_LOADED') {
         const who = state.players.find(player => player.id === evt.playerId)?.name ?? 'Thuyền trưởng';
@@ -201,24 +212,29 @@ export const App: React.FC = () => {
         setBoardNotice({ type: 'auction', text: logMsg });
       } else if (evt.type === 'TRADE_OFFERED' && evt.offer.sellerId === myPlayerId) {
         const buyer = state.players.find(player => player.id === evt.offer.buyerId);
-        logMsg = `${buyer?.name ?? 'Một thuyền trưởng'} đề nghị mua ${BOARD_TILES[evt.offer.tileId].name} với giá $${evt.offer.price}M.`;
+        logMsg = `${buyer?.name ?? 'Một thuyền trưởng'} đề nghị mua ${BOARD_TILES[evt.offer.tileId].name} bằng ${tradePayment(evt.offer)}.`;
         setBoardNotice({ type: 'trade', text: logMsg });
       } else if (evt.type === 'TRADE_COUNTERED' && evt.offer.buyerId === myPlayerId) {
         const seller = state.players.find(player => player.id === evt.offer.sellerId);
-        logMsg = `${seller?.name ?? 'Chủ cảng'} ra giá $${evt.offer.price}M cho ${BOARD_TILES[evt.offer.tileId].name}. Mở Giao dịch để trả lời.`;
+        logMsg = `${seller?.name ?? 'Chủ cảng'} ra giá ${tradePayment(evt.offer)} cho ${BOARD_TILES[evt.offer.tileId].name}. Mở Giao dịch để trả lời.`;
         setBoardNotice({ type: 'trade', text: logMsg });
       } else if (evt.type === 'TRADE_CLOSED') {
-        const { buyerId, sellerId, price, tileId } = evt.offer;
+        const { buyerId, sellerId, price, tileId, offeredTileId } = evt.offer;
         const property = BOARD_TILES[tileId].name;
         if (evt.result === 'ACCEPTED') {
           const buyer = state.players.find(player => player.id === buyerId);
           const seller = state.players.find(player => player.id === sellerId);
-          logMsg = `${buyer?.name} mua ${property} từ ${seller?.name} với giá $${price}M.`;
+          if (offeredTileId !== undefined && (buyerId === myPlayerId || sellerId === myPlayerId)) setSettledSwap(evt.offer);
+          logMsg = offeredTileId === undefined
+            ? `${buyer?.name} mua ${property} từ ${seller?.name} với giá $${price}M.`
+            : `🤝 ${buyer?.name} nhận ${property}. ${seller?.name} nhận ${tradePayment(evt.offer)}.`;
         } else if (myPlayerId === buyerId || myPlayerId === sellerId) {
           const status = { DECLINED: 'đã bị từ chối', WITHDRAWN: 'đã được rút lại', EXPIRED: 'đã hết hiệu lực' };
-          logMsg = `Đề nghị mua ${property} với giá $${price}M ${status[evt.result]}.`;
+          logMsg = `Đề nghị mua ${property} bằng ${tradePayment(evt.offer)} ${status[evt.result]}.`;
         }
-        if (logMsg && (evt.result === 'ACCEPTED' || !tradeSettled)) setBoardNotice({ type: 'trade', text: logMsg });
+        if (logMsg && (evt.result === 'ACCEPTED' || !tradeSettled)) {
+          setBoardNotice({ type: 'trade', text: logMsg });
+        }
       } else if (evt.type === 'STORM_RESOLVED') {
         logMsg = evt.choice === 'TUG'
           ? `⚓ Thuê tàu kéo giữ vị trí với phí $${STORM_TUG_FEE}M`
@@ -437,7 +453,8 @@ export const App: React.FC = () => {
           </aside>
           {tradeDesk && myPlayerId && canOpenTrades && (
             <TradeDesk gameState={gameState} myPlayerId={myPlayerId} initialTileId={tradeDesk.tileId}
-              onAction={sendAction} onClose={() => setTradeDesk(null)} />
+              settledSwap={settledSwap} onAction={sendAction}
+              onClose={() => { setTradeDesk(null); setSettledSwap(undefined); }} />
           )}
           {freightGame && !gameState.winnerId && freightTool === 'voyages' &&
             <VoyageLog gameState={gameState} myPlayerId={myPlayerId} onClose={() => setFreightTool(null)} />}

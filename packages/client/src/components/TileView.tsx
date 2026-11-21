@@ -5,7 +5,7 @@ import { PortMiniature } from './ports/PortMiniature.js';
 import { portGuide } from './ports/portGuide.js';
 import type { PortTenderNotice } from './ports/portTender.js';
 import { Anchor, ArrowUpRight, Boxes, Check, Coins, FileText, Flag, Handshake, Leaf, Compass, LifeBuoy, Navigation, RadioTower, Sailboat, Ship, Siren, Stamp, Waves, Wind } from 'lucide-react';
-import type { RentReceipt } from './useBoardPlayback.js';
+import type { RentReceipt, TileClaim } from './useBoardPlayback.js';
 import './tile-claim.css';
 import './tile-rent.css';
 import './tile-mission.css';
@@ -96,7 +96,7 @@ interface Props {
   tile: BoardTile;
   property?: PropertyState;
   owner?: Player;
-  claim?: { playerId: string; tileId: number; price: number };
+  claim?: TileClaim;
   auctioned?: boolean;
   missionTarget?: boolean;
   receipt?: RentReceipt;
@@ -294,7 +294,7 @@ export const TileView: React.FC<Props> = ({
         </span>
       )}
       {isFreshClaim && (
-        <span className="tile-claim-effect" aria-hidden="true">
+        <span key={claim.swapId ?? owner.id} className="tile-claim-effect" data-port-swap-claim={claim.swapId} aria-hidden="true">
           <span className="tile-claim-ripple" />
           <span className="tile-claim-marker"><Flag className="tile-claim-flag" /></span>
         </span>

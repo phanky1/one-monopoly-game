@@ -1,22 +1,26 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowLeftRight, X } from 'lucide-react';
 import {
-  BOARD_TILES, INFRA_TILES, LOOP_GROUPS_CONFIG, SERVICE_LINES, canSettleTrade, getBotAskingPrice, getTradeCounterAction, getTradeRestriction,
+  BOARD_TILES, INFRA_TILES, LOOP_GROUPS_CONFIG, SERVICE_LINES, canSettleTrade, getBotAskingPrice, getBotPortSwapTerms,
+  getPortSwapOptions, getTradeCounterAction, getTradeRestriction, isValidTradeOffer,
   type GameAction, type GameState, type TradeOffer,
 } from '@one-monopoly/shared';
 import { BoardDialog } from './BoardDialog.js';
 import { TradeCargoImpact } from './TradeCargoImpact.js';
+import { TradeRouteImpact } from './TradeRouteImpact.js';
+import { PortSwapReceipt } from './PortSwapReceipt.js';
 import './trade-desk.css';
 
 interface Props {
   gameState: GameState;
   myPlayerId: string;
   initialTileId: number | null;
+  settledSwap?: TradeOffer;
   onAction: (action: GameAction, onFailure?: () => void, onSuccess?: () => void) => void;
   onClose: () => void;
 }
 
-type TradeAction = Extract<GameAction, { type: 'OFFER_TRADE' | 'COUNTER_TRADE' | 'RESPOND_TRADE' | 'CANCEL_TRADE' }>;
+type TradeAction = Extract<GameAction, { type: 'OFFER_TRADE' | 'OFFER_PORT_SWAP' | 'COUNTER_TRADE' | 'RESPOND_TRADE' | 'CANCEL_TRADE' }>;
 const noOffers: TradeOffer[] = [];
 const serviceGroup = { name: 'Tuyến dịch vụ', color: '#346765', tileIds: SERVICE_LINES };
 const infrastructureGroup = { name: 'Hạ tầng số', color: '#6f7888', tileIds: INFRA_TILES };
@@ -58,36 +62,104 @@ function rivalProperties(state: GameState, buyerId: string) {
     || b.owned / b.group.tileIds.length - a.owned / a.group.tileIds.length || a.tile.id - b.tile.id);
 }
 
-function CashOffer({ balance, listPrice, askingPrice, disabled, send }: {
-  balance: number; listPrice: number; askingPrice: number | null; disabled: boolean; send: (price: number) => void;
+type TradeParties = Pick<TradeOffer, 'buyerId' | 'sellerId' | 'tileId' | 'offeredTileId'>;
+
+function swapSummary(state: GameState, offer: TradeParties & { price: number }) {
+  const buyer = state.players.find(player => player.id === offer.buyerId)?.name ?? 'Bên mua';
+  const seller = state.players.find(player => player.id === offer.sellerId)?.name ?? 'Bên bán';
+  const cash = offer.price > 0 ? `${buyer} trả ${seller} ${money(offer.price)} tiền bù.` : 'Tiền bù $0M.';
+  return `${buyer} nhận ${BOARD_TILES[offer.tileId].name}. ${seller} nhận ${BOARD_TILES[offer.offeredTileId!].name}. ${cash}`;
+}
+
+function SwapTerms({ state, offer, price }: { state: GameState; offer: TradeParties; price: number | null }) {
+  if (offer.offeredTileId === undefined) return null;
+  const buyer = state.players.find(player => player.id === offer.buyerId)?.name;
+  const seller = state.players.find(player => player.id === offer.sellerId)?.name;
+  return <dl className="trade-swap-terms" data-swap-terms={offer.offeredTileId} aria-label="Điều khoản đổi cảng">
+    <div><dt>{buyer} nhận</dt><dd>{BOARD_TILES[offer.tileId].name}</dd></div>
+    <div><dt>{seller} nhận</dt><dd>{BOARD_TILES[offer.offeredTileId].name}</dd></div>
+    <div><dt>Tiền bù · {buyer} trả {seller}</dt><dd>{price === null ? '—' : money(price)}</dd></div>
+  </dl>;
+}
+
+function TradeImpact({ state, ...terms }: TradeParties & { state: GameState }) {
+  return <>
+    <TradeRouteImpact state={state} {...terms} />
+    <TradeCargoImpact state={state} {...terms} />
+  </>;
+}
+
+function OfferForm({ state, tileId, buyerId, sellerId, balance, listPrice, askingPrice, disabled, send }: {
+  state: GameState; tileId: number; buyerId: string; sellerId: string; balance: number; listPrice: number;
+  askingPrice: number | null; disabled: boolean; send: (action: TradeAction) => void;
 }) {
   const id = useId();
-  const [amount, setAmount] = useState(String(Math.min(listPrice, balance) || ''));
+  const cashDefault = String(Math.min(listPrice, balance) || '');
+  const [amount, setAmount] = useState(cashDefault);
+  const [offeredTileId, setOfferedTileId] = useState<number>();
+  const supportsSwaps = state.supportsPortSwaps === true;
+  const options = supportsSwaps ? getPortSwapOptions(state, buyerId, tileId) : [];
+  const swap = offeredTileId !== undefined;
+  const lostPort = swap && !options.includes(offeredTileId);
+  const botTerms = askingPrice !== null && swap && !lostPort
+    ? getBotPortSwapTerms(state, sellerId, tileId, offeredTileId) : null;
+  const minimum = swap ? 0 : 1;
   const price = Number(amount);
-  const valid = Number.isSafeInteger(price) && price > 0 && price <= balance;
-  return (
-    <form className="trade-price-form" onSubmit={(event) => {
-      event.preventDefault();
-      if (valid && !disabled) send(price);
-    }}>
-      <div className="trade-price-label">
-        <label htmlFor={id}>Giá đề nghị (triệu USD)</label>
-        {askingPrice !== null && (
-          <button type="button" className="trade-fill-quote" disabled={disabled}
-            onClick={() => setAmount(String(askingPrice))}>Điền giá AI</button>
-        )}
-      </div>
-      <div className="trade-price-entry">
-        <input id={id} type="number" inputMode="numeric" min="1" step="1" max={balance} required
-          value={amount} onChange={event => setAmount(event.target.value)} disabled={disabled}
-          aria-describedby={`${id}-balance`} />
-        <button type="submit" className="chart-button chart-button-primary" disabled={!valid || disabled}>Gửi đề nghị</button>
-      </div>
-      <small id={`${id}-balance`}>Số dư của bạn <strong>{money(balance)}</strong>
-        {price > balance && Number.isSafeInteger(price) && <> · Cần thêm {money(price - balance)} để gửi.</>}
-      </small>
-    </form>
-  );
+  const validPrice = amount.trim() !== '' && Number.isSafeInteger(price) && price >= minimum;
+  const terms = { tileId, buyerId, sellerId, offeredTileId };
+  const fillPrice = swap ? botTerms?.minimumCash : askingPrice;
+  const valid = validPrice && price <= balance && !lostPort;
+
+  function choosePort(value: string) {
+    const next = value === '' ? undefined : Number(value);
+    setOfferedTileId(next);
+    setAmount(next === undefined ? cashDefault : '0');
+  }
+
+  return <form className="trade-price-form" onSubmit={event => {
+    event.preventDefault();
+    if (!valid || disabled) return;
+    if (offeredTileId === undefined) send({ type: 'OFFER_TRADE', tileId, sellerId, price });
+    else send({ type: 'OFFER_PORT_SWAP', tileId, sellerId, price, offeredTileId });
+  }}>
+    {supportsSwaps && (options.length > 0 || swap) && <>
+      <label htmlFor={id + '-port'}>Cảng của bạn muốn đem đổi</label>
+      <select id={id + '-port'} data-swap-port value={offeredTileId ?? ''} disabled={disabled}
+        onChange={event => choosePort(event.target.value)}>
+        <option value="">Chỉ trả bằng tiền</option>
+        {lostPort && <option value={offeredTileId} disabled>{BOARD_TILES[offeredTileId].name} · Tạm khóa</option>}
+        {options.map(port => <option key={port} value={port}>{BOARD_TILES[port].name}</option>)}
+      </select>
+    </>}
+    {lostPort && <p className="trade-desk-guidance" role="alert">Cảng vừa chọn không còn giao dịch được. Hãy chọn lại điều khoản.
+      {!supportsSwaps && <button type="button" className="chart-button" onClick={() => choosePort('')}>Chỉ trả bằng tiền</button>}
+    </p>}
+    {!lostPort && <TradeImpact state={state} {...terms} />}
+    {askingPrice !== null && <div className="trade-bot-quote">
+      {botTerms ? <><p>AI định giá cảng của bạn <strong>{money(botTerms.credit)}</strong> · Tiền bù <strong>{money(botTerms.minimumCash)}</strong></p>
+        {offeredTileId !== undefined && botTerms.credit > (BOARD_TILES[offeredTileId].price ?? 0) &&
+          <small>AI trả cao hơn giá niêm yết vì sẽ sở hữu thêm cảng cùng màu.</small>}</>
+        : <><p>Giá AI yêu cầu <strong>{money(askingPrice)}</strong></p>
+          <small>{state.mode === 'harbor' && BOARD_TILES[tileId].type === 'PORT'
+            ? 'Nếu bạn đề nghị thấp hơn, AI có thể ra giá mới để bạn cân nhắc.'
+            : 'AI chỉ bán từ mức này. Giá tăng khi AI có nhiều tài sản cùng nhóm.'}</small></>}
+    </div>}
+    <div className="trade-price-label">
+      <label htmlFor={id}>{swap ? 'Tiền bù thêm (triệu USD)' : 'Giá đề nghị (triệu USD)'}</label>
+      {fillPrice != null && <button type="button" className="trade-fill-quote" disabled={disabled}
+        onClick={() => setAmount(String(fillPrice))}>Điền giá AI</button>}
+    </div>
+    <div className="trade-price-entry">
+      <input id={id} type="number" inputMode="numeric" min={minimum} step="1" max={balance} required
+        data-trade-price value={amount} onChange={event => setAmount(event.target.value)} disabled={disabled}
+        aria-describedby={id + '-balance'} />
+      <button type="submit" className="chart-button chart-button-primary" disabled={!valid || disabled}>Gửi đề nghị</button>
+    </div>
+    <small id={id + '-balance'}>Số dư của bạn <strong>{money(balance)}</strong>
+      {price > balance && Number.isSafeInteger(price) && <> · Cần thêm {money(price - balance)} để gửi.</>}
+    </small>
+    {!lostPort && swap && <SwapTerms state={state} offer={terms} price={validPrice ? price : null} />}
+  </form>;
 }
 
 function CounterPriceForm({ state, offer, balance, disabled, send }: {
@@ -101,7 +173,7 @@ function CounterPriceForm({ state, offer, balance, disabled, send }: {
   return <details className="trade-counter-form">
     <summary data-counter-open>Ra giá khác</summary>
     <form onSubmit={event => { event.preventDefault(); if (action && !disabled) send(action); }}>
-      <label htmlFor={id}>Giá bán mới (triệu USD)</label>
+      <label htmlFor={id}>{offer.offeredTileId !== undefined ? 'Tiền bù mới (triệu USD)' : 'Giá bán mới (triệu USD)'}</label>
       <div className="trade-price-entry">
         <input type="number" id={id} inputMode="numeric" min={minimum} max={balance} step="1" required
           data-counter-price aria-describedby={id + '-range'} disabled={disabled}
@@ -114,8 +186,11 @@ function CounterPriceForm({ state, offer, balance, disabled, send }: {
   </details>;
 }
 
-export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onClose }: Props) {
+export function TradeDesk({ gameState, myPlayerId, initialTileId, settledSwap, onAction, onClose }: Props) {
   const titleId = useId();
+  const initialSwap = useRef(settledSwap?.id);
+  const lastAnnouncedSwap = useRef(settledSwap?.id);
+  const confirmedSwapNotice = settledSwap ? `Đã đổi cảng. ${swapSummary(gameState, settledSwap)}` : '';
   const selectId = useId();
   const offers = gameState.tradeOffers ?? noOffers;
   const incoming = offers.filter(offer => offer.sellerId === myPlayerId);
@@ -150,22 +225,31 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
     const received = added.find(offer => offer.sellerId === myPlayerId);
     const removed = previous.filter(offer => (offer.buyerId === myPlayerId || offer.sellerId === myPlayerId)
       && !offers.some(current => current.id === offer.id));
-    const closed = removed.find(offer => gameState.properties[offer.tileId]?.ownerId === offer.buyerId) ?? removed[0];
-    if (counter) {
+    const closed = removed.find(offer => offer.id === settledSwap?.id) ?? removed.find(offer =>
+      offer.offeredTileId === undefined && gameState.properties[offer.tileId]?.ownerId === offer.buyerId) ?? removed[0];
+    if (settledSwap && settledSwap.id !== lastAnnouncedSwap.current) {
+      lastAnnouncedSwap.current = settledSwap.id;
+      setNotice(confirmedSwapNotice);
+    } else if (counter) {
       const asset = BOARD_TILES[counter.tileId].name;
-      if (counter.sellerId === myPlayerId) {
+      if (counter.offeredTileId !== undefined) {
+        setNotice(`Đã cập nhật tiền bù. ${swapSummary(gameState, counter)}`);
+      } else if (counter.sellerId === myPlayerId) {
         setNotice(`Bạn đã ra giá ${money(counter.price)} cho ${asset}. Đang chờ người mua trả lời.`);
       } else {
         const seller = gameState.players.find(player => player.id === counter.sellerId);
         setNotice(`${seller?.name ?? 'Chủ sở hữu'} đã ra giá mới ${money(counter.price)} cho ${asset}.`);
       }
     } else if (sent) {
-      setNotice(`Đã gửi đề nghị mua ${BOARD_TILES[sent.tileId].name}.`);
+      setNotice(sent.offeredTileId !== undefined ? `Đã gửi đề nghị đổi cảng. ${swapSummary(gameState, sent)}`
+        : `Đã gửi đề nghị mua ${BOARD_TILES[sent.tileId].name}.`);
       setMode('offers');
     } else if (closed) {
       const name = BOARD_TILES[closed.tileId].name;
-      const settled = gameState.properties[closed.tileId]?.ownerId === closed.buyerId;
-      if (settled) {
+      if (closed.offeredTileId !== undefined) {
+        setNotice(settledSwap?.id === closed.id ? confirmedSwapNotice
+          : `Đề nghị đổi ${BOARD_TILES[closed.offeredTileId].name} lấy ${name} đã đóng.`);
+      } else if (gameState.properties[closed.tileId]?.ownerId === closed.buyerId) {
         setNotice(`Bạn đã ${closed.buyerId === myPlayerId ? 'mua' : 'bán'} ${name} với giá ${money(closed.price)}.`);
       } else {
         const currentAsk = closed.originalPrice === undefined && closed.buyerId === myPlayerId && closed.sellerId.startsWith('ai-')
@@ -176,9 +260,10 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
           : closed.originalPrice !== undefined ? `Đề nghị giá mới ${money(closed.price)} cho ${name} đã đóng.` : `Đề nghị mua ${name} đã đóng.`);
       }
     } else if (received) {
-      setNotice(`Bạn có đề nghị mới cho ${BOARD_TILES[received.tileId].name}.`);
+      setNotice(received.offeredTileId !== undefined ? `Bạn có đề nghị đổi cảng. ${swapSummary(gameState, received)}`
+        : `Bạn có đề nghị mới cho ${BOARD_TILES[received.tileId].name}.`);
     }
-  }, [offers, myPlayerId, gameState]);
+  }, [offers, myPlayerId, gameState, settledSwap, confirmedSwapNotice]);
 
   useLayoutEffect(() => {
     const before = lastFocus.current;
@@ -208,9 +293,11 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
 
   const settlementOpen = canSettleTrade(gameState);
   const playerName = (id: string) => gameState.players.find(player => player.id === id)?.name;
-  const canAccept = (offer: TradeOffer) => settlementOpen &&
-    (gameState.players.find(player => player.id === offer.buyerId)?.balance ?? 0) >= offer.price &&
-    gameState.properties[offer.tileId]?.ownerId === offer.sellerId && !getTradeRestriction(gameState, offer.buyerId, offer.tileId);
+  const canAccept = (offer: TradeOffer) => settlementOpen && isValidTradeOffer(gameState, offer);
+  function accept(offer: TradeOffer) {
+    send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: true,
+      ...(offer.offeredTileId !== undefined && { offeredTileId: offer.offeredTileId }) });
+  }
   return (
     <BoardDialog labelledBy={titleId} onClose={onClose}>
       <div className="chart-dialog-sheet trade-desk" onFocusCapture={event => { lastFocus.current = event.target; }}>
@@ -223,13 +310,15 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
           <button type="button" aria-pressed={mode === 'browse'} onClick={() => setMode('browse')}>Tìm mua</button>
           <button type="button" ref={offersTab} aria-pressed={mode === 'offers'} onClick={() => setMode('offers')}>Đề nghị <span>{offerCount}</span></button>
         </div>
+        {settledSwap && <PortSwapReceipt key={settledSwap.id} offer={settledSwap} state={gameState} animate={settledSwap.id !== initialSwap.current} />}
         {decisionChanged && decision && (
           <div className="trade-board-prompt">
             <p role="status">{boardPrompts[decision]}</p>
             <button type="button" className="chart-button chart-button-navy" onClick={onClose}>Về bàn cờ</button>
           </div>
         )}
-        <div className="trade-desk-notice" role="status">{notice}</div>
+        <div className={notice && notice === confirmedSwapNotice ? 'sr-only' : 'trade-desk-notice'}
+          role="status" aria-atomic="true">{notice}</div>
         {!settlementOpen && (mode === 'browse' || offerCount > 0) && (
           <p className="trade-desk-guidance" data-trade-settlement-wait>Đề nghị vẫn chờ trong lúc bàn cờ xử lý quyết định. Có thể chấp nhận sau khi đấu giá hoặc quyết định đó kết thúc.</p>
         )}
@@ -255,20 +344,14 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
                       <strong>{selected.group.name}</strong>
                       <span>Bạn có {selected.owned}/{selected.group.tileIds.length}</span>
                     </div>
-                    {selected.completes && <p>{selected.tile.group ? 'Mua tài sản này để hoàn thành tuyến.' : 'Mua tài sản này để sở hữu trọn bộ.'}</p>}
+                    {selected.completes && <p>{selected.tile.group ? 'Nếu mua bằng tiền, bạn sẽ hoàn thành tuyến.' : 'Mua tài sản này để sở hữu trọn bộ.'}</p>}
                     <dl className="trade-facts">
                       <div><dt>Chủ sở hữu</dt><dd>{selected.seller.name}</dd></div>
                       <div><dt>Giá niêm yết</dt><dd>{money(selected.price)}</dd></div>
                     </dl>
-                    {askingPrice !== null && (
-                      <div className="trade-bot-quote">
-                        <p>Giá AI yêu cầu <strong>{money(askingPrice)}</strong></p>
-                        <small>{gameState.mode === 'harbor' && selected.tile.type === 'PORT'
-                          ? 'Nếu bạn đề nghị thấp hơn, AI có thể ra giá mới để bạn cân nhắc.'
-                          : 'AI chỉ bán từ mức này. Giá tăng khi AI có nhiều tài sản cùng nhóm.'}</small>
-                      </div>
-                    )}
-                    {!selected.restriction && <TradeCargoImpact state={gameState} tileId={selected.tile.id} buyerId={myPlayerId} sellerId={selected.seller.id} />}
+                    {outgoing && askingPrice !== null && <p className="trade-bot-quote">Giá mua bằng tiền AI yêu cầu <strong>{money(askingPrice)}</strong></p>}
+                    {outgoing && !selected.restriction && <TradeImpact state={gameState} tileId={selected.tile.id} buyerId={myPlayerId}
+                      sellerId={selected.seller.id} offeredTileId={outgoing.tileId === selected.tile.id ? outgoing.offeredTileId : undefined} />}
                   </div>
                   {outgoing ? (
                     <div className="trade-desk-guidance">
@@ -279,8 +362,9 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
                   ) : selected.restriction ? (
                     <p className="trade-desk-guidance">{selected.restriction}</p>
                   ) : buyer && (
-                    <CashOffer key={`${selected.tile.id}-${selected.seller.id}`} balance={buyer.balance} listPrice={selected.price} askingPrice={askingPrice}
-                      disabled={pending} send={price => send({ type: 'OFFER_TRADE', tileId: selected.tile.id, sellerId: selected.seller.id, price })} />
+                    <OfferForm key={`${selected.tile.id}-${selected.seller.id}`} state={gameState} tileId={selected.tile.id}
+                      buyerId={myPlayerId} sellerId={selected.seller.id} balance={buyer.balance} listPrice={selected.price}
+                      askingPrice={askingPrice} disabled={pending} send={send} />
                   )}
                 </>
               ) : <p className="chart-dialog-copy">Tài sản vừa đổi chủ. Chọn tài sản khác để tiếp tục.</p>}
@@ -296,16 +380,22 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
                 const counter = offer.originalPrice !== undefined;
                 return (
                   <article key={offer.id} className="trade-offer-card" data-trade-offer={offer.id} data-trade-direction={counter ? 'counter-sent' : 'offer-received'}>
-                    <div><strong>{BOARD_TILES[offer.tileId].name}</strong><b>{money(offer.price)}</b></div>
-                    {counter ? <p>{bidder?.name} đề nghị {money(offer.originalPrice!)}. Đang chờ {bidder?.name} trả lời mức giá mới của bạn.</p>
-                      : <p>{bidder?.name} hỏi mua · Giá niêm yết {money(BOARD_TILES[offer.tileId].price!)}</p>}
-                    <TradeCargoImpact state={gameState} tileId={offer.tileId} buyerId={offer.buyerId} sellerId={offer.sellerId} />
+                    {offer.offeredTileId !== undefined ? <>
+                      <strong className="trade-swap-heading">Đề nghị đổi cảng</strong>
+                      <SwapTerms state={gameState} offer={offer} price={offer.price} />
+                      {counter && <p>Tiền bù ban đầu {money(offer.originalPrice!)}. Đang chờ {bidder?.name} trả lời.</p>}
+                    </> : <>
+                      <div><strong>{BOARD_TILES[offer.tileId].name}</strong><b>{money(offer.price)}</b></div>
+                      {counter ? <p>{bidder?.name} đề nghị {money(offer.originalPrice!)}. Đang chờ {bidder?.name} trả lời mức giá mới của bạn.</p>
+                        : <p>{bidder?.name} hỏi mua · Giá niêm yết {money(BOARD_TILES[offer.tileId].price!)}</p>}
+                    </>}
+                    <TradeImpact state={gameState} {...offer} />
                     {counter ? <button type="button" className="chart-button" data-counter-withdraw disabled={pending}
                       onClick={() => send({ type: 'CANCEL_TRADE', offerId: offer.id })}>Rút giá mới</button>
                       : <>
                         <div className="chart-action-row">
                           <button type="button" className="chart-button chart-button-primary" disabled={pending || !canAccept(offer)}
-                            onClick={() => send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: true })}>Chấp nhận</button>
+                            data-swap-accept={offer.offeredTileId !== undefined ? true : undefined} onClick={() => accept(offer)}>Chấp nhận</button>
                           <button type="button" className="chart-button" disabled={pending}
                             onClick={() => send({ type: 'RESPOND_TRADE', offerId: offer.id, accept: false })}>Từ chối</button>
                         </div>
@@ -321,14 +411,22 @@ export function TradeDesk({ gameState, myPlayerId, initialTileId, onAction, onCl
               <h3>{outgoing.originalPrice !== undefined ? 'Giá mới từ người bán' : 'Đề nghị đã gửi'}</h3>
               <article key={outgoing.id} className="trade-offer-card" data-trade-offer={outgoing.id}
                 data-trade-direction={outgoing.originalPrice !== undefined ? 'counter-received' : 'offer-sent'}>
-                <div><strong>{BOARD_TILES[outgoing.tileId].name}</strong><b>{money(outgoing.price)}</b></div>
-                {outgoing.originalPrice !== undefined
-                  ? <p>Bạn đã đề nghị {money(outgoing.originalPrice)}. {playerName(outgoing.sellerId)} muốn bán với giá <strong>{money(outgoing.price)}</strong>.</p>
-                  : <p>Đang chờ {playerName(outgoing.sellerId)} phản hồi.</p>}
-                <TradeCargoImpact state={gameState} tileId={outgoing.tileId} buyerId={outgoing.buyerId} sellerId={outgoing.sellerId} />
+                {outgoing.offeredTileId !== undefined ? <>
+                  <strong className="trade-swap-heading">Đề nghị đổi cảng</strong>
+                  <SwapTerms state={gameState} offer={outgoing} price={outgoing.price} />
+                  {outgoing.originalPrice !== undefined
+                    ? <p>Tiền bù bạn đề nghị ban đầu {money(outgoing.originalPrice)}. {playerName(outgoing.sellerId)} đã đề nghị mức mới.</p>
+                    : <p>Đang chờ {playerName(outgoing.sellerId)} phản hồi.</p>}
+                </> : <>
+                  <div><strong>{BOARD_TILES[outgoing.tileId].name}</strong><b>{money(outgoing.price)}</b></div>
+                  {outgoing.originalPrice !== undefined
+                    ? <p>Bạn đã đề nghị {money(outgoing.originalPrice)}. {playerName(outgoing.sellerId)} muốn bán với giá <strong>{money(outgoing.price)}</strong>.</p>
+                    : <p>Đang chờ {playerName(outgoing.sellerId)} phản hồi.</p>}
+                </>}
+                <TradeImpact state={gameState} {...outgoing} />
                 {outgoing.originalPrice !== undefined ? <div className="chart-action-row">
                   <button type="button" className="chart-button chart-button-primary" data-counter-accept disabled={pending || !canAccept(outgoing)}
-                    onClick={() => send({ type: 'RESPOND_TRADE', offerId: outgoing.id, accept: true })}>Chấp nhận giá mới</button>
+                    onClick={() => accept(outgoing)}>Chấp nhận giá mới</button>
                   <button type="button" className="chart-button" data-counter-decline disabled={pending}
                     onClick={() => send({ type: 'RESPOND_TRADE', offerId: outgoing.id, accept: false })}>Từ chối giá mới</button>
                 </div> : <button type="button" className="chart-button" disabled={pending}

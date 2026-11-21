@@ -75,7 +75,7 @@ export function parseRentReceiptFromEvent(
   return null;
 }
 
-type Claim = Pick<Extract<GameEvent, { type: 'TILE_PURCHASED' }>, 'tileId' | 'playerId' | 'price'>;
+export interface TileClaim { tileId: number; playerId: string; swapId?: number }
 interface Track {
   settled: Pose;
   frames: TravelFrame[];
@@ -94,7 +94,7 @@ export function useBoardPlayback(initialState: GameState, subscribe: SubscribeBo
   const atlasSequence = useRef(0);
   const showPort = (port: PortGuide) => setAtlas({ id: ++atlasSequence.current, port });
   const closeAtlas = () => setAtlas(null);
-  const [claims, setClaims] = useState<Record<number, Claim>>({});
+  const [claims, setClaims] = useState<Record<number, TileClaim>>({});
   const [rentReceipts, setRentReceipts] = useState<Record<number, RentReceipt>>({});
   const [pendingRentReceipts, setPendingRentReceipts] = useState<Record<number, RentReceipt>>({});
   const rentExpiry = useRef(new Map<number, ReturnType<typeof setTimeout>>()).current;
@@ -159,28 +159,27 @@ export function useBoardPlayback(initialState: GameState, subscribe: SubscribeBo
         return next;
       });
 
-      for (const event of events) {
-        let claim: Claim | undefined;
-        if (event.type === 'TILE_PURCHASED') claim = event;
-        else if (event.type === 'TRADE_CLOSED' && event.result === 'ACCEPTED') {
-          const { tileId, buyerId, price } = event.offer;
-          claim = { tileId, playerId: buyerId, price };
-        }
-        if (claim) {
-          const entry = claim;
-          const { tileId } = entry;
-          clearTimeout(claimExpiry.get(tileId));
-          setClaims((prev) => ({ ...prev, [tileId]: entry }));
-          claimExpiry.set(tileId, setTimeout(() => {
-            setClaims((prev) => {
-              const next = { ...prev };
-              delete next[tileId];
-              return next;
-            });
-            claimExpiry.delete(tileId);
-          }, 1800));
-        }
+      function markClaim(entry: TileClaim) {
+        const { tileId } = entry;
+        clearTimeout(claimExpiry.get(tileId));
+        setClaims((prev) => ({ ...prev, [tileId]: entry }));
+        claimExpiry.set(tileId, setTimeout(() => {
+          setClaims((prev) => {
+            const next = { ...prev };
+            delete next[tileId];
+            return next;
+          });
+          claimExpiry.delete(tileId);
+        }, 1800));
+      }
 
+      for (const event of events) {
+        if (event.type === 'TILE_PURCHASED') markClaim(event);
+        else if (event.type === 'TRADE_CLOSED' && event.result === 'ACCEPTED') {
+          const { id, tileId, buyerId, sellerId, offeredTileId } = event.offer;
+          markClaim({ tileId, playerId: buyerId, swapId: offeredTileId !== undefined ? id : undefined });
+          if (offeredTileId !== undefined) markClaim({ tileId: offeredTileId, playerId: sellerId, swapId: id });
+        }
         const receipt = parseRentReceiptFromEvent(event, state.players);
         if (receipt) setPendingRentReceipts((prev) => ({ ...prev, [receipt.tileId]: receipt }));
       }

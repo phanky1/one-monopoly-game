@@ -336,12 +336,16 @@ export interface TradeOffer {
   buyerId: string;
   sellerId: string;
   tileId: number;
+  /** In a port exchange this deed travels from the buyer to the seller. */
+  offeredTileId?: number;
   price: number;
   originalPrice?: number;
 }
 
 export interface GameState {
   mode?: GameMode; // Snapshots without a mode use the original board rules.
+  /** Advertised by the connected server in live Monopoly room views. */
+  supportsPortSwaps?: true;
   harborFreight?: HarborFreightState;
   logistics?: LogisticsState;
   cargoRevision?: number;
@@ -389,8 +393,9 @@ export type GameAction =
   | BackhaulAccept
   | CargoAction | DestinationChange | SailAction | FeederSailAction | FreightTenderBid | FreightTenderWithdrawal
   | { type: 'OFFER_TRADE'; tileId: number; sellerId: string; price: number }
-  | { type: 'COUNTER_TRADE'; offerId: number; price: number }
-  | { type: 'RESPOND_TRADE'; offerId: number; accept: boolean }
+  | { type: 'OFFER_PORT_SWAP'; tileId: number; sellerId: string; price: number; offeredTileId: number }
+  | { type: 'COUNTER_TRADE'; offerId: number; price: number; offeredTileId?: number }
+  | { type: 'RESPOND_TRADE'; offerId: number; accept: boolean; offeredTileId?: number }
   | { type: 'CANCEL_TRADE'; offerId: number }
   | { type: 'AUCTION_BID'; auctionId: number; revision: number; amount: number }
   | { type: 'AUCTION_PASS'; auctionId: number; revision: number }

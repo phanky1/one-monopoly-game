@@ -517,7 +517,7 @@ export const Board: React.FC<Props> = ({
 
       <span className="sr-only" role="status">
         {Object.values(claims).map((claim) => (
-          <span key={claim.tileId}>{gameState.players.find((player) => player.id === claim.playerId)?.name} đã mua {BOARD_TILES[claim.tileId].name}. </span>
+          <span key={claim.tileId}>{gameState.players.find((player) => player.id === claim.playerId)?.name} {claim.swapId === undefined ? 'đã mua' : 'nhận được'} {BOARD_TILES[claim.tileId].name}. </span>
         ))}
         {Object.values(rentReceipts).map((receipt) => (
           <span key={`rent-${receipt.tileId}`}>

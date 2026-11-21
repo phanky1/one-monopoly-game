@@ -38,7 +38,7 @@ import {
 } from './boardData.js';
 import { createLogisticsState, dispatchLogistics } from './cargo.js';
 import { createHarborFreight, dispatchHarborFreight, getHarborFreightOpportunity, recordHarborVisit } from './harborFreight.js';
-import { dispatchTrade, expireTradeOffers } from './trade.js';
+import { dispatchTrade, expireTradeOffers, isTradeAction } from './trade.js';
 import { getMissionProgress } from './missionProgress.js';
 import { getPropertyCashOption, getRedemptionCost } from './debtRecovery.js';
 
@@ -155,8 +155,7 @@ export class OneMonopolyEngine {
         action.type === 'SAIL_TO_PORT' || action.type === 'SAIL_FEEDER' || action.type === 'ACCEPT_BACKHAUL' ||
         action.type === 'CHANGE_DESTINATION' || action.type === 'BID_FREIGHT_TENDER' ||
         action.type === 'WITHDRAW_FREIGHT_TENDER_BID') return { state, events: [] };
-    const isTrade = action.type === 'OFFER_TRADE' || action.type === 'COUNTER_TRADE' ||
-      action.type === 'RESPOND_TRADE' || action.type === 'CANCEL_TRADE';
+    const isTrade = isTradeAction(action);
     const result = isTrade
       ? dispatchTrade(state, action, actorId, OneMonopolyEngine.checkMissionCompletion)
       : OneMonopolyEngine.dispatchTurnAction(state, action);

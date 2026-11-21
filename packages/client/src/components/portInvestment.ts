@@ -1,5 +1,5 @@
 import {
-  BOARD_TILES, LOOP_GROUPS_CONFIG, OneMonopolyEngine, getHarborFreightQuote, getHarborTerminalShare,
+  BOARD_TILES, LOOP_GROUPS_CONFIG, OneMonopolyEngine, getHarborFreightQuote, getHarborTerminalShare, projectTradeProperties,
   type GameState, type HarborFreightQuote,
 } from '@one-monopoly/shared';
 
@@ -16,6 +16,13 @@ export function projectPortOwnership(state: GameState, tileId: number, buyerId: 
   return { ...state, properties: { ...state.properties,
     [tileId]: { ...state.properties[tileId], ownerId: buyerId, slotCharter: null },
   } };
+}
+
+/** Project the final deeds together, before calculating group rents or handling fees. */
+export function projectPortTrade(
+  state: GameState, tileId: number, buyerId: string, sellerId: string, offeredTileId?: number,
+): GameState {
+  return { ...state, properties: projectTradeProperties(state, { tileId, buyerId, sellerId, offeredTileId }) };
 }
 
 export function getPortInvestment(state: GameState, tileId: number, buyerId: string | null): PortInvestment | null {

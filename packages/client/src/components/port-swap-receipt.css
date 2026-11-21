@@ -1,0 +1,31 @@
+.port-swap-receipt {
+  padding: 10px 12px;
+  border: 1px solid #9bad9c; border-radius: 4px;
+  background: #eef2e5; color: #193e46;
+}
+.port-swap-receipt h3 { margin: 0; font: 700 1.04rem/1.3 var(--chart-display); }
+.port-swap-deeds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 6px 0; }
+.port-swap-party > p { margin: 0 0 3px; font: 650 .77rem/1.3 var(--chart-sans); overflow-wrap: anywhere; }
+.port-swap-deed {
+  display: flex; gap: 7px; align-items: center; min-height: 55px; padding: 3px 6px;
+  border: 1px solid #b4baac; border-top: 4px solid; border-radius: 3px;
+  background: #fffbea; box-shadow: 0 2px 3px #233e4320;
+}
+.port-swap-deed .port-miniature-tile { width: 48px; height: 38px; flex: none; }
+.port-swap-deed strong { display: block; font: 700 .91rem/1.12 var(--chart-display); overflow-wrap: anywhere; }
+.port-swap-deed small { color: #47636a; font: 600 .65rem/1.25 var(--chart-mono); }
+.port-swap-paid { margin: 0; color: #355657; font: 500 .77rem/1.35 var(--chart-sans); }
+@media (prefers-reduced-motion: no-preference) {
+  .port-swap-receipt[data-animate] .port-swap-deed {
+    --departure-x: calc(100% + 10px); --lift: -9px; --tilt: -3deg;
+    animation: exchange-port-deed 1s cubic-bezier(.43,.02,.22,1) both;
+  }
+  .port-swap-receipt[data-animate] .port-swap-party:last-child .port-swap-deed {
+    --departure-x: calc(-100% - 10px); --lift: 9px; --tilt: 3deg;
+  }
+  @keyframes exchange-port-deed {
+    0%, 15% { transform: translateX(var(--departure-x)); }
+    50% { transform: translate(calc(var(--departure-x) / 2), var(--lift)) rotate(var(--tilt)); }
+    100% { transform: none; }
+  }
+}
